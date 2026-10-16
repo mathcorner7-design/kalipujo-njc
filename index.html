@@ -9,10 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDKs (Most Stable CDN) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
   <style>
     :root {
       --bg-color: #0d0103;
@@ -20,7 +16,6 @@
       --gold-primary: #f5b041;
       --gold-bright: #ffd700;
       --crimson: #800020;
-      --crimson-dark: #4a0011;
       --text-main: #f5e6d3;
       --text-muted: #d4af37;
       --success: #2ecc71;
@@ -212,7 +207,6 @@
       border: 1.5px solid var(--gold-primary);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       cursor: pointer;
-      transition: transform 0.2s ease;
       text-decoration: none;
     }
     .social-btn:active { transform: scale(0.9); }
@@ -408,9 +402,7 @@
       background: linear-gradient(145deg, rgba(40, 4, 10, 0.95), rgba(20, 2, 5, 0.95));
       border: 1.5px solid var(--gold-primary);
       cursor: pointer;
-      transition: all 0.2s ease;
     }
-    .folder-card:active { transform: scale(0.98); border-color: var(--gold-bright); }
 
     .list-info { flex-grow: 1; }
     .list-name { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -458,7 +450,6 @@
       background: linear-gradient(135deg, #b31217, #e52d27);
       color: #fff;
       border-color: var(--gold-bright);
-      box-shadow: 0 0 8px rgba(245, 176, 65, 0.4);
     }
 
     .audit-grid {
@@ -614,8 +605,8 @@
     <!-- 1. HOME SCREEN -->
     <div id="homeScreen" class="screen">
       <div class="header-box">
-        <div class="sync-badge" id="syncStatus">☁️ ক্লাউড কানেক্ট হচ্ছে...</div>
-        <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
+        <div class="sync-badge" id="syncStatus">☁️ রিয়েল-টাইম ক্লাউড চালু আছে</div>
+        <h1 class="committee-title">নিউ ঝালাপাল্লা কমিটি</h1>
         <div class="main-banner" id="homeBannerText">কালীপুজো ২০২৬ এ আপনাদের সবাইকে স্বাগতম</div>
       </div>
 
@@ -1095,9 +1086,8 @@
     </div>
   </div>
 
-  <!-- FIREBASE LOGIC & UI SCRIPT -->
+  <!-- CORE APPLICATION LOGIC (INDEPENDENT OF NETWORK) -->
   <script>
-    // ডিফল্ট স্টেট
     var appState = {
       adminPin: '1234',
       pujaYear: '২০২৬',
@@ -1117,68 +1107,55 @@
     var activeProgramCategory = 'dance';
     var activeSportIndex = null;
     var currentScreenId = 'homeScreen';
-    var docRef = null;
+    var firestoreDoc = null;
 
-    // Firebase Initialization
+    // লোকাল ক্যাশ লোড করা (ইন্টারনেট না থাকলেও বাটন সাথে সাথে খুলবে)
     try {
-      var firebaseConfig = {
-        apiKey: "AIzaSyAAaG35fMbzgdxcuMLFDHRHoxP2qnL0t24",
-        authDomain: "new-jhalapala-committee.firebaseapp.com",
-        projectId: "new-jhalapala-committee",
-        storageBucket: "new-jhalapala-committee.firebasestorage.app",
-        messagingSenderId: "379287603039",
-        appId: "1:379287603039:web:15e1451a6f0e37074398ea"
-      };
-
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+      var cached = localStorage.getItem('puja_local_db');
+      if (cached) {
+        var parsed = JSON.parse(cached);
+        appState = Object.assign({}, appState, parsed);
       }
-      var db = firebase.firestore();
-      docRef = db.collection("pujaData").doc("accounts2026");
+    } catch(e) {}
 
-      // রিয়েল-টাইম ক্লাউড লিসেনার
-      docRef.onSnapshot(function(doc) {
-        if (doc && doc.exists) {
-          var cloudData = doc.data();
-          appState = Object.assign({}, appState, cloudData);
-          var badge = document.getElementById('syncStatus');
-          if (badge) badge.innerText = "☁️ লাইভ ক্লাউড সিঙ্ক চালু আছে";
-        } else {
-          pushToCloud();
-        }
-        refreshUI();
-      }, function(error) {
-        console.warn("Firestore Listener Notice:", error);
-        var badge = document.getElementById('syncStatus');
-        if (badge) badge.innerText = "☁️ লোকাল ক্যাশ সিঙ্ক চালু";
+    function showScreen(screenId) {
+      currentScreenId = screenId;
+      var screens = [
+        'homeScreen', 'officialScreen', 'graminScreen', 
+        'memberScreen', 'memberLedgerScreen',
+        'mainExpenseScreen', 'mainExpenseDetailScreen',
+        'generalExpenseScreen', 'programScreen',
+        'sportsScreen', 'sportsDetailScreen',
+        'finalAuditScreen', 'publicScreen'
+      ];
+      screens.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
       });
-    } catch (e) {
-      console.warn("Firebase Init fallback:", e);
-      var badge = document.getElementById('syncStatus');
-      if (badge) badge.innerText = "☁️ ক্লাউড স্ট্যান্ডবাই";
+      var target = document.getElementById(screenId);
+      if (target) target.classList.remove('hidden');
     }
 
-    function pushToCloud() {
-      if (docRef) {
-        docRef.set(appState).catch(function(err) {
-          console.error("Cloud save warning:", err);
-        });
+    function openPinModal() {
+      var input = document.getElementById('inputPin');
+      input.value = '';
+      document.getElementById('pinModal').classList.remove('hidden');
+      setTimeout(function() { input.focus(); }, 100);
+    }
+
+    function closePinModal() {
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+
+    function verifyPin() {
+      var entered = document.getElementById('inputPin').value.trim();
+      if (entered === (appState.adminPin || '1234')) {
+        closePinModal();
+        showScreen('officialScreen');
+      } else {
+        alert("ভুল পিন নম্বর! সঠিক পিন দিন।");
+        document.getElementById('inputPin').value = '';
       }
-    }
-
-    function refreshUI() {
-      refreshYearDisplay();
-      if (currentScreenId === 'graminScreen') renderGraminChanda();
-      else if (currentScreenId === 'memberScreen') renderMemberList();
-      else if (currentScreenId === 'memberLedgerScreen') renderMemberLedger();
-      else if (currentScreenId === 'mainExpenseScreen') renderMainExpenseCategories();
-      else if (currentScreenId === 'mainExpenseDetailScreen') renderMainExpenseDetail();
-      else if (currentScreenId === 'generalExpenseScreen') renderGeneralExpenses();
-      else if (currentScreenId === 'programScreen') renderProgramList();
-      else if (currentScreenId === 'sportsScreen') renderSportsGames();
-      else if (currentScreenId === 'sportsDetailScreen') renderSportsWinners();
-      else if (currentScreenId === 'finalAuditScreen') renderFinalAudit();
-      else if (currentScreenId === 'publicScreen') renderPublicView();
     }
 
     function formatInputText(str) {
@@ -1199,28 +1176,45 @@
       }
     });
 
+    function getCurrentDateTime() {
+      var now = new Date();
+      return now.toLocaleString('en-IN', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+    }
+
     function refreshYearDisplay() {
       var year = appState.pujaYear || '২০২৬';
       var el = document.getElementById('homeBannerText');
       if (el) el.innerText = "কালীপুজো " + year + " এ আপনাদের সবাইকে স্বাগতম";
     }
 
-    function showScreen(screenId) {
-      currentScreenId = screenId;
-      var screens = [
-        'homeScreen', 'officialScreen', 'graminScreen', 
-        'memberScreen', 'memberLedgerScreen',
-        'mainExpenseScreen', 'mainExpenseDetailScreen',
-        'generalExpenseScreen', 'programScreen',
-        'sportsScreen', 'sportsDetailScreen',
-        'finalAuditScreen', 'publicScreen'
-      ];
-      screens.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-      });
-      var target = document.getElementById(screenId);
-      if (target) target.classList.remove('hidden');
+    function refreshUI() {
+      refreshYearDisplay();
+      if (currentScreenId === 'graminScreen') renderGraminChanda();
+      else if (currentScreenId === 'memberScreen') renderMemberList();
+      else if (currentScreenId === 'memberLedgerScreen') renderMemberLedger();
+      else if (currentScreenId === 'mainExpenseScreen') renderMainExpenseCategories();
+      else if (currentScreenId === 'mainExpenseDetailScreen') renderMainExpenseDetail();
+      else if (currentScreenId === 'generalExpenseScreen') renderGeneralExpenses();
+      else if (currentScreenId === 'programScreen') renderProgramList();
+      else if (currentScreenId === 'sportsScreen') renderSportsGames();
+      else if (currentScreenId === 'sportsDetailScreen') renderSportsWinners();
+      else if (currentScreenId === 'finalAuditScreen') renderFinalAudit();
+      else if (currentScreenId === 'publicScreen') renderPublicView();
+    }
+
+    function persistData() {
+      try {
+        localStorage.setItem('puja_local_db', JSON.stringify(appState));
+      } catch(e) {}
+
+      if (firestoreDoc) {
+        firestoreDoc.set(appState).catch(function(err) {
+          console.warn("Cloud save warning:", err);
+        });
+      }
     }
 
     function handleSocialClick(type) {
@@ -1230,7 +1224,7 @@
       else if (type === 'wp') link = appState.contactWp;
 
       if (!link) {
-        alert("কমিটি এখনও এই যোগাযোগের লিঙ্কটি সেট করেনি। অফিসিয়াল প্যানেলের সেটিংস (⚙️) থেকে লিঙ্ক সেট করতে পারবেন।");
+        alert("কমিটি লিঙ্ক সেট করেনি। অ্যাডমিন সেটিংস (⚙️) থেকে লিঙ্ক সেট করতে পারবেন।");
         return;
       }
 
@@ -1242,25 +1236,6 @@
           link = 'https://' + link;
         }
         window.open(link, '_blank');
-      }
-    }
-
-    function openPinModal() {
-      var input = document.getElementById('inputPin');
-      input.value = '';
-      document.getElementById('pinModal').classList.remove('hidden');
-      setTimeout(function() { input.focus(); }, 150);
-    }
-    function closePinModal() { document.getElementById('pinModal').classList.add('hidden'); }
-
-    function verifyPin() {
-      var entered = document.getElementById('inputPin').value.trim();
-      if (entered === (appState.adminPin || '1234')) {
-        closePinModal();
-        showScreen('officialScreen');
-      } else {
-        alert("ভুল পিন নম্বর! সঠিক পিন দিন।");
-        document.getElementById('inputPin').value = '';
       }
     }
 
@@ -1301,16 +1276,17 @@
         alert("পিন সফলভাবে পরিবর্তন হয়েছে!");
       }
 
-      pushToCloud();
-      alert("সমস্ত সেটিংস সফলভাবে ক্লাউডে সংরক্ষিত হয়েছে!");
+      persistData();
+      alert("সমস্ত সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
       closeAdminSettingsModal();
+      refreshYearDisplay();
     }
 
     function openResetConfirmation() {
       closeAdminSettingsModal();
       document.getElementById('resetInputPin').value = '';
       document.getElementById('resetPinModal').classList.remove('hidden');
-      setTimeout(function() { document.getElementById('resetInputPin').focus(); }, 150);
+      setTimeout(function() { document.getElementById('resetInputPin').focus(); }, 100);
     }
     function closeResetPinModal() { document.getElementById('resetPinModal').classList.add('hidden'); }
 
@@ -1321,9 +1297,7 @@
         return;
       }
 
-      var confirmReset = confirm("⚠️ চূড়ান্ত সতর্কবার্তা!\n\nআপনি কি নিশ্চিত যে ক্লাউডের সমস্ত চাঁদা, খরচ, অনুষ্ঠান ও খেলার রেকর্ড ডিলিট করতে চান? এটি সবার ফোন থেকে মুছে যাবে।");
-
-      if (confirmReset) {
+      if (confirm("⚠️ আপনি কি নিশ্চিত যে সমস্ত চাঁদা, খরচ ও রেকর্ড মুছে সম্পূর্ণ নতুন করে শুরু করতে চান?")) {
         appState.graminChandaList = [];
         appState.memberAccounts = [];
         appState.mainExpenseCategories = [];
@@ -1331,26 +1305,15 @@
         appState.programData = { dance: [], song: [], recitation: [] };
         appState.sportsData = [];
 
-        pushToCloud();
+        persistData();
         closeResetPinModal();
-        alert("অ্যাপের সমস্ত হিসাব সফলভাবে ক্লাউড থেকে মুছে সম্পূর্ণ নতুন করে রিসেট করা হয়েছে!");
+        alert("অ্যাপের সমস্ত হিসাব সফলভাবে মুছে ফেলা হয়েছে!");
         showScreen('homeScreen');
       }
     }
 
-    function getCurrentDateTime() {
-      var now = new Date();
-      return now.toLocaleString('en-IN', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-      });
-    }
-
     /* ১. গ্রামীন চাঁদা */
-    function openGraminChandaScreen() {
-      showScreen('graminScreen');
-      renderGraminChanda();
-    }
+    function openGraminChandaScreen() { showScreen('graminScreen'); renderGraminChanda(); }
     function addGraminChanda() {
       var name = formatInputText(document.getElementById('gName').value);
       var amount = parseFloat(document.getElementById('gAmount').value);
@@ -1358,7 +1321,7 @@
       if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
 
       appState.graminChandaList.unshift({ name: name, amount: amount, dateTime: getCurrentDateTime() });
-      pushToCloud();
+      persistData();
       document.getElementById('gName').value = '';
       document.getElementById('gAmount').value = '';
       renderGraminChanda();
@@ -1391,7 +1354,7 @@
     function deleteGramin(index) {
       if (confirm("এই গ্রামীন চাঁদা এন্ট্রি মুছে ফেলতে চান?")) {
         appState.graminChandaList.splice(index, 1);
-        pushToCloud();
+        persistData();
         renderGraminChanda();
       }
     }
@@ -1401,16 +1364,13 @@
     }
 
     /* ২. মেম্বার চাঁদা */
-    function openMemberChandaScreen() {
-      showScreen('memberScreen');
-      renderMemberList();
-    }
+    function openMemberChandaScreen() { showScreen('memberScreen'); renderMemberList(); }
     function createMember() {
       var name = formatInputText(document.getElementById('newMemberName').value);
       if (!name) { alert("মেম্বারের নাম লিখুন!"); return; }
       if (!appState.memberAccounts) appState.memberAccounts = [];
       appState.memberAccounts.unshift({ name: name, createdAt: getCurrentDateTime(), transactions: [] });
-      pushToCloud();
+      persistData();
       document.getElementById('newMemberName').value = '';
       renderMemberList();
     }
@@ -1449,7 +1409,7 @@
     function deleteMemberProfile(index) {
       if (confirm('আপনি কি "' + appState.memberAccounts[index].name + '" মেম্বার ও তাঁর সব এন্ট্রি মুছে ফেলতে চান?')) {
         appState.memberAccounts.splice(index, 1);
-        pushToCloud();
+        persistData();
         renderMemberList();
       }
     }
@@ -1469,7 +1429,7 @@
         appState.memberAccounts[activeMemberIndex].transactions = [];
       }
       appState.memberAccounts[activeMemberIndex].transactions.unshift({ remarks: remarks, amount: amount, dateTime: getCurrentDateTime() });
-      pushToCloud();
+      persistData();
       document.getElementById('mEntryRemarks').value = '';
       document.getElementById('mEntryAmount').value = '';
       renderMemberLedger();
@@ -1504,7 +1464,7 @@
     function deleteMemberTransaction(tIndex) {
       if (confirm("এই জমার এন্ট্রি মুছে ফেলতে চান?")) {
         appState.memberAccounts[activeMemberIndex].transactions.splice(tIndex, 1);
-        pushToCloud();
+        persistData();
         renderMemberLedger();
       }
     }
@@ -1514,16 +1474,13 @@
     }
 
     /* ৩. প্রধান খরচ */
-    function openMainExpenseScreen() {
-      showScreen('mainExpenseScreen');
-      renderMainExpenseCategories();
-    }
+    function openMainExpenseScreen() { showScreen('mainExpenseScreen'); renderMainExpenseCategories(); }
     function createMainExpenseCategory() {
       var name = formatInputText(document.getElementById('newMainCategoryName').value);
       if (!name) { alert("প্রধান খরচের খাতের নাম লিখুন! (যেমন: প্রতিমা, মণ্ডপ)"); return; }
       if (!appState.mainExpenseCategories) appState.mainExpenseCategories = [];
       appState.mainExpenseCategories.unshift({ categoryName: name, createdAt: getCurrentDateTime(), payments: [] });
-      pushToCloud();
+      persistData();
       document.getElementById('newMainCategoryName').value = '';
       renderMainExpenseCategories();
     }
@@ -1562,7 +1519,7 @@
     function deleteMainExpenseCategory(index) {
       if (confirm('আপনি কি "' + appState.mainExpenseCategories[index].categoryName + '" খাতের সব হিসাব মুছে ফেলতে চান?')) {
         appState.mainExpenseCategories.splice(index, 1);
-        pushToCloud();
+        persistData();
         renderMainExpenseCategories();
       }
     }
@@ -1582,7 +1539,7 @@
         appState.mainExpenseCategories[activeMainExpenseIndex].payments = [];
       }
       appState.mainExpenseCategories[activeMainExpenseIndex].payments.unshift({ note: note, amount: amount, dateTime: getCurrentDateTime() });
-      pushToCloud();
+      persistData();
       document.getElementById('mainExpDetailNote').value = '';
       document.getElementById('mainExpDetailAmount').value = '';
       renderMainExpenseDetail();
@@ -1617,7 +1574,7 @@
     function deleteMainExpensePayment(pIndex) {
       if (confirm("এই কিস্তির এন্ট্রি মুছে ফেলতে চান?")) {
         appState.mainExpenseCategories[activeMainExpenseIndex].payments.splice(pIndex, 1);
-        pushToCloud();
+        persistData();
         renderMainExpenseDetail();
       }
     }
@@ -1627,10 +1584,7 @@
     }
 
     /* ৪. সাধারণ খরচ */
-    function openGeneralExpenseScreen() {
-      showScreen('generalExpenseScreen');
-      renderGeneralExpenses();
-    }
+    function openGeneralExpenseScreen() { showScreen('generalExpenseScreen'); renderGeneralExpenses(); }
     function addGeneralExpense() {
       var title = formatInputText(document.getElementById('genExpTitle').value);
       var amount = parseFloat(document.getElementById('genExpAmount').value);
@@ -1639,7 +1593,7 @@
 
       if (!appState.generalExpenses) appState.generalExpenses = [];
       appState.generalExpenses.unshift({ title: title, amount: amount, dateTime: getCurrentDateTime() });
-      pushToCloud();
+      persistData();
       document.getElementById('genExpTitle').value = '';
       document.getElementById('genExpAmount').value = '';
       renderGeneralExpenses();
@@ -1672,7 +1626,7 @@
     function deleteGenExpense(index) {
       if (confirm("এই সাধারণ খরচের হিসাব মুছে ফেলতে চান?")) {
         appState.generalExpenses.splice(index, 1);
-        pushToCloud();
+        persistData();
         renderGeneralExpenses();
       }
     }
@@ -1682,10 +1636,7 @@
     }
 
     /* ৫. অনুষ্ঠান কর্মসূচি */
-    function openProgramScreen() {
-      showScreen('programScreen');
-      switchProgramTab(activeProgramCategory);
-    }
+    function openProgramScreen() { showScreen('programScreen'); switchProgramTab(activeProgramCategory); }
     function switchProgramTab(cat) {
       activeProgramCategory = cat;
       document.getElementById('tabNach').classList.remove('active');
@@ -1714,7 +1665,7 @@
       });
       appState.programData[activeProgramCategory].sort(function(a, b) { return a.age - b.age; });
 
-      pushToCloud();
+      persistData();
       document.getElementById('progName').value = '';
       document.getElementById('progAge').value = '';
       document.getElementById('progRemarks').value = '';
@@ -1765,7 +1716,7 @@
     function deleteProgramEntry(index) {
       if (confirm("আপনি কি এই অংশগ্রহণকারীর নাম তালিকা থেকে মুছে ফেলতে চান?")) {
         appState.programData[activeProgramCategory].splice(index, 1);
-        pushToCloud();
+        persistData();
         renderProgramList();
       }
     }
@@ -1773,7 +1724,6 @@
       var item = appState.programData[activeProgramCategory][index];
       setEditModal('program_entry', activeProgramCategory, index, 'প্রতিযোগী সম্পাদনা', 'অংশগ্রহণকারীর নাম', item.name, item.age, item.remarks, item.dateTime);
     }
-
     function generateProgramPdf() {
       var progData = appState.programData || { dance: [], song: [], recitation: [] };
       var year = appState.pujaYear || '২০২৬';
@@ -1815,17 +1765,14 @@
     }
 
     /* ৬. খেলার কর্মসূচি */
-    function openSportsScreen() {
-      showScreen('sportsScreen');
-      renderSportsGames();
-    }
+    function openSportsScreen() { showScreen('sportsScreen'); renderSportsGames(); }
     function createSportGame() {
       var name = formatInputText(document.getElementById('newSportName').value);
       if (!name) { alert("খেলার নাম লিখুন!"); return; }
 
       if (!appState.sportsData) appState.sportsData = [];
       appState.sportsData.unshift({ gameName: name, createdAt: getCurrentDateTime(), winners: [] });
-      pushToCloud();
+      persistData();
       document.getElementById('newSportName').value = '';
       renderSportsGames();
     }
@@ -1862,7 +1809,7 @@
     function deleteSportGame(index) {
       if (confirm('আপনি কি "' + appState.sportsData[index].gameName + '" খেলা ও এর ফলাফল মুছে ফেলতে চান?')) {
         appState.sportsData.splice(index, 1);
-        pushToCloud();
+        persistData();
         renderSportsGames();
       }
     }
@@ -1884,7 +1831,7 @@
       }
 
       appState.sportsData[activeSportIndex].winners.push({ rank: rank, winnerName: winnerName, remarks: remarks || '', dateTime: getCurrentDateTime() });
-      pushToCloud();
+      persistData();
       document.getElementById('sportWinnerName').value = '';
       document.getElementById('sportWinnerRemarks').value = '';
       renderSportsWinners();
@@ -1920,7 +1867,7 @@
     function deleteSportWinner(wIndex) {
       if (confirm("এই ফলাফল মুছে ফেলতে চান?")) {
         appState.sportsData[activeSportIndex].winners.splice(wIndex, 1);
-        pushToCloud();
+        persistData();
         renderSportsWinners();
       }
     }
@@ -2015,10 +1962,7 @@
       };
     }
 
-    function openFinalAuditScreen() {
-      showScreen('finalAuditScreen');
-      renderFinalAudit();
-    }
+    function openFinalAuditScreen() { showScreen('finalAuditScreen'); renderFinalAudit(); }
 
     function renderFinalAudit() {
       var data = calculateAuditData();
@@ -2087,7 +2031,7 @@
       var statusTitle = data.netBalance >= 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2);
 
       var htmlContent = 
-        '<!DOCTYPE html><html lang="bn"><head><title>পূজো শেষের হিসাব ও মেম্বার সেটেলমেন্ট - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<!DOCTYPE html><html lang="bn"><head><title>পূজো শেষের হিসাব - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
         '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
         '.kpi-table, .data-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td{border: 1px solid #aaa; padding: 8px 12px; font-size: 14px;}' +
         '.kpi-table th{background: #f2f2f2; border: 1px solid #aaa; padding: 8px; font-size: 14px;}' +
@@ -2097,7 +2041,7 @@
         '.data-table th{background: #f0f0f0;} .receive{color: #27ae60; font-weight: bold;} .pay{color: #c0392b; font-weight: bold;}' +
         '@media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
         '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ অডিট রিপোর্ট প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
-        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - পূজো শেষের চূড়ান্ত আয়-ব্যয় ও মেম্বার সেটেলমেন্ট রিপোর্ট</h4>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - পূজো শেষের চূড়ান্ত আয়-ব্যয় রিপোর্ট</h4>' +
         '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
         '<table class="kpi-table">' +
           '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + data.totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + data.totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
@@ -2123,10 +2067,7 @@
     }
 
     /* ৮. পাবলিক ভিউ */
-    function openPublicScreen() {
-      showScreen('publicScreen');
-      renderPublicView();
-    }
+    function openPublicScreen() { showScreen('publicScreen'); renderPublicView(); }
 
     function renderPublicView() {
       var graminList = appState.graminChandaList || [];
@@ -2270,7 +2211,7 @@
           var winHtml = '';
           if (s.winners && s.winners.length > 0) {
             s.winners.forEach(function(w) {
-              winHtml += '<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ' + w.rank + ': <strong>' + w.winnerName + '</strong> ' + (w.remarks ? '(' + w.remarks + ')' : '') + '</div>';
+              winHtml += '<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ' + w.rank + ': <strong>${w.winnerName}</strong> ' + (w.remarks ? '(' + w.remarks + ')' : '') + '</div>';
             });
           } else {
             winHtml = '<div style="font-size:0.75rem; color:#aaa; padding-left:8px;">ফলাফল এখনও প্রকাশ হয়নি।</div>';
@@ -2301,4 +2242,19 @@
       var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
 
       var totalIncome = totalGramin + totalMember;
-      var totalExpense = totalMain
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
+
+      var printWindow = window.open('', '_blank');
+      var htmlContent = 
+        '<!DOCTYPE html><html lang="bn"><head><title>কালীপূজা হিসাব বিবরণী - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
+        '.kpi-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td, .kpi-table th{border: 1px solid #aaa; padding: 6px 10px; font-size: 13px;}' +
+        '.kpi-table th{background: #f2f2f2;} .section-head{background: #f5f5f5; padding: 6px 10px; margin-top: 18px; font-weight: bold; border-left: 5px solid #800020;}' +
+        'table.data-table{width: 100%; border-collapse: collapse; margin-top: 6px;} table.data-table th, table.data-table td{border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; text-align: left;}' +
+        'table.data-table th{background: #fafafa;} @media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
+        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - সর্বসাধারণের জন্য হিসাব ও বিবরণী</h4>' +
+        '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
+        '<table class="kpi-table">' +
+          '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + totalMainExp.toLocale
