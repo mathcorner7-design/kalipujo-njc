@@ -9,10 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
   <style>
     :root {
       --bg-color: #0d0103;
@@ -25,578 +21,1470 @@
       --success: #2ecc71;
       --danger: #e74c3c;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Hind Siliguri', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
     body {
       background-color: var(--bg-color);
-      background-image: 
-        radial-gradient(circle at 50% 10%, rgba(128, 0, 32, 0.4) 0%, transparent 60%),
-        radial-gradient(circle at 50% 90%, rgba(245, 176, 65, 0.15) 0%, transparent 60%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px;
+      background-image: radial-gradient(circle at 50% 10%, rgba(128, 0, 32, 0.4) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(245, 176, 65, 0.15) 0%, transparent 60%);
+      color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 12px;
     }
-
     .app-container {
-      width: 100%;
-      max-width: 440px;
-      min-height: 94vh;
-      height: 94vh;
-      background: var(--card-bg);
-      border: 2px solid var(--gold-primary);
-      border-radius: 24px;
-      box-shadow: 0 0 30px rgba(245, 176, 65, 0.25), inset 0 0 15px rgba(128, 0, 32, 0.5);
-      padding: 18px 14px 14px 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      text-align: center;
-      position: relative;
-      overflow-y: auto;
+      width: 100%; max-width: 440px; min-height: 94vh; height: 94vh; background: var(--card-bg);
+      border: 2px solid var(--gold-primary); border-radius: 24px; box-shadow: 0 0 30px rgba(245, 176, 65, 0.25), inset 0 0 15px rgba(128, 0, 32, 0.5);
+      padding: 18px 14px 14px 14px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; position: relative; overflow-y: auto;
     }
-
-    .corner {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--gold-bright);
-      pointer-events: none;
-    }
+    .corner { position: absolute; width: 16px; height: 16px; border: 2px solid var(--gold-bright); pointer-events: none; }
     .top-left { top: 8px; left: 8px; border-right: none; border-bottom: none; }
     .top-right { top: 8px; right: 8px; border-left: none; border-bottom: none; }
     .bottom-left { bottom: 8px; left: 8px; border-right: none; border-top: none; }
     .bottom-right { bottom: 8px; right: 8px; border-left: none; border-top: none; }
-
     .header-box { width: 100%; margin-bottom: 6px; }
-    .committee-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--gold-bright);
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 2px 2px 4px #000;
-      line-height: 1.3;
-      margin-bottom: 4px;
-    }
-
-    .main-banner {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #ffffff;
-      background: linear-gradient(90deg, transparent, rgba(128, 0, 32, 0.8), transparent);
-      padding: 6px 10px;
-      border-top: 1px solid var(--gold-primary);
-      border-bottom: 1px solid var(--gold-primary);
-    }
-
-    .image-wrapper {
-      position: relative;
-      width: 190px;
-      height: 190px;
-      margin: 6px auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .image-halo {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 70%);
-      animation: pulseGlow 3s infinite alternate ease-in-out;
-    }
-
-    .image-frame {
-      width: 170px;
-      height: 170px;
-      border-radius: 50%;
-      border: 3px solid var(--gold-bright);
-      padding: 4px;
-      background: #000;
-      box-shadow: 0 0 15px rgba(245, 176, 65, 0.6);
-      position: relative;
-      z-index: 2;
-      overflow: hidden;
-    }
-
-    .image-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-      display: block;
-    }
-
-    .button-group {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin: 10px 0 8px 0;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: none;
-      cursor: pointer;
-      font-size: 1.05rem;
-      font-weight: 700;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
+    .committee-title { font-size: 1.8rem; font-weight: 700; color: var(--gold-bright); text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 2px 2px 4px #000; line-height: 1.3; margin-bottom: 4px; }
+    .main-banner { font-size: 1.05rem; font-weight: 700; color: #ffffff; background: linear-gradient(90deg, transparent, rgba(128, 0, 32, 0.8), transparent); padding: 6px 10px; border-top: 1px solid var(--gold-primary); border-bottom: 1px solid var(--gold-primary); }
+    .image-wrapper { position: relative; width: 190px; height: 190px; margin: 6px auto; display: flex; justify-content: center; align-items: center; }
+    .image-halo { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 70%); animation: pulseGlow 3s infinite alternate ease-in-out; }
+    .image-frame { width: 170px; height: 170px; border-radius: 50%; border: 3px solid var(--gold-bright); padding: 4px; background: #000; box-shadow: 0 0 15px rgba(245, 176, 65, 0.6); position: relative; z-index: 2; overflow: hidden; }
+    .image-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+    .button-group { width: 100%; display: flex; flex-direction: column; gap: 10px; margin: 10px 0 8px 0; }
+    .btn { width: 100%; padding: 12px 16px; border-radius: 14px; border: none; cursor: pointer; font-size: 1.05rem; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 10px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
     .btn:active { transform: scale(0.97); }
-
-    .btn-official {
-      background: linear-gradient(135deg, #b31217 0%, #e52d27 100%);
-      color: #ffffff;
-      border: 1.5px solid #ff7979;
-      box-shadow: 0 4px 15px rgba(229, 45, 39, 0.4);
-    }
-
-    .btn-public {
-      background: linear-gradient(135deg, #f5b041 0%, #d4ac0d 100%);
-      color: #1a0408;
-      border: 1.5px solid #ffeaa7;
-      box-shadow: 0 4px 15px rgba(245, 176, 65, 0.35);
-    }
-
-    .contact-container {
-      width: 100%;
-      margin: 6px 0 2px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .contact-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--gold-bright);
-      letter-spacing: 0.5px;
-    }
-
-    .social-icons-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .social-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1.5px solid var(--gold-primary);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      text-decoration: none;
-    }
+    .btn-official { background: linear-gradient(135deg, #b31217 0%, #e52d27 100%); color: #ffffff; border: 1.5px solid #ff7979; box-shadow: 0 4px 15px rgba(229, 45, 39, 0.4); }
+    .btn-public { background: linear-gradient(135deg, #f5b041 0%, #d4ac0d 100%); color: #1a0408; border: 1.5px solid #ffeaa7; box-shadow: 0 4px 15px rgba(245, 176, 65, 0.35); }
+    .contact-container { width: 100%; margin: 6px 0 2px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .contact-title { font-size: 0.88rem; font-weight: 700; color: var(--gold-bright); letter-spacing: 0.5px; }
+    .social-icons-row { display: flex; justify-content: center; align-items: center; gap: 18px; }
+    .social-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.6); border: 1.5px solid var(--gold-primary); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); cursor: pointer; text-decoration: none; }
     .social-btn:active { transform: scale(0.9); }
     .social-btn svg { width: 20px; height: 20px; }
-
-    .screen {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      height: 100%;
-      flex-grow: 1;
-    }
-
+    .screen { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; flex-grow: 1; }
     .hidden { display: none !important; }
-
-    .nav-bar {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(245, 176, 65, 0.4);
-    }
-
-    .btn-back {
-      background: rgba(128, 0, 32, 0.6);
-      border: 1px solid var(--gold-primary);
-      color: #fff;
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-gear {
-      background: rgba(245, 176, 65, 0.15);
-      border: 1.5px solid var(--gold-primary);
-      color: var(--gold-bright);
-      padding: 5px 9px;
-      border-radius: 50%;
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
-
-    .section-title {
-      font-size: 1.18rem;
-      font-weight: 700;
-      color: var(--gold-bright);
-      text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
-    }
-
-    .menu-grid {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin: 8px 0;
-    }
-
-    .menu-card {
-      background: linear-gradient(145deg, rgba(74, 0, 17, 0.85), rgba(30, 2, 7, 0.95));
-      border: 1.5px solid var(--gold-primary);
-      border-radius: 14px;
-      padding: 14px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    }
+    .nav-bar { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(245, 176, 65, 0.4); }
+    .btn-back { background: rgba(128, 0, 32, 0.6); border: 1px solid var(--gold-primary); color: #fff; padding: 5px 10px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+    .btn-gear { background: rgba(245, 176, 65, 0.15); border: 1.5px solid var(--gold-primary); color: var(--gold-bright); padding: 5px 9px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
+    .section-title { font-size: 1.18rem; font-weight: 700; color: var(--gold-bright); text-shadow: 0 0 5px rgba(255, 215, 0, 0.4); }
+    .menu-grid { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 8px 0; }
+    .menu-card { background: linear-gradient(145deg, rgba(74, 0, 17, 0.85), rgba(30, 2, 7, 0.95)); border: 1.5px solid var(--gold-primary); border-radius: 14px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); }
     .menu-card:active { transform: scale(0.96); border-color: var(--gold-bright); }
-
-    .menu-card-full {
-      grid-column: span 2;
-      background: linear-gradient(135deg, rgba(128, 0, 32, 0.95), rgba(40, 2, 8, 0.95));
-      border: 1.8px solid var(--gold-bright);
-      box-shadow: 0 0 15px rgba(245, 176, 65, 0.35);
-      padding: 12px 10px;
-    }
-
+    .menu-card-full { grid-column: span 2; background: linear-gradient(135deg, rgba(128, 0, 32, 0.95), rgba(40, 2, 8, 0.95)); border: 1.8px solid var(--gold-bright); box-shadow: 0 0 15px rgba(245, 176, 65, 0.35); padding: 12px 10px; }
     .menu-icon { font-size: 1.7rem; margin-bottom: 4px; }
     .menu-label { font-size: 0.98rem; font-weight: 700; color: var(--text-main); }
-
-    .total-card {
-      width: 100%;
-      background: linear-gradient(135deg, rgba(128, 0, 32, 0.8), rgba(26, 4, 8, 0.9));
-      border: 1.5px solid var(--gold-bright);
-      border-radius: 12px;
-      padding: 8px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
+    .total-card { width: 100%; background: linear-gradient(135deg, rgba(128, 0, 32, 0.8), rgba(26, 4, 8, 0.9)); border: 1.5px solid var(--gold-bright); border-radius: 12px; padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .total-title { font-size: 0.92rem; font-weight: 600; color: var(--text-muted); }
     .total-amount { font-size: 1.3rem; font-weight: 700; color: var(--gold-bright); text-shadow: 0 0 6px rgba(255, 215, 0, 0.4); }
-
-    .form-box {
-      width: 100%;
-      background: rgba(15, 2, 4, 0.7);
-      border: 1px solid rgba(245, 176, 65, 0.4);
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--gold-primary);
-      background: #1a0408;
-      color: #fff;
-      font-size: 0.92rem;
-      outline: none;
-    }
+    .form-box { width: 100%; background: rgba(15, 2, 4, 0.7); border: 1px solid rgba(245, 176, 65, 0.4); border-radius: 12px; padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .input-field { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--gold-primary); background: #1a0408; color: #fff; font-size: 0.92rem; outline: none; }
     .input-field:focus { border-color: var(--gold-bright); }
-
-    .btn-add {
-      background: linear-gradient(135deg, #f5b041, #d4ac0d);
-      color: #1a0408;
-      font-weight: 700;
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.98rem;
-      cursor: pointer;
-    }
-
-    .btn-pdf {
-      background: linear-gradient(135deg, #e67e22, #d35400);
-      color: #fff;
-      border: 1px solid var(--gold-bright);
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.92rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 8px;
-      width: 100%;
-      cursor: pointer;
-    }
-
-    .btn-reset {
-      background: linear-gradient(135deg, #c0392b, #962d22);
-      color: #fff;
-      border: 1px solid #ff7979;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      width: 100%;
-      cursor: pointer;
-      margin-top: 12px;
-    }
-
-    .list-container {
-      width: 100%;
-      flex-grow: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-right: 2px;
-      margin-bottom: 6px;
-      max-height: 48vh;
-    }
-
-    .list-card {
-      background: rgba(30, 2, 7, 0.9);
-      border: 1px solid rgba(245, 176, 65, 0.3);
-      border-radius: 10px;
-      padding: 8px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      text-align: left;
-    }
-
-    .folder-card {
-      background: linear-gradient(145deg, rgba(40, 4, 10, 0.95), rgba(20, 2, 5, 0.95));
-      border: 1.5px solid var(--gold-primary);
-      cursor: pointer;
-    }
-
+    .btn-add { background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: 700; padding: 8px; border-radius: 8px; border: none; font-size: 0.98rem; cursor: pointer; }
+    .btn-pdf { background: linear-gradient(135deg, #e67e22, #d35400); color: #fff; border: 1px solid var(--gold-bright); padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; width: 100%; cursor: pointer; }
+    .btn-reset { background: linear-gradient(135deg, #c0392b, #962d22); color: #fff; border: 1px solid #ff7979; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; width: 100%; cursor: pointer; margin-top: 12px; }
+    .list-container { width: 100%; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; margin-bottom: 6px; max-height: 48vh; }
+    .list-card { background: rgba(30, 2, 7, 0.9); border: 1px solid rgba(245, 176, 65, 0.3); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+    .folder-card { background: linear-gradient(145deg, rgba(40, 4, 10, 0.95), rgba(20, 2, 5, 0.95)); border: 1.5px solid var(--gold-primary); cursor: pointer; }
     .list-info { flex-grow: 1; }
     .list-name { font-size: 1rem; font-weight: 700; color: #fff; }
     .list-subtext { font-size: 0.78rem; color: var(--gold-primary); margin-top: 2px; }
     .list-time { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
-
-    .list-amount-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
+    .list-amount-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .list-amount { font-size: 1.1rem; font-weight: 700; color: var(--gold-bright); }
-
     .action-icons { display: flex; gap: 6px; }
-    .btn-icon {
-      background: none;
-      border: none;
-      font-size: 0.9rem;
-      cursor: pointer;
-      padding: 3px 6px;
-      border-radius: 4px;
-    }
+    .btn-icon { background: none; border: none; font-size: 0.9rem; cursor: pointer; padding: 3px 6px; border-radius: 4px; }
     .btn-edit { background: rgba(245, 176, 65, 0.2); color: var(--gold-bright); }
     .btn-del { background: rgba(231, 76, 60, 0.2); color: var(--danger); }
-
-    .tab-bar {
-      width: 100%;
-      display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 8px 4px;
-      border-radius: 10px;
-      border: 1px solid var(--gold-primary);
-      background: rgba(30, 2, 7, 0.8);
-      color: var(--text-main);
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-    }
-    .tab-btn.active {
-      background: linear-gradient(135deg, #b31217, #e52d27);
-      color: #fff;
-      border-color: var(--gold-bright);
-    }
-
-    .audit-grid {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .audit-box {
-      background: rgba(30, 2, 7, 0.85);
-      border: 1px solid var(--gold-primary);
-      border-radius: 10px;
-      padding: 8px;
-      text-align: left;
-    }
-
+    .tab-bar { width: 100%; display: flex; gap: 6px; margin-bottom: 8px; }
+    .tab-btn { flex: 1; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--gold-primary); background: rgba(30, 2, 7, 0.8); color: var(--text-main); font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+    .tab-btn.active { background: linear-gradient(135deg, #b31217, #e52d27); color: #fff; border-color: var(--gold-bright); }
+    .audit-grid { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .audit-box { background: rgba(30, 2, 7, 0.85); border: 1px solid var(--gold-primary); border-radius: 10px; padding: 8px; text-align: left; }
     .audit-box-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
     .audit-box-val { font-size: 1.15rem; font-weight: 700; color: #fff; margin-top: 2px; }
-
-    .net-banner {
-      width: 100%;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 10px;
-      text-align: center;
-      border: 2px solid;
-    }
-    .net-surplus {
-      background: rgba(46, 204, 113, 0.15);
-      border-color: var(--success);
-      color: var(--success);
-    }
-    .net-deficit {
-      background: rgba(231, 76, 60, 0.15);
-      border-color: var(--danger);
-      color: #ff7675;
-    }
-
-    .settlement-card {
-      background: linear-gradient(145deg, rgba(35, 4, 10, 0.9), rgba(15, 2, 5, 0.95));
-      border: 1.5px solid var(--gold-primary);
-      border-radius: 12px;
-      padding: 10px;
-      text-align: left;
-    }
-
+    .net-banner { width: 100%; border-radius: 12px; padding: 10px; margin-bottom: 10px; text-align: center; border: 2px solid; }
+    .net-surplus { background: rgba(46, 204, 113, 0.15); border-color: var(--success); color: var(--success); }
+    .net-deficit { background: rgba(231, 76, 60, 0.15); border-color: var(--danger); color: #ff7675; }
+    .settlement-card { background: linear-gradient(145deg, rgba(35, 4, 10, 0.9), rgba(15, 2, 5, 0.95)); border: 1.5px solid var(--gold-primary); border-radius: 12px; padding: 10px; text-align: left; }
     .settlement-name { font-size: 1.05rem; font-weight: 700; color: var(--gold-bright); margin-bottom: 4px; }
     .settlement-row { font-size: 0.85rem; display: flex; justify-content: space-between; color: #eee; margin-top: 2px; }
-    .settlement-result {
-      margin-top: 6px;
-      padding-top: 5px;
-      border-top: 1px dashed rgba(245, 176, 65, 0.4);
-      font-size: 0.98rem;
-      font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .public-container {
-      width: 100%;
-      flex-grow: 1;
-      overflow-y: auto;
-      text-align: left;
-      padding-right: 4px;
-      margin-bottom: 6px;
-    }
-
-    .public-sec-header {
-      background: linear-gradient(90deg, rgba(128, 0, 32, 0.9), transparent);
-      border-left: 4px solid var(--gold-bright);
-      padding: 6px 10px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--gold-bright);
-      margin: 14px 0 8px 0;
-      border-radius: 4px;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(4px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-      padding: 16px;
-    }
-
-    .modal-box {
-      width: 100%;
-      max-width: 330px;
-      background: #1a0408;
-      border: 2px solid var(--gold-bright);
-      border-radius: 18px;
-      padding: 20px 16px;
-      text-align: center;
-      box-shadow: 0 0 25px rgba(245, 176, 65, 0.4);
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
+    .settlement-result { margin-top: 6px; padding-top: 5px; border-top: 1px dashed rgba(245, 176, 65, 0.4); font-size: 0.98rem; font-weight: 700; display: flex; justify-content: space-between; }
+    .public-container { width: 100%; flex-grow: 1; overflow-y: auto; text-align: left; padding-right: 4px; margin-bottom: 6px; }
+    .public-sec-header { background: linear-gradient(90deg, rgba(128, 0, 32, 0.9), transparent); border-left: 4px solid var(--gold-bright); padding: 6px 10px; font-size: 1.05rem; font-weight: 700; color: var(--gold-bright); margin: 14px 0 8px 0; border-radius: 4px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 16px; }
+    .modal-box { width: 100%; max-width: 330px; background: #1a0408; border: 2px solid var(--gold-bright); border-radius: 18px; padding: 20px 16px; text-align: center; box-shadow: 0 0 25px rgba(245, 176, 65, 0.4); max-height: 90vh; overflow-y: auto; }
     .modal-box h3 { color: var(--gold-bright); margin-bottom: 12px; font-size: 1.2rem; }
     .modal-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .btn-submit {
-      flex: 1; padding: 8px; border-radius: 8px; border: none;
-      background: linear-gradient(135deg, #f5b041, #d4ac0d);
-      color: #1a0408; font-weight: 700; cursor: pointer;
-    }
-    .btn-cancel {
-      flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #777;
-      background: transparent; color: #ccc; cursor: pointer;
-    }
-
-    .footer-text {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      margin-top: 4px;
-    }
-
-    .sync-badge {
-      font-size: 0.72rem;
-      color: var(--gold-primary);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-
-    @keyframes pulseGlow {
-      0% { transform: scale(0.95); opacity: 0.4; }
-      100% { transform: scale(1.15); opacity: 0.85; }
-    }
+    .btn-submit { flex: 1; padding: 8px; border-radius: 8px; border: none; background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: 700; cursor: pointer; }
+    .btn-cancel { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #777; background: transparent; color: #ccc; cursor: pointer; }
+    .footer-text { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-top: 4px; }
+    .sync-badge { font-size: 0.72rem; color: var(--gold-primary); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    @keyframes pulseGlow { 0% { transform: scale(0.95); opacity: 0.4; } 100% { transform: scale(1.15); opacity: 0.85; } }
   </style>
+
+  <!-- FIREBASE SCRIPTS -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- INLINE APPLICATION LOGIC IN HEAD TO GUARANTEE AVAILABILITY -->
+  <script>
+    var appState = {
+      adminPin: '1234',
+      pujaYear: '২০২৬',
+      contactYt: '',
+      contactFb: '',
+      contactWp: '',
+      graminChandaList: [],
+      memberAccounts: [],
+      mainExpenseCategories: [],
+      generalExpenses: [],
+      programData: { dance: [], song: [], recitation: [] },
+      sportsData: []
+    };
+
+    var activeMemberIndex = null;
+    var activeMainExpenseIndex = null;
+    var activeProgramCategory = 'dance';
+    var activeSportIndex = null;
+    var currentScreenId = 'homeScreen';
+    var firestoreDoc = null;
+
+    try {
+      var cached = localStorage.getItem('puja_local_db');
+      if (cached) {
+        appState = Object.assign({}, appState, JSON.parse(cached));
+      }
+    } catch(e) {}
+
+    function showScreen(screenId) {
+      currentScreenId = screenId;
+      var screens = [
+        'homeScreen', 'officialScreen', 'graminScreen', 
+        'memberScreen', 'memberLedgerScreen',
+        'mainExpenseScreen', 'mainExpenseDetailScreen',
+        'generalExpenseScreen', 'programScreen',
+        'sportsScreen', 'sportsDetailScreen',
+        'finalAuditScreen', 'publicScreen'
+      ];
+      screens.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+      var target = document.getElementById(screenId);
+      if (target) target.classList.remove('hidden');
+    }
+
+    function openPinModal() {
+      var input = document.getElementById('inputPin');
+      if (input) input.value = '';
+      var modal = document.getElementById('pinModal');
+      if (modal) modal.classList.remove('hidden');
+      setTimeout(function() { if (input) input.focus(); }, 150);
+    }
+
+    function closePinModal() {
+      var modal = document.getElementById('pinModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function verifyPin() {
+      var entered = document.getElementById('inputPin').value.trim();
+      if (entered === (appState.adminPin || '1234')) {
+        closePinModal();
+        showScreen('officialScreen');
+      } else {
+        alert("ভুল পিন নম্বর! সঠিক পিন দিন।");
+        document.getElementById('inputPin').value = '';
+      }
+    }
+
+    function formatInputText(str) {
+      if (!str) return '';
+      return str.replace(/[a-z]/g, function(c) { return c.toUpperCase(); }).trim();
+    }
+
+    function getCurrentDateTime() {
+      var now = new Date();
+      return now.toLocaleString('en-IN', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+    }
+
+    function refreshYearDisplay() {
+      var year = appState.pujaYear || '২০২৬';
+      var el = document.getElementById('homeBannerText');
+      if (el) el.innerText = "কালীপুজো " + year + " এ আপনাদের সবাইকে স্বাগতম";
+    }
+
+    function refreshUI() {
+      refreshYearDisplay();
+      if (currentScreenId === 'graminScreen') renderGraminChanda();
+      else if (currentScreenId === 'memberScreen') renderMemberList();
+      else if (currentScreenId === 'memberLedgerScreen') renderMemberLedger();
+      else if (currentScreenId === 'mainExpenseScreen') renderMainExpenseCategories();
+      else if (currentScreenId === 'mainExpenseDetailScreen') renderMainExpenseDetail();
+      else if (currentScreenId === 'generalExpenseScreen') renderGeneralExpenses();
+      else if (currentScreenId === 'programScreen') renderProgramList();
+      else if (currentScreenId === 'sportsScreen') renderSportsGames();
+      else if (currentScreenId === 'sportsDetailScreen') renderSportsWinners();
+      else if (currentScreenId === 'finalAuditScreen') renderFinalAudit();
+      else if (currentScreenId === 'publicScreen') renderPublicView();
+    }
+
+    function persistData() {
+      try {
+        localStorage.setItem('puja_local_db', JSON.stringify(appState));
+      } catch(e) {}
+      if (firestoreDoc) {
+        firestoreDoc.set(appState).catch(function(err) {
+          console.warn("Cloud save warning:", err);
+        });
+      }
+    }
+
+    function handleSocialClick(type) {
+      var link = '';
+      if (type === 'yt') link = appState.contactYt;
+      else if (type === 'fb') link = appState.contactFb;
+      else if (type === 'wp') link = appState.contactWp;
+
+      if (!link) {
+        alert("কমিটি লিঙ্ক সেট করেনি। অ্যাডমিন সেটিংস (⚙️) থেকে লিঙ্ক সেট করতে পারবেন।");
+        return;
+      }
+
+      if (type === 'wp' && !link.startsWith('http')) {
+        var cleanNum = link.replace(/[^0-9]/g, '');
+        window.open('https://wa.me/' + cleanNum, '_blank');
+      } else {
+        if (!link.startsWith('http://') && !link.startsWith('https://')) {
+          link = 'https://' + link;
+        }
+        window.open(link, '_blank');
+      }
+    }
+
+    function openAdminSettingsModal() {
+      document.getElementById('settingYear').value = appState.pujaYear || '২০২৬';
+      document.getElementById('currentPin').value = '';
+      document.getElementById('newPin').value = '';
+      document.getElementById('settingYtLink').value = appState.contactYt || '';
+      document.getElementById('settingFbLink').value = appState.contactFb || '';
+      document.getElementById('settingWpLink').value = appState.contactWp || '';
+      document.getElementById('adminSettingsModal').classList.remove('hidden');
+    }
+    function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').classList.add('hidden'); }
+
+    function saveAdminSettings() {
+      var newYear = document.getElementById('settingYear').value.trim();
+      var currPin = document.getElementById('currentPin').value.trim();
+      var newPin = document.getElementById('newPin').value.trim();
+      var ytLink = document.getElementById('settingYtLink').value.trim();
+      var fbLink = document.getElementById('settingFbLink').value.trim();
+      var wpLink = document.getElementById('settingWpLink').value.trim();
+
+      if (newYear) appState.pujaYear = newYear;
+      appState.contactYt = ytLink;
+      appState.contactFb = fbLink;
+      appState.contactWp = wpLink;
+
+      if (newPin) {
+        if (currPin !== (appState.adminPin || '1234')) {
+          alert("বর্তমান পিনটি সঠিক নয়! পিন পরিবর্তন হয়নি।");
+          return;
+        }
+        if (newPin.length < 4) {
+          alert("নতুন পিন অন্তত ৪ সংখ্যার হতে হবে!");
+          return;
+        }
+        appState.adminPin = newPin;
+        alert("পিন সফলভাবে পরিবর্তন হয়েছে!");
+      }
+
+      persistData();
+      alert("সমস্ত সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
+      closeAdminSettingsModal();
+      refreshYearDisplay();
+    }
+
+    function openResetConfirmation() {
+      closeAdminSettingsModal();
+      document.getElementById('resetInputPin').value = '';
+      document.getElementById('resetPinModal').classList.remove('hidden');
+      setTimeout(function() { document.getElementById('resetInputPin').focus(); }, 100);
+    }
+    function closeResetPinModal() { document.getElementById('resetPinModal').classList.add('hidden'); }
+
+    function proceedResetApp() {
+      var pin = document.getElementById('resetInputPin').value.trim();
+      if (pin !== (appState.adminPin || '1234')) {
+        alert("ভুল পিন নম্বর! রিসেট করা সম্ভব নয়।");
+        return;
+      }
+
+      if (confirm("⚠️ আপনি কি নিশ্চিত যে সমস্ত চাঁদা, খরচ ও রেকর্ড মুছে সম্পূর্ণ নতুন করে শুরু করতে চান?")) {
+        appState.graminChandaList = [];
+        appState.memberAccounts = [];
+        appState.mainExpenseCategories = [];
+        appState.generalExpenses = [];
+        appState.programData = { dance: [], song: [], recitation: [] };
+        appState.sportsData = [];
+
+        persistData();
+        closeResetPinModal();
+        alert("অ্যাপের সমস্ত হিসাব সফলভাবে মুছে ফেলা হয়েছে!");
+        showScreen('homeScreen');
+      }
+    }
+
+    /* ১. গ্রামীন চাঁদা */
+    function openGraminChandaScreen() { showScreen('graminScreen'); renderGraminChanda(); }
+    function addGraminChanda() {
+      var name = formatInputText(document.getElementById('gName').value);
+      var amount = parseFloat(document.getElementById('gAmount').value);
+      if (!name) { alert("দাতার নাম লিখুন!"); return; }
+      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+
+      appState.graminChandaList.unshift({ name: name, amount: amount, dateTime: getCurrentDateTime() });
+      persistData();
+      document.getElementById('gName').value = '';
+      document.getElementById('gAmount').value = '';
+      renderGraminChanda();
+    }
+    function renderGraminChanda() {
+      var list = appState.graminChandaList || [];
+      var container = document.getElementById('graminList');
+      container.innerHTML = '';
+      var total = 0;
+      list.forEach(function(item, index) {
+        total += item.amount;
+        var card = document.createElement('div');
+        card.className = 'list-card';
+        card.innerHTML = 
+          '<div class="list-info">' +
+            '<div class="list-name">' + item.name + '</div>' +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" onclick="openGraminEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="deleteGramin(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+      document.getElementById('graminTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
+    }
+    function deleteGramin(index) {
+      if (confirm("এই গ্রামীন চাঁদা এন্ট্রি মুছে ফেলতে চান?")) {
+        appState.graminChandaList.splice(index, 1);
+        persistData();
+        renderGraminChanda();
+      }
+    }
+    function openGraminEdit(index) {
+      var item = appState.graminChandaList[index];
+      setEditModal('gramin', index, null, 'গ্রামীন চাঁদা সম্পাদনা', 'দাতার নাম', item.name, item.amount, '', item.dateTime);
+    }
+
+    /* ২. মেম্বার চাঁদা */
+    function openMemberChandaScreen() { showScreen('memberScreen'); renderMemberList(); }
+    function createMember() {
+      var name = formatInputText(document.getElementById('newMemberName').value);
+      if (!name) { alert("মেম্বারের নাম লিখুন!"); return; }
+      if (!appState.memberAccounts) appState.memberAccounts = [];
+      appState.memberAccounts.unshift({ name: name, createdAt: getCurrentDateTime(), transactions: [] });
+      persistData();
+      document.getElementById('newMemberName').value = '';
+      renderMemberList();
+    }
+    function renderMemberList() {
+      var members = appState.memberAccounts || [];
+      var container = document.getElementById('memberList');
+      container.innerHTML = '';
+      var grandTotal = 0;
+      members.forEach(function(member, index) {
+        var memberSum = 0;
+        if (member.transactions) {
+          member.transactions.forEach(function(t) { memberSum += t.amount; });
+        }
+        grandTotal += memberSum;
+        var card = document.createElement('div');
+        card.className = 'list-card folder-card';
+        card.innerHTML = 
+          '<div class="list-info" onclick="openMemberLedger(' + index + ')">' +
+            '<div class="list-name">👤 ' + member.name + '</div>' +
+            '<div class="list-subtext">মোট এন্ট্রি: ' + (member.transactions ? member.transactions.length : 0) + ' টি (ক্লিক করে দেখুন)</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount" onclick="openMemberLedger(' + index + ')">₹ ' + memberSum.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" title="নাম বদলান" onclick="event.stopPropagation(); openMemberNameEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" title="মেম্বার মুছুন" onclick="event.stopPropagation(); deleteMemberProfile(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+      document.getElementById('memberGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
+    }
+    function openMemberNameEdit(index) {
+      setEditModal('member_name', index, null, 'মেম্বারের নাম পরিবর্তন', 'মেম্বারের নাম', appState.memberAccounts[index].name, null, '', '');
+    }
+    function deleteMemberProfile(index) {
+      if (confirm('আপনি কি "' + appState.memberAccounts[index].name + '" মেম্বার ও তাঁর সব এন্ট্রি মুছে ফেলতে চান?')) {
+        appState.memberAccounts.splice(index, 1);
+        persistData();
+        renderMemberList();
+      }
+    }
+    function openMemberLedger(index) {
+      activeMemberIndex = index;
+      document.getElementById('ledgerMemberName').innerText = appState.memberAccounts[index].name;
+      showScreen('memberLedgerScreen');
+      renderMemberLedger();
+    }
+    function addMemberTransaction() {
+      var remarks = formatInputText(document.getElementById('mEntryRemarks').value);
+      var amount = parseFloat(document.getElementById('mEntryAmount').value);
+      if (!remarks) { alert("মন্তব্য বা কাজের বিবরণ (Remarks) লিখুন!"); return; }
+      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+
+      if (!appState.memberAccounts[activeMemberIndex].transactions) {
+        appState.memberAccounts[activeMemberIndex].transactions = [];
+      }
+      appState.memberAccounts[activeMemberIndex].transactions.unshift({ remarks: remarks, amount: amount, dateTime: getCurrentDateTime() });
+      persistData();
+      document.getElementById('mEntryRemarks').value = '';
+      document.getElementById('mEntryAmount').value = '';
+      renderMemberLedger();
+    }
+    function renderMemberLedger() {
+      var member = appState.memberAccounts[activeMemberIndex];
+      var container = document.getElementById('memberLedgerList');
+      container.innerHTML = '';
+      var total = 0;
+      if (member && member.transactions) {
+        member.transactions.forEach(function(item, tIndex) {
+          total += item.amount;
+          var card = document.createElement('div');
+          card.className = 'list-card';
+          card.innerHTML = 
+            '<div class="list-info">' +
+              '<div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">📌 ' + item.remarks + '</div>' +
+              '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+            '</div>' +
+            '<div class="list-amount-actions">' +
+              '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+              '<div class="action-icons">' +
+                '<button class="btn-icon btn-edit" onclick="openLedgerTransactionEdit(' + tIndex + ')">✏️</button>' +
+                '<button class="btn-icon btn-del" onclick="deleteMemberTransaction(' + tIndex + ')">🗑️</button>' +
+              '</div>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      }
+      document.getElementById('memberIndividualTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
+    }
+    function deleteMemberTransaction(tIndex) {
+      if (confirm("এই জমার এন্ট্রি মুছে ফেলতে চান?")) {
+        appState.memberAccounts[activeMemberIndex].transactions.splice(tIndex, 1);
+        persistData();
+        renderMemberLedger();
+      }
+    }
+    function openLedgerTransactionEdit(tIndex) {
+      var tx = appState.memberAccounts[activeMemberIndex].transactions[tIndex];
+      setEditModal('ledger_tx', activeMemberIndex, tIndex, 'মেম্বার জমা সম্পাদনা', 'মন্তব্য / Remarks', tx.remarks, tx.amount, '', tx.dateTime);
+    }
+
+    /* ৩. প্রধান খরচ */
+    function openMainExpenseScreen() { showScreen('mainExpenseScreen'); renderMainExpenseCategories(); }
+    function createMainExpenseCategory() {
+      var name = formatInputText(document.getElementById('newMainCategoryName').value);
+      if (!name) { alert("প্রধান খরচের খাতের নাম লিখুন! (যেমন: প্রতিমা, মণ্ডপ)"); return; }
+      if (!appState.mainExpenseCategories) appState.mainExpenseCategories = [];
+      appState.mainExpenseCategories.unshift({ categoryName: name, createdAt: getCurrentDateTime(), payments: [] });
+      persistData();
+      document.getElementById('newMainCategoryName').value = '';
+      renderMainExpenseCategories();
+    }
+    function renderMainExpenseCategories() {
+      var categories = appState.mainExpenseCategories || [];
+      var container = document.getElementById('mainExpenseCategoryList');
+      container.innerHTML = '';
+      var grandTotal = 0;
+      categories.forEach(function(cat, index) {
+        var sum = 0;
+        if (cat.payments) {
+          cat.payments.forEach(function(p) { sum += p.amount; });
+        }
+        grandTotal += sum;
+        var card = document.createElement('div');
+        card.className = 'list-card folder-card';
+        card.innerHTML = 
+          '<div class="list-info" onclick="openMainExpenseDetail(' + index + ')">' +
+            '<div class="list-name">🏛️ ' + cat.categoryName + '</div>' +
+            '<div class="list-subtext">প্রদত্ত কিস্তি: ' + (cat.payments ? cat.payments.length : 0) + ' টি (ক্লিক করে দেখুন)</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount" onclick="openMainExpenseDetail(' + index + ')">₹ ' + sum.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" title="খাতের নাম বদলান" onclick="event.stopPropagation(); openMainCategoryNameEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" title="খাতটি মুছুন" onclick="event.stopPropagation(); deleteMainExpenseCategory(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+      document.getElementById('mainExpenseGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
+    }
+    function openMainCategoryNameEdit(index) {
+      setEditModal('main_cat_name', index, null, 'খাতের নাম পরিবর্তন', 'খাতের নাম', appState.mainExpenseCategories[index].categoryName, null, '', '');
+    }
+    function deleteMainExpenseCategory(index) {
+      if (confirm('আপনি কি "' + appState.mainExpenseCategories[index].categoryName + '" খাতের সব হিসাব মুছে ফেলতে চান?')) {
+        appState.mainExpenseCategories.splice(index, 1);
+        persistData();
+        renderMainExpenseCategories();
+      }
+    }
+    function openMainExpenseDetail(index) {
+      activeMainExpenseIndex = index;
+      document.getElementById('ledgerMainExpenseTitle').innerText = appState.mainExpenseCategories[index].categoryName;
+      showScreen('mainExpenseDetailScreen');
+      renderMainExpenseDetail();
+    }
+    function addMainExpensePayment() {
+      var note = formatInputText(document.getElementById('mainExpDetailNote').value);
+      var amount = parseFloat(document.getElementById('mainExpDetailAmount').value);
+      if (!note) { alert("কিস্তি বা ভাউচারের বিবরণ লিখুন!"); return; }
+      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+
+      if (!appState.mainExpenseCategories[activeMainExpenseIndex].payments) {
+        appState.mainExpenseCategories[activeMainExpenseIndex].payments = [];
+      }
+      appState.mainExpenseCategories[activeMainExpenseIndex].payments.unshift({ note: note, amount: amount, dateTime: getCurrentDateTime() });
+      persistData();
+      document.getElementById('mainExpDetailNote').value = '';
+      document.getElementById('mainExpDetailAmount').value = '';
+      renderMainExpenseDetail();
+    }
+    function renderMainExpenseDetail() {
+      var cat = appState.mainExpenseCategories[activeMainExpenseIndex];
+      var container = document.getElementById('mainExpenseDetailList');
+      container.innerHTML = '';
+      var total = 0;
+      if (cat && cat.payments) {
+        cat.payments.forEach(function(pay, pIndex) {
+          total += pay.amount;
+          var card = document.createElement('div');
+          card.className = 'list-card';
+          card.innerHTML = 
+            '<div class="list-info">' +
+              '<div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">🧾 ' + pay.note + '</div>' +
+              '<div class="list-time">🕒 ' + pay.dateTime + '</div>' +
+            '</div>' +
+            '<div class="list-amount-actions">' +
+              '<div class="list-amount">₹ ' + pay.amount.toLocaleString('en-IN') + '</div>' +
+              '<div class="action-icons">' +
+                '<button class="btn-icon btn-edit" onclick="openMainPaymentEdit(' + pIndex + ')">✏️</button>' +
+                '<button class="btn-icon btn-del" onclick="deleteMainExpensePayment(' + pIndex + ')">🗑️</button>' +
+              '</div>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      }
+      document.getElementById('mainExpenseCategoryTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
+    }
+    function deleteMainExpensePayment(pIndex) {
+      if (confirm("এই কিস্তির এন্ট্রি মুছে ফেলতে চান?")) {
+        appState.mainExpenseCategories[activeMainExpenseIndex].payments.splice(pIndex, 1);
+        persistData();
+        renderMainExpenseDetail();
+      }
+    }
+    function openMainPaymentEdit(pIndex) {
+      var pay = appState.mainExpenseCategories[activeMainExpenseIndex].payments[pIndex];
+      setEditModal('main_pay_edit', activeMainExpenseIndex, pIndex, 'কিস্তি সম্পাদনা', 'কিস্তির বিবরণ', pay.note, pay.amount, '', pay.dateTime);
+    }
+
+    /* ৪. সাধারণ খরচ */
+    function openGeneralExpenseScreen() { showScreen('generalExpenseScreen'); renderGeneralExpenses(); }
+    function addGeneralExpense() {
+      var title = formatInputText(document.getElementById('genExpTitle').value);
+      var amount = parseFloat(document.getElementById('genExpAmount').value);
+      if (!title) { alert("খরচের বিবরণ লিখুন!"); return; }
+      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+
+      if (!appState.generalExpenses) appState.generalExpenses = [];
+      appState.generalExpenses.unshift({ title: title, amount: amount, dateTime: getCurrentDateTime() });
+      persistData();
+      document.getElementById('genExpTitle').value = '';
+      document.getElementById('genExpAmount').value = '';
+      renderGeneralExpenses();
+    }
+    function renderGeneralExpenses() {
+      var list = appState.generalExpenses || [];
+      var container = document.getElementById('genExpenseList');
+      container.innerHTML = '';
+      var total = 0;
+      list.forEach(function(item, index) {
+        total += item.amount;
+        var card = document.createElement('div');
+        card.className = 'list-card';
+        card.innerHTML = 
+          '<div class="list-info">' +
+            '<div class="list-name">📝 ' + item.title + '</div>' +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" onclick="openGenExpenseEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="deleteGenExpense(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+      document.getElementById('genExpenseTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
+    }
+    function deleteGenExpense(index) {
+      if (confirm("এই সাধারণ খরচের হিসাব মুছে ফেলতে চান?")) {
+        appState.generalExpenses.splice(index, 1);
+        persistData();
+        renderGeneralExpenses();
+      }
+    }
+    function openGenExpenseEdit(index) {
+      var item = appState.generalExpenses[index];
+      setEditModal('gen_expense', index, null, 'সাধারণ খরচ সম্পাদনা', 'খরচের বিবরণ', item.title, item.amount, '', item.dateTime);
+    }
+
+    /* ৫. অনুষ্ঠান কর্মসূচি */
+    function openProgramScreen() { showScreen('programScreen'); switchProgramTab(activeProgramCategory); }
+    function switchProgramTab(cat) {
+      activeProgramCategory = cat;
+      document.getElementById('tabNach').classList.remove('active');
+      document.getElementById('tabGan').classList.remove('active');
+      document.getElementById('tabAbritti').classList.remove('active');
+
+      if (cat === 'dance') document.getElementById('tabNach').classList.add('active');
+      else if (cat === 'song') document.getElementById('tabGan').classList.add('active');
+      else if (cat === 'recitation') document.getElementById('tabAbritti').classList.add('active');
+
+      renderProgramList();
+    }
+    function addProgramEntry() {
+      var name = formatInputText(document.getElementById('progName').value);
+      var age = parseInt(document.getElementById('progAge').value);
+      var remarks = formatInputText(document.getElementById('progRemarks').value);
+
+      if (!name) { alert("অংশগ্রহণকারীর নাম লিখুন!"); return; }
+      if (isNaN(age) || age <= 0) { alert("সঠিক বয়স লিখুন!"); return; }
+
+      if (!appState.programData) appState.programData = { dance: [], song: [], recitation: [] };
+      if (!appState.programData[activeProgramCategory]) appState.programData[activeProgramCategory] = [];
+
+      appState.programData[activeProgramCategory].push({
+        name: name, age: age, remarks: remarks || 'নির্দিষ্ট নেই', dateTime: getCurrentDateTime()
+      });
+      appState.programData[activeProgramCategory].sort(function(a, b) { return a.age - b.age; });
+
+      persistData();
+      document.getElementById('progName').value = '';
+      document.getElementById('progAge').value = '';
+      document.getElementById('progRemarks').value = '';
+      renderProgramList();
+    }
+    function renderProgramList() {
+      var list = (appState.programData && appState.programData[activeProgramCategory]) ? appState.programData[activeProgramCategory] : [];
+      var container = document.getElementById('programList');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এই বিভাগে এখনও কোনো নাম নথিভুক্ত হয়নি।</div>';
+        return;
+      }
+
+      list.forEach(function(item, index) {
+        var card = document.createElement('div');
+        card.className = 'list-card';
+        card.style.cursor = 'pointer';
+        card.innerHTML = 
+          '<div class="list-info" onclick="viewCandidateDetail(\'' + activeProgramCategory + '\', ' + index + ')">' +
+            '<div class="list-name">🎭 ' + (index + 1) + '. ' + item.name + ' <span style="font-size:0.82rem; color:var(--gold-bright); font-weight:normal;">(' + item.age + ' বছর)</span></div>' +
+            '<div class="list-subtext">বিবরণ: ' + item.remarks + '</div>' +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="action-icons" style="margin-top:4px;">' +
+              '<button class="btn-icon btn-edit" onclick="event.stopPropagation(); openProgramEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="event.stopPropagation(); deleteProgramEntry(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+    }
+    function viewCandidateDetail(cat, index) {
+      var item = appState.programData[cat][index];
+      var catName = cat === 'dance' ? '💃 নাচ' : (cat === 'song' ? '🎤 গান' : '📜 আবৃত্তি');
+
+      document.getElementById('viewProgName').innerText = item.name;
+      document.getElementById('viewProgAge').innerText = item.age;
+      document.getElementById('viewProgCat').innerText = catName;
+      document.getElementById('viewProgRemarks').innerText = item.remarks;
+      document.getElementById('viewProgTime').innerText = item.dateTime;
+
+      document.getElementById('candidateDetailModal').classList.remove('hidden');
+    }
+    function closeCandidateDetailModal() { document.getElementById('candidateDetailModal').classList.add('hidden'); }
+    function deleteProgramEntry(index) {
+      if (confirm("আপনি কি এই অংশগ্রহণকারীর নাম তালিকা থেকে মুছে ফেলতে চান?")) {
+        appState.programData[activeProgramCategory].splice(index, 1);
+        persistData();
+        renderProgramList();
+      }
+    }
+    function openProgramEdit(index) {
+      var item = appState.programData[activeProgramCategory][index];
+      setEditModal('program_entry', activeProgramCategory, index, 'প্রতিযোগী সম্পাদনা', 'অংশগ্রহণকারীর নাম', item.name, item.age, item.remarks, item.dateTime);
+    }
+    function generateProgramPdf() {
+      var progData = appState.programData || { dance: [], song: [], recitation: [] };
+      var year = appState.pujaYear || '২০২৬';
+
+      var printWindow = window.open('', '_blank');
+      var htmlContent = 
+        '<!DOCTYPE html><html lang="bn"><head><title>অনুষ্ঠান কর্মসূচি - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
+        '.section-head{background: #f2f2f2; padding: 8px 12px; margin-top: 20px; font-weight: bold; border-left: 5px solid #800020;}' +
+        'table{width: 100%; border-collapse: collapse; margin-top: 8px;} th, td{border: 1px solid #ccc; padding: 8px 10px; text-align: left; font-size: 14px;}' +
+        'th{background: #f9f9f9;} @media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
+        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি</h2><h4>কালীপূজা ' + year + ' - অনুষ্ঠান কর্মসূচি (সঞ্চালক সূচি)</h4>' +
+        '<p style="text-align:center; font-size:12px; color:#666;">বয়স অনুযায়ী ছোট থেকে বড় সাজানো তালিকা</p>';
+
+      var categories = [
+        { key: 'dance', title: '💃 নাচ বিভাগ' },
+        { key: 'song', title: '🎤 গান বিভাগ' },
+        { key: 'recitation', title: '📜 আবৃত্তি বিভাগ' }
+      ];
+
+      categories.forEach(function(cat) {
+        htmlContent += '<div class="section-head">' + cat.title + '</div>';
+        var list = progData[cat.key] || [];
+        if (list.length === 0) {
+          htmlContent += '<p style="font-size:13px; color:#777; margin:6px 0;">কোনো নাম নথিভুক্ত নেই।</p>';
+        } else {
+          htmlContent += '<table><thead><tr><th style="width:8%;">ক্রম</th><th style="width:32%;">নাম</th><th style="width:15%;">বয়স</th><th style="width:45%;">বিষয় / গানের বা কবিতার নাম</th></tr></thead><tbody>';
+          list.forEach(function(item, i) {
+            htmlContent += '<tr><td>' + (i + 1) + '</td><td><strong>' + item.name + '</strong></td><td>' + item.age + ' বছর</td><td>' + item.remarks + '</td></tr>';
+          });
+          htmlContent += '</tbody></table>';
+        }
+      });
+
+      htmlContent += '</body></html>';
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+
+    /* ৬. খেলার কর্মসূচি */
+    function openSportsScreen() { showScreen('sportsScreen'); renderSportsGames(); }
+    function createSportGame() {
+      var name = formatInputText(document.getElementById('newSportName').value);
+      if (!name) { alert("খেলার নাম লিখুন!"); return; }
+
+      if (!appState.sportsData) appState.sportsData = [];
+      appState.sportsData.unshift({ gameName: name, createdAt: getCurrentDateTime(), winners: [] });
+      persistData();
+      document.getElementById('newSportName').value = '';
+      renderSportsGames();
+    }
+    function renderSportsGames() {
+      var games = appState.sportsData || [];
+      var container = document.getElementById('sportsGameList');
+      container.innerHTML = '';
+
+      if (games.length === 0) {
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো খেলা যুক্ত করা হয়নি।</div>';
+        return;
+      }
+
+      games.forEach(function(game, index) {
+        var card = document.createElement('div');
+        card.className = 'list-card folder-card';
+        card.innerHTML = 
+          '<div class="list-info" onclick="openSportsDetail(' + index + ')">' +
+            '<div class="list-name">🏆 ' + game.gameName + '</div>' +
+            '<div class="list-subtext">বিজয়ীর সংখ্যা: ' + (game.winners ? game.winners.length : 0) + ' জন (ক্লিক করে দেখুন)</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" title="খেলার নাম বদলান" onclick="event.stopPropagation(); openSportNameEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" title="খেলাটি মুছুন" onclick="event.stopPropagation(); deleteSportGame(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+    }
+    function openSportNameEdit(index) {
+      setEditModal('sport_name', index, null, 'খেলার নাম পরিবর্তন', 'খেলার নাম', appState.sportsData[index].gameName, null, '', '');
+    }
+    function deleteSportGame(index) {
+      if (confirm('আপনি কি "' + appState.sportsData[index].gameName + '" খেলা ও এর ফলাফল মুছে ফেলতে চান?')) {
+        appState.sportsData.splice(index, 1);
+        persistData();
+        renderSportsGames();
+      }
+    }
+    function openSportsDetail(index) {
+      activeSportIndex = index;
+      document.getElementById('sportsDetailGameTitle').innerText = appState.sportsData[index].gameName;
+      showScreen('sportsDetailScreen');
+      renderSportsWinners();
+    }
+    function addSportWinner() {
+      var rank = document.getElementById('sportRankSelect').value;
+      var winnerName = formatInputText(document.getElementById('sportWinnerName').value);
+      var remarks = formatInputText(document.getElementById('sportWinnerRemarks').value);
+
+      if (!winnerName) { alert("বিজয়ীর নাম লিখুন!"); return; }
+
+      if (!appState.sportsData[activeSportIndex].winners) {
+        appState.sportsData[activeSportIndex].winners = [];
+      }
+
+      appState.sportsData[activeSportIndex].winners.push({ rank: rank, winnerName: winnerName, remarks: remarks || '', dateTime: getCurrentDateTime() });
+      persistData();
+      document.getElementById('sportWinnerName').value = '';
+      document.getElementById('sportWinnerRemarks').value = '';
+      renderSportsWinners();
+    }
+    function renderSportsWinners() {
+      var game = appState.sportsData[activeSportIndex];
+      var container = document.getElementById('sportsWinnerList');
+      container.innerHTML = '';
+
+      if (!game || !game.winners || game.winners.length === 0) {
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো ফলাফল যুক্ত করা হয়নি।</div>';
+        return;
+      }
+
+      game.winners.forEach(function(item, wIndex) {
+        var card = document.createElement('div');
+        card.className = 'list-card';
+        card.innerHTML = 
+          '<div class="list-info">' +
+            '<div class="list-name" style="color:var(--gold-bright);">' + item.rank + ': ' + item.winnerName + '</div>' +
+            (item.remarks ? '<div class="list-subtext">📌 ' + item.remarks + '</div>' : '') +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" onclick="openSportWinnerEdit(' + wIndex + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="deleteSportWinner(' + wIndex + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+    }
+    function deleteSportWinner(wIndex) {
+      if (confirm("এই ফলাফল মুছে ফেলতে চান?")) {
+        appState.sportsData[activeSportIndex].winners.splice(wIndex, 1);
+        persistData();
+        renderSportsWinners();
+      }
+    }
+    function openSportWinnerEdit(wIndex) {
+      var w = appState.sportsData[activeSportIndex].winners[wIndex];
+      setEditModal('sport_winner', activeSportIndex, wIndex, 'ফলাফল সম্পাদনা', 'বিজয়ীর নাম', w.winnerName, null, w.remarks, w.dateTime);
+    }
+
+    /* ৭. পূজো শেষের হিসাব (Final Audit) */
+    function calculateAuditData() {
+      var graminList = appState.graminChandaList || [];
+      var members = appState.memberAccounts || [];
+      var mainCategories = appState.mainExpenseCategories || [];
+      var genExpenses = appState.generalExpenses || [];
+
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
+
+      var totalMember = 0;
+      var memberStats = members.map(function(m) {
+        var paid = 0;
+        if (m.transactions) {
+          m.transactions.forEach(function(t) { paid += (t.amount || 0); });
+        }
+        totalMember += paid;
+        return { name: m.name, paid: paid };
+      });
+
+      var totalMainExp = 0;
+      mainCategories.forEach(function(c) {
+        if (c.payments) {
+          c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); });
+        }
+      });
+
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
+
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
+      var memberCount = members.length;
+
+      var perHeadShare = 0;
+      var finalMemberSummary = [];
+
+      if (memberCount > 0) {
+        if (netBalance >= 0) {
+          var extraSurplus = netBalance - totalMember;
+          perHeadShare = extraSurplus / memberCount;
+
+          finalMemberSummary = memberStats.map(function(m) {
+            var willReceive = m.paid + perHeadShare;
+            return {
+              name: m.name, paid: m.paid, share: perHeadShare,
+              finalAmount: willReceive, status: 'RECEIVE',
+              note: 'নিজস্ব জমা ₹' + m.paid.toFixed(2) + ' + অতিরিক্ত ভাগ ₹' + perHeadShare.toFixed(2)
+            };
+          });
+        } else {
+          var deficit = Math.abs(netBalance);
+          var totalTarget = deficit + totalMember;
+          var perMemberTarget = totalTarget / memberCount;
+
+          finalMemberSummary = memberStats.map(function(m) {
+            var diff = perMemberTarget - m.paid;
+            if (diff > 0) {
+              return {
+                name: m.name, paid: m.paid, share: perMemberTarget,
+                finalAmount: diff, status: 'PAY',
+                note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2)
+              };
+            } else if (diff < 0) {
+              return {
+                name: m.name, paid: m.paid, share: perMemberTarget,
+                finalAmount: Math.abs(diff), status: 'RECEIVE',
+                note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)'
+              };
+            } else {
+              return {
+                name: m.name, paid: m.paid, share: perMemberTarget,
+                finalAmount: 0, status: 'EQUAL',
+                note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)'
+              };
+            }
+          });
+        }
+      }
+
+      return {
+        totalGramin: totalGramin, totalMember: totalMember, totalIncome: totalIncome,
+        totalMainExp: totalMainExp, totalGenExp: totalGenExp, totalExpense: totalExpense,
+        netBalance: netBalance, memberCount: memberCount, finalMemberSummary: finalMemberSummary
+      };
+    }
+
+    function openFinalAuditScreen() { showScreen('finalAuditScreen'); renderFinalAudit(); }
+
+    function renderFinalAudit() {
+      var data = calculateAuditData();
+
+      document.getElementById('auditGraminVal').innerText = "₹ " + data.totalGramin.toLocaleString('en-IN');
+      document.getElementById('auditMemberVal').innerText = "₹ " + data.totalMember.toLocaleString('en-IN');
+      document.getElementById('auditMainExpVal').innerText = "₹ " + data.totalMainExp.toLocaleString('en-IN');
+      document.getElementById('auditGenExpVal').innerText = "₹ " + data.totalGenExp.toLocaleString('en-IN');
+
+      var banner = document.getElementById('netAuditBanner');
+      if (data.netBalance >= 0) {
+        banner.className = 'net-banner net-surplus';
+        banner.innerHTML = 
+          '<div style="font-size:0.95rem; font-weight:bold;">🎉 উদ্বৃত্ত ব্যালেন্স (টাকা বেঁচেছে)</div>' +
+          '<div style="font-size:1.4rem; font-weight:700;">+ ₹ ' + data.netBalance.toLocaleString('en-IN') + '</div>' +
+          '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
+      } else {
+        banner.className = 'net-banner net-deficit';
+        banner.innerHTML = 
+          '<div style="font-size:0.95rem; font-weight:bold;">⚠️ ঘাটতি ব্যালেন্স (টাকা কম পড়েছে)</div>' +
+          '<div style="font-size:1.4rem; font-weight:700;">- ₹ ' + Math.abs(data.netBalance).toLocaleString('en-IN') + '</div>' +
+          '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
+      }
+
+      var listContainer = document.getElementById('auditSettlementList');
+      listContainer.innerHTML = '';
+
+      if (data.memberCount === 0) {
+        listContainer.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">কোনো মেম্বার নথিভুক্ত নেই।</div>';
+        return;
+      }
+
+      data.finalMemberSummary.forEach(function(m, idx) {
+        var card = document.createElement('div');
+        card.className = 'settlement-card';
+
+        var resultColor = '#2ecc71';
+        var resultText = '';
+
+        if (m.status === 'RECEIVE') {
+          resultColor = '#2ecc71';
+          resultText = 'ফেরত পাবেন: + ₹' + m.finalAmount.toFixed(2);
+        } else if (m.status === 'PAY') {
+          resultColor = '#e74c3c';
+          resultText = 'আরও দিতে হবে: - ₹' + m.finalAmount.toFixed(2);
+        } else {
+          resultColor = '#f5b041';
+          resultText = 'কোনো লেনদেন নেই (₹ 0.00)';
+        }
+
+        card.innerHTML = 
+          '<div class="settlement-name">👤 ' + (idx + 1) + '. ' + m.name + '</div>' +
+          '<div class="settlement-row"><span>পূর্বে জমা দেওয়া চাঁদা:</span><strong>₹ ' + m.paid.toLocaleString('en-IN') + '</strong></div>' +
+          '<div class="settlement-row" style="font-size:0.75rem; color:#ccc;"><span>' + m.note + '</span></div>' +
+          '<div class="settlement-result" style="color: ' + resultColor + ';"><span>চূড়ান্ত হিসাব:</span><span>' + resultText + '</span></div>';
+        listContainer.appendChild(card);
+      });
+    }
+
+    function generateAuditPdf() {
+      var data = calculateAuditData();
+      var year = appState.pujaYear || '২০২৬';
+
+      var printWindow = window.open('', '_blank');
+      var statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
+      var statusTitle = data.netBalance >= 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2);
+
+      var htmlContent = 
+        '<!DOCTYPE html><html lang="bn"><head><title>পূজো শেষের হিসাব - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
+        '.kpi-table, .data-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td{border: 1px solid #aaa; padding: 8px 12px; font-size: 14px;}' +
+        '.kpi-table th{background: #f2f2f2; border: 1px solid #aaa; padding: 8px; font-size: 14px;}' +
+        '.status-box{margin-top: 15px; padding: 12px; border-radius: 6px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; background: ' + statusColor + ';}' +
+        '.section-head{background: #f7f7f7; padding: 8px 12px; margin-top: 25px; font-weight: bold; font-size: 16px; border-left: 5px solid #800020;}' +
+        '.data-table th, .data-table td{border: 1px solid #ccc; padding: 8px 10px; font-size: 13px; text-align: left;}' +
+        '.data-table th{background: #f0f0f0;} .receive{color: #27ae60; font-weight: bold;} .pay{color: #c0392b; font-weight: bold;}' +
+        '@media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
+        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ অডিট রিপোর্ট প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - পূজো শেষের চূড়ান্ত আয়-ব্যয় রিপোর্ট</h4>' +
+        '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
+        '<table class="kpi-table">' +
+          '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + data.totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + data.totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr><th>মোট মেম্বার চাঁদা</th><td>₹ ' + data.totalMember.toLocaleString('en-IN') + '</td><th>মোট সাধারণ খরচ</th><td>₹ ' + data.totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr style="background:#fdfefe; font-weight:bold;"><th>সর্বমোট জমা</th><td>₹ ' + data.totalIncome.toLocaleString('en-IN') + '</td><th>সর্বমোট খরচ</th><td>₹ ' + data.totalExpense.toLocaleString('en-IN') + '</td></tr>' +
+        '</table><div class="status-box">' + statusTitle + '</div>' +
+        '<div class="section-head">👥 মেম্বারভিত্তিক চূড়ান্ত হিসাব ও দেনা-পাওনা বিবরণী (মোট মেম্বার: ' + data.memberCount + ' জন)</div>' +
+        '<table class="data-table"><thead><tr><th style="width:8%;">ক্রম</th><th style="width:25%;">মেম্বারের নাম</th><th style="width:18%;">পূর্বে দেওয়া চাঁদা</th><th style="width:29%;">হিসাবের সূত্র / বিবরণ</th><th style="width:20%;">চূড়ান্ত সিদ্ধান্ত</th></tr></thead><tbody>';
+
+      data.finalMemberSummary.forEach(function(m, idx) {
+        var decisionHtml = '';
+        if (m.status === 'RECEIVE') decisionHtml = '<span class="receive">ফেরত পাবেন: ₹' + m.finalAmount.toFixed(2) + '</span>';
+        else if (m.status === 'PAY') decisionHtml = '<span class="pay">দিতে হবে: ₹' + m.finalAmount.toFixed(2) + '</span>';
+        else decisionHtml = '<span>হিসাব সমান (₹0.00)</span>';
+
+        htmlContent += '<tr><td>' + (idx + 1) + '</td><td><strong>' + m.name + '</strong></td><td>₹ ' + m.paid.toFixed(2) + '</td><td>' + m.note + '</td><td>' + decisionHtml + '</td></tr>';
+      });
+
+      htmlContent += '</tbody></table><div style="margin-top:40px; display:flex; justify-content:space-between; font-size:13px;"><div>.........................................<br>কোষাধ্যক্ষ / হিসাবরক্ষক</div><div>.........................................<br>সভাপতি / সম্পাদক</div></div></body></html>';
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+
+    /* ৮. পাবলিক ভিউ */
+    function openPublicScreen() { showScreen('publicScreen'); renderPublicView(); }
+
+    function renderPublicView() {
+      var graminList = appState.graminChandaList || [];
+      var members = appState.memberAccounts || [];
+      var mainCategories = appState.mainExpenseCategories || [];
+      var genExpenses = appState.generalExpenses || [];
+      var progData = appState.programData || { dance: [], song: [], recitation: [] };
+      var sportsData = appState.sportsData || [];
+
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
+      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
+      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
+
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
+
+      var container = document.getElementById('publicViewContent');
+      var html = '';
+
+      html += 
+        '<div class="total-card" style="margin-bottom:6px;">' +
+          '<span class="total-title">সর্বমোট সংগৃহীত চাঁদা:</span>' +
+          '<span class="total-amount">₹ ' + totalIncome.toLocaleString('en-IN') + '</span>' +
+        '</div>' +
+        '<div class="total-card" style="background:linear-gradient(135deg, rgba(74,0,17,0.8), rgba(26,4,8,0.9)); margin-bottom:6px;">' +
+          '<span class="total-title">সর্বমোট খরচ:</span>' +
+          '<span class="total-amount" style="color:#ff7979;">₹ ' + totalExpense.toLocaleString('en-IN') + '</span>' +
+        '</div>' +
+        '<div class="net-banner ' + (netBalance >= 0 ? 'net-surplus' : 'net-deficit') + '" style="margin-bottom:12px;">' +
+          '<div style="font-size:0.9rem; font-weight:bold;">' + (netBalance >= 0 ? 'বর্তমান স্থিতি (উদ্বৃত্ত)' : 'বর্তমান স্থিতি (ঘাটতি)') + '</div>' +
+          '<div style="font-size:1.35rem; font-weight:bold;">' + (netBalance >= 0 ? '+ ' : '- ') + '₹ ' + Math.abs(netBalance).toLocaleString('en-IN') + '</div>' +
+        '</div>';
+
+      html += '<div class="public-sec-header">🪙 গ্রামীন চাঁদা (মোট: ₹' + totalGramin.toLocaleString('en-IN') + ')</div>';
+      if (graminList.length === 0) {
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো এন্ট্রি নেই।</div>';
+      } else {
+        graminList.forEach(function(g, i) {
+          html += 
+            '<div class="list-card" style="margin-bottom:6px;">' +
+              '<div class="list-info">' +
+                '<div class="list-name">' + (i + 1) + '. ' + g.name + '</div>' +
+                '<div class="list-time">🕒 ' + g.dateTime + '</div>' +
+              '</div>' +
+              '<div class="list-amount" style="font-size:1rem;">₹ ' + g.amount.toLocaleString('en-IN') + '</div>' +
+            '</div>';
+        });
+      }
+
+      html += '<div class="public-sec-header">👥 মেম্বার চাঁদা (মোট: ₹' + totalMember.toLocaleString('en-IN') + ')</div>';
+      if (members.length === 0) {
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো মেম্বার এন্ট্রি নেই।</div>';
+      } else {
+        members.forEach(function(m, i) {
+          var mSum = 0;
+          var breakdownHtml = '';
+          if (m.transactions && m.transactions.length > 0) {
+            m.transactions.forEach(function(t) {
+              mSum += t.amount;
+              breakdownHtml += '<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 📌 ' + t.remarks + ': <strong>₹' + t.amount.toLocaleString('en-IN') + '</strong> (' + t.dateTime + ')</div>';
+            });
+          }
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div style="display:flex; justify-content:space-between; width:100%; align-items:center;">' +
+                '<div class="list-name">👤 ' + (i + 1) + '. ' + m.name + '</div>' +
+                '<div class="list-amount" style="font-size:1rem;">₹ ' + mSum.toLocaleString('en-IN') + '</div>' +
+              '</div>' +
+              breakdownHtml +
+            '</div>';
+        });
+      }
+
+      html += '<div class="public-sec-header">🏛️ প্রধান খরচ (মোট: ₹' + totalMainExp.toLocaleString('en-IN') + ')</div>';
+      if (mainCategories.length === 0) {
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো প্রধান খরচ নেই।</div>';
+      } else {
+        mainCategories.forEach(function(c, i) {
+          var cSum = 0;
+          var payHtml = '';
+          if (c.payments && c.payments.length > 0) {
+            c.payments.forEach(function(p) {
+              cSum += p.amount;
+              payHtml += '<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 🧾 ' + p.note + ': <strong>₹' + p.amount.toLocaleString('en-IN') + '</strong> (' + p.dateTime + ')</div>';
+            });
+          }
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div style="display:flex; justify-content:space-between; width:100%; align-items:center;">' +
+                '<div class="list-name">🏛️ ' + (i + 1) + '. ' + c.categoryName + '</div>' +
+                '<div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ' + cSum.toLocaleString('en-IN') + '</div>' +
+              '</div>' +
+              payHtml +
+            '</div>';
+        });
+      }
+
+      html += '<div class="public-sec-header">📝 সাধারণ খরচ (মোট: ₹' + totalGenExp.toLocaleString('en-IN') + ')</div>';
+      if (genExpenses.length === 0) {
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো সাধারণ খরচ নেই।</div>';
+      } else {
+        genExpenses.forEach(function(e, i) {
+          html += 
+            '<div class="list-card" style="margin-bottom:6px;">' +
+              '<div class="list-info">' +
+                '<div class="list-name">📝 ' + (i + 1) + '. ' + e.title + '</div>' +
+                '<div class="list-time">🕒 ' + e.dateTime + '</div>' +
+              '</div>' +
+              '<div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ' + e.amount.toLocaleString('en-IN') + '</div>' +
+            '</div>';
+        });
+      }
+
+      html += '<div class="public-sec-header">🪔 অনুষ্ঠান কর্মসূচি</div>';
+      var catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
+      ['dance', 'song', 'recitation'].forEach(function(k) {
+        html += '<div style="font-size:0.88rem; font-weight:bold; color:var(--text-muted); margin:4px 0 2px 4px;">' + catTitles[k] + ':</div>';
+        var pList = progData[k] || [];
+        if (pList.length === 0) {
+          html += '<div style="color:#aaa; font-size:0.8rem; padding-left:8px; margin-bottom:4px;">কোনো নাম নেই।</div>';
+        } else {
+          pList.forEach(function(p, idx) {
+            html += 
+              '<div class="list-card" style="padding:6px 10px; margin-bottom:4px;">' +
+                '<div class="list-info">' +
+                  '<div class="list-name" style="font-size:0.92rem;">' + (idx + 1) + '. ' + p.name + ' (' + p.age + ' বছর)</div>' +
+                  '<div class="list-subtext" style="font-size:0.75rem;">বিষয়: ' + p.remarks + '</div>' +
+                '</div>' +
+              '</div>';
+          });
+        }
+      });
+
+      html += '<div class="public-sec-header">🏆 খেলার কর্মসূচি ও ফলাফল</div>';
+      if (sportsData.length === 0) {
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো খেলা নেই।</div>';
+      } else {
+        sportsData.forEach(function(s, idx) {
+          var winHtml = '';
+          if (s.winners && s.winners.length > 0) {
+            s.winners.forEach(function(w) {
+              winHtml += '<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ' + w.rank + ': <strong>' + w.winnerName + '</strong> ' + (w.remarks ? '(' + w.remarks + ')' : '') + '</div>';
+            });
+          } else {
+            winHtml = '<div style="font-size:0.75rem; color:#aaa; padding-left:8px;">ফলাফল এখনও প্রকাশ হয়নি।</div>';
+          }
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div class="list-name" style="color:#fff; margin-bottom:3px;">⚽ ' + (idx + 1) + '. ' + s.gameName + '</div>' +
+              winHtml +
+            '</div>';
+        });
+      }
+
+      container.innerHTML = html;
+    }
+
+    function generatePublicReportPdf() {
+      var year = appState.pujaYear || '২০২৬';
+      var graminList = appState.graminChandaList || [];
+      var members = appState.memberAccounts || [];
+      var mainCategories = appState.mainExpenseCategories || [];
+      var genExpenses = appState.generalExpenses || [];
+      var progData = appState.programData || { dance: [], song: [], recitation: [] };
+      var sportsData = appState.sportsData || [];
+
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
+      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
+      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
+
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
+
+      var printWindow = window.open('', '_blank');
+      var htmlContent = 
+        '<!DOCTYPE html><html lang="bn"><head><title>কালীপূজা হিসাব বিবরণী - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
+        '.kpi-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td, .kpi-table th{border: 1px solid #aaa; padding: 6px 10px; font-size: 13px;}' +
+        '.kpi-table th{background: #f2f2f2;} .section-head{background: #f5f5f5; padding: 6px 10px; margin-top: 18px; font-weight: bold; border-left: 5px solid #800020;}' +
+        'table.data-table{width: 100%; border-collapse: collapse; margin-top: 6px;} table.data-table th, table.data-table td{border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; text-align: left;}' +
+        'table.data-table th{background: #fafafa;} @media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
+        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - সর্বসাধারণের জন্য হিসাব ও বিবরণী</h4>' +
+        '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
+        '<table class="kpi-table">' +
+          '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr><th>মোট মেম্বার চাঁদা</th><td>₹ ' + totalMember.toLocaleString('en-IN') + '</td><th>মোট সাধারণ খরচ</th><td>₹ ' + totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr style="font-weight:bold; background:#f9f9f9;"><th>সর্বমোট সংগৃহীত চাঁদা</th><td>₹ ' + totalIncome.toLocaleString('en-IN') + '</td><th>সর্বমোট খরচ</th><td>₹ ' + totalExpense.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr style="font-weight:bold;"><th colspan="2" style="text-align:right;">বর্তমান আর্থিক স্থিতি (' + (netBalance >= 0 ? 'উদ্বৃত্ত' : 'ঘাটতি') + '):</th><td colspan="2" style="color:' + (netBalance >= 0 ? '#27ae60' : '#c0392b') + '; font-size:15px;">₹ ' + netBalance.toLocaleString('en-IN') + '</td></tr>' +
+        '</table>' +
+        '<div class="section-head">🪙 গ্রামীন চাঁদা তালিকা</div><table class="data-table"><thead><tr><th style="width:10%;">ক্রম</th><th style="width:60%;">দাতার নাম</th><th style="width:30%;">টাকার পরিমাণ</th></tr></thead><tbody>';
+
+      if (graminList.length === 0) {
+        htmlContent += '<tr><td colspan="3">কোনো তথ্য নেই।</td></tr>';
+      } else {
+        graminList.forEach(function(g, i) {
+          htmlContent += '<tr><td>' + (i + 1) + '</td><td>' + g.name + '</td><td>₹ ' + g.amount.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+
+      htmlContent += '</tbody></table><div class="section-head">👥 মেম্বার চাঁদা তালিকা</div><table class="data-table"><thead><tr><th style="width:10%;">ক্রম</th><th style="width:35%;">মেম্বারের নাম</th><th style="width:35%;">কাজের বাবদ বিবরণ (Remarks)</th><th style="width:20%;">মোট জমা</th></tr></thead><tbody>';
+
+      if (members.length === 0) {
+        htmlContent += '<tr><td colspan="4">কোনো তথ্য নেই।</td></tr>';
+      } else {
+        members.forEach(function(m, i) {
+          var mSum = 0;
+          var notes = [];
+          if (m.transactions) {
+            m.transactions.forEach(function(t) {
+              mSum += t.amount;
+              notes.push(t.remarks + ' (₹' + t.amount + ')');
+            });
+          }
+          htmlContent += '<tr><td>' + (i + 1) + '</td><td><strong>' + m.name + '</strong></td><td>' + (notes.join(', ') || 'এককালীন') + '</td><td>₹ ' + mSum.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+
+      htmlContent += '</tbody></table><div class="section-head">🏛️ প্রধান খরচ তালিকা</div><table class="data-table"><thead><tr><th style="width:10%;">ক্রম</th><th style="width:40%;">খাতের নাম</th><th style="width:30%;">প্রদত্ত কিস্তির বিবরণ</th><th style="width:20%;">মোট খরচ</th></tr></thead><tbody>';
+
+      if (mainCategories.length === 0) {
+        htmlContent += '<tr><td colspan="4">কোনো তথ্য নেই।</td></tr>';
+      } else {
+        mainCategories.forEach(function(c, i) {
+          var cSum = 0;
+          var pNotes = [];
+          if (c.payments) {
+            c.payments.forEach(function(p) {
+              cSum += p.amount;
+              pNotes.push(p.note + ' (₹' + p.amount + ')');
+            });
+          }
+          htmlContent += '<tr><td>' + (i + 1) + '</td><td><strong>' + c.categoryName + '</strong></td><td>' + (pNotes.join(', ') || 'সম্পূর্ণ') + '</td><td>₹ ' + cSum.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+
+      htmlContent += '</tbody></table><div class="section-head">📝 সাধারণ খরচ তালিকা</div><table class="data-table"><thead><tr><th style="width:10%;">ক্রম</th><th style="width:60%;">খরচের কারণ / বিবরণ</th><th style="width:30%;">টাকার পরিমাণ</th></tr></thead><tbody>';
+
+      if (genExpenses.length === 0) {
+        htmlContent += '<tr><td colspan="3">কোনো তথ্য নেই।</td></tr>';
+      } else {
+        genExpenses.forEach(function(e, i) {
+          htmlContent += '<tr><td>' + (i + 1) + '</td><td>' + e.title + '</td><td>₹ ' + e.amount.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+
+      htmlContent += '</tbody></table><div class="section-head">🪔 অনুষ্ঠান ও খেলার সংক্ষিপ্ত বিবরণ</div><p style="font-size:12px; margin:4px 0;">অনুষ্ঠানে মোট অংশগ্রহণকারী: ' + ((progData.dance?.length || 0) + (progData.song?.length || 0) + (progData.recitation?.length || 0)) + ' জন | মোট আয়োজিত খেলা: ' + sportsData.length + ' টি।</p><div style="margin-top:40px; display:flex; justify-content:space-between; font-size:13px;"><div>.........................................<br>হিসাবরক্ষক</div><div>.........................................<br>সভাপতি / সম্পাদক</div></div></body></html>';
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+
+    /* সার্বজনীন এডিট সেভ হ্যান্ডলার */
+    function setEditModal(type, pIdx, sIdx, title, mainPlaceholder, mainVal, numVal, extraVal, timeVal) {
+      document.getElementById('editActionType').value = type;
+      document.getElementById('editPrimaryIndex').value = pIdx;
+      document.getElementById('editSecondaryIndex').value = sIdx !== null ? sIdx : '';
+
+      document.getElementById('editModalTitle').innerText = title;
+      document.getElementById('editMainField').placeholder = mainPlaceholder;
+      document.getElementById('editMainField').value = mainVal || '';
+
+      var numField = document.getElementById('editNumberField');
+      if (numVal !== null && numVal !== undefined) {
+        numField.classList.remove('hidden');
+        numField.value = numVal;
+        numField.placeholder = (type === 'program_entry') ? 'বয়স' : 'টাকার পরিমাণ (₹)';
+      } else {
+        numField.classList.add('hidden');
+      }
+
+      var extraField = document.getElementById('editExtraField');
+      if (type === 'program_entry' || type === 'sport_winner') {
+        extraField.classList.remove('hidden');
+        extraField.placeholder = (type === 'program_entry') ? 'মন্তব্য / বিষয়' : 'মন্তব্য (যদি থাকে)';
+        extraField.value = extraVal || '';
+      } else {
+        extraField.classList.add('hidden');
+      }
+
+      document.getElementById('editTimeNotice').innerText = timeVal ? ('মূল তারিখ ও সময় অপরিবর্তিত থাকবে: ' + timeVal) : '';
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); }
+
+    function saveUniversalEdit() {
+      var type = document.getElementById('editActionType').value;
+      var pIdx = document.getElementById('editPrimaryIndex').value;
+      var sIdx = document.getElementById('editSecondaryIndex').value;
+      var mainVal = formatInputText(document.getElementById('editMainField').value);
+      var numVal = parseFloat(document.getElementById('editNumberField').value);
+      var extraVal = formatInputText(document.getElementById('editExtraField').value);
+
+      if (!mainVal) { alert("অনুগ্রহ করে নাম বা বিবরণ লিখুন!"); return; }
+
+      if (type === 'gramin') {
+        if (isNaN(numVal) || numVal <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+        appState.graminChandaList[pIdx].name = mainVal;
+        appState.graminChandaList[pIdx].amount = numVal;
+        renderGraminChanda();
+      }
+      else if (type === 'member_name') {
+        appState.memberAccounts[pIdx].name = mainVal;
+        renderMemberList();
+      }
+      else if (type === 'ledger_tx') {
+        if (isNaN(numVal) || numVal <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+        appState.memberAccounts[pIdx].transactions[sIdx].remarks = mainVal;
+        appState.memberAccounts[pIdx].transactions[sIdx].amount = numVal;
+        renderMemberLedger();
+      }
+      else if (type === 'main_cat_name') {
+        appState.mainExpenseCategories[pIdx].categoryName = mainVal;
+        renderMainExpenseCategories();
+      }
+      else if (type === 'main_pay_edit') {
+        if (isNaN(numVal) || numVal <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+        appState.mainExpenseCategories[pIdx].payments[sIdx].note = mainVal;
+        appState.mainExpenseCategories[pIdx].payments[sIdx].amount = numVal;
+        renderMainExpenseDetail();
+      }
+      else if (type === 'gen_expense') {
+        if (isNaN(numVal) || numVal <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+        appState.generalExpenses[pIdx].title = mainVal;
+        appState.generalExpenses[pIdx].amount = numVal;
+        renderGeneralExpenses();
+      }
+      else if (type === 'program_entry') {
+        var age = parseInt(document.getElementById('editNumberField').value);
+        if (isNaN(age) || age <= 0) { alert("সঠিক বয়স লিখুন!"); return; }
+        appState.programData[pIdx][sIdx].name = mainVal;
+        appState.programData[pIdx][sIdx].age = age;
+        appState.programData[pIdx][sIdx].remarks = extraVal || 'নির্দিষ্ট নেই';
+        appState.programData[pIdx].sort(function(a, b) { return a.age - b.age; });
+        renderProgramList();
+      }
+      else if (type === 'sport_name') {
+        appState.sportsData[pIdx].gameName = mainVal;
+        renderSportsGames();
+      }
+      else if (type === 'sport_winner') {
+        appState.sportsData[pIdx].winners[sIdx].winnerName = mainVal;
+        appState.sportsData[pIdx].winners[sIdx].remarks = extraVal || '';
+        renderSportsWinners();
+      }
+
+      persistData();
+      closeEditModal();
+    }
+
+    // ব্যাকগ্রাউন্ডে ফায়ারবেস কানেক্ট করা
+    window.addEventListener('load', function() {
+      refreshYearDisplay();
+      try {
+        if (typeof firebase !== 'undefined') {
+          var firebaseConfig = {
+            apiKey: "AIzaSyAAaG35fMbzgdxcuMLFDHRHoxP2qnL0t24",
+            authDomain: "new-jhalapala-committee.firebaseapp.com",
+            projectId: "new-jhalapala-committee",
+            storageBucket: "new-jhalapala-committee.firebasestorage.app",
+            messagingSenderId: "379287603039",
+            appId: "1:379287603039:web:15e1451a6f0e37074398ea"
+          };
+
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          var db = firebase.firestore();
+          firestoreDoc = db.collection("pujaData").doc("accounts2026");
+
+          firestoreDoc.onSnapshot(function(doc) {
+            if (doc && doc.exists) {
+              var cloudData = doc.data();
+              appState = Object.assign({}, appState, cloudData);
+              try { localStorage.setItem('puja_local_db', JSON.stringify(appState)); } catch(e){}
+              var badge = document.getElementById('syncStatus');
+              if (badge) badge.innerText = "☁️ লাইভ ক্লাউড সিঙ্ক চালু আছে";
+            } else {
+              persistData();
+            }
+            refreshUI();
+          }, function(err) {
+            console.warn("Firestore error:", err);
+            var badge = document.getElementById('syncStatus');
+            if (badge) badge.innerText = "☁️ লোকাল ক্যাশ মোড";
+          });
+        }
+      } catch(e) {
+        console.warn("Cloud connection notice:", e);
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -610,7 +1498,7 @@
     <div id="homeScreen" class="screen">
       <div class="header-box">
         <div class="sync-badge" id="syncStatus">☁️ লাইভ ক্লাউড সিঙ্ক চালু হচ্ছে...</div>
-        <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
+        <h1 class="committee-title">নিউ ঝালাপাল্লা কমিটি</h1>
         <div class="main-banner" id="homeBannerText">কালীপুজো ২০২৬ এ আপনাদের সবাইকে স্বাগতম</div>
       </div>
 
@@ -936,1324 +1824,4 @@
     </div>
 
     <!-- 12. FINAL AUDIT SCREEN -->
-    <div id="finalAuditScreen" class="screen hidden">
-      <div class="nav-bar">
-        <button class="btn-back" onclick="showScreen('officialScreen')">← ব্যাক</button>
-        <div class="section-title">পূজো শেষের হিসাব</div>
-        <div style="width:36px;"></div>
-      </div>
-
-      <button class="btn-pdf" onclick="generateAuditPdf()">
-        <span>📄</span> পূজো শেষের সম্পূর্ণ অডিট PDF ডাউনলোড
-      </button>
-
-      <div class="audit-grid">
-        <div class="audit-box">
-          <div class="audit-box-title">🪙 গ্রামীন চাঁদা:</div>
-          <div class="audit-box-val" id="auditGraminVal" style="color:var(--gold-bright);">₹ 0</div>
-        </div>
-        <div class="audit-box">
-          <div class="audit-box-title">👥 মেম্বার চাঁদা:</div>
-          <div class="audit-box-val" id="auditMemberVal" style="color:var(--gold-bright);">₹ 0</div>
-        </div>
-        <div class="audit-box">
-          <div class="audit-box-title">🏛️ প্রধান খরচ:</div>
-          <div class="audit-box-val" id="auditMainExpVal" style="color:#ff7979;">₹ 0</div>
-        </div>
-        <div class="audit-box">
-          <div class="audit-box-title">📝 সাধারণ খরচ:</div>
-          <div class="audit-box-val" id="auditGenExpVal" style="color:#ff7979;">₹ 0</div>
-        </div>
-      </div>
-
-      <div id="netAuditBanner" class="net-banner"></div>
-
-      <div style="width:100%; text-align:left; font-size:0.95rem; font-weight:bold; color:var(--gold-bright); margin-bottom:6px;">
-        👥 মেম্বারভিত্তিক চূড়ান্ত হিসাব ও দেনা-পাওনা বিবরণী:
-      </div>
-
-      <div class="list-container" id="auditSettlementList" style="max-height: 38vh;"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
-    </div>
-
-    <!-- 13. PUBLIC VIEW SCREEN -->
-    <div id="publicScreen" class="screen hidden">
-      <div class="nav-bar">
-        <button class="btn-back" onclick="showScreen('homeScreen')">← হোম</button>
-        <div class="section-title">পূজার হিসাব ও তথ্য</div>
-        <div style="width:36px;"></div>
-      </div>
-
-      <button class="btn-pdf" onclick="generatePublicReportPdf()">
-        <span>📄</span> সম্পূর্ণ হিসাব রিপোর্ট PDF ডাউনলোড
-      </button>
-
-      <div class="public-container" id="publicViewContent"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
-    </div>
-
-  </div>
-
-  <!-- MODAL: CANDIDATE DETAIL VIEW -->
-  <div id="candidateDetailModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <h3 style="color:var(--gold-bright); margin-bottom:8px;">অংশগ্রহণকারীর তথ্য</h3>
-      <div style="text-align:left; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border:1px solid var(--gold-primary); font-size:0.95rem; line-height:1.6;">
-        <div><strong>👤 নাম:</strong> <span id="viewProgName" style="color:#fff;"></span></div>
-        <div><strong>🎂 বয়স:</strong> <span id="viewProgAge" style="color:var(--gold-bright);"></span> বছর</div>
-        <div><strong>🎭 বিভাগ:</strong> <span id="viewProgCat" style="color:#fff;"></span></div>
-        <div><strong>📝 বিষয় / মন্তব্য:</strong> <span id="viewProgRemarks" style="color:#f5e6d3;"></span></div>
-        <div style="font-size:0.75rem; color:#aaa; margin-top:4px;">🕒 নিবন্ধনের সময়: <span id="viewProgTime"></span></div>
-      </div>
-      <div class="modal-actions" style="margin-top:12px;">
-        <button class="btn-submit" onclick="closeCandidateDetailModal()">বন্ধ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: PIN VERIFY -->
-  <div id="pinModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <h3>পিন নম্বর দিন</h3>
-      <input type="password" id="inputPin" class="input-field" style="text-align:center; letter-spacing:4px; font-size:1.2rem;" maxlength="6" placeholder="****" inputmode="numeric">
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closePinModal()">বাতিল</button>
-        <button class="btn-submit" onclick="verifyPin()">লগইন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: ADMIN SETTINGS -->
-  <div id="adminSettingsModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <h3>অ্যাডমিন সেটিংস</h3>
-      <div style="text-align: left; font-size:0.85rem; color:var(--gold-primary); margin-bottom:4px;">পূজার সাল পরিবর্তন:</div>
-      <input type="text" id="settingYear" class="input-field" placeholder="যেমন: ২০২৬ বা 2026">
-      
-      <div style="text-align: left; font-size:0.85rem; color:var(--gold-primary); margin-top:8px; margin-bottom:4px;">পিন পরিবর্তন:</div>
-      <input type="password" id="currentPin" class="input-field" placeholder="বর্তমান পিন" maxlength="6" inputmode="numeric">
-      <input type="password" id="newPin" class="input-field" style="margin-top:6px;" placeholder="নতুন পিন" maxlength="6" inputmode="numeric">
-
-      <div style="border-top: 1px solid rgba(245, 176, 65, 0.4); margin: 12px 0 8px 0; padding-top: 8px; text-align: left;">
-        <div style="font-size:0.9rem; font-weight:bold; color:var(--gold-bright); margin-bottom:6px;">যোগাযোগের লিংক সেটিংস:</div>
-        
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-bottom:2px;">YouTube Link:</div>
-        <input type="text" id="settingYtLink" class="input-field" placeholder="https://youtube.com/...">
-        
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">Facebook Link:</div>
-        <input type="text" id="settingFbLink" class="input-field" placeholder="https://facebook.com/...">
-        
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">WhatsApp Link বা নম্বর:</div>
-        <input type="text" id="settingWpLink" class="input-field" placeholder="যেমন: 919876543210 বা চ্যাট লিংক">
-      </div>
-
-      <button class="btn-reset" onclick="openResetConfirmation()">⚠️ Reset The App (সমস্ত হিসাব মুছুন)</button>
-
-      <div class="modal-actions" style="margin-top:12px;">
-        <button class="btn-cancel" onclick="closeAdminSettingsModal()">বাতিল</button>
-        <button class="btn-submit" onclick="saveAdminSettings()">সংরক্ষণ</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: RESET CONFIRMATION -->
-  <div id="resetPinModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <h3 style="color:#ff7675;">রিসেট যাচাইকরণ</h3>
-      <p style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">অ্যাপের সমস্ত তথ্য ও হিসাব সম্পূর্ণ মুছে ফেলতে অ্যাডমিন পিন দিন:</p>
-      <input type="password" id="resetInputPin" class="input-field" style="text-align:center; letter-spacing:4px; font-size:1.2rem;" maxlength="6" placeholder="****" inputmode="numeric">
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeResetPinModal()">বাতিল</button>
-        <button class="btn-submit" style="background:var(--danger); color:#fff;" onclick="proceedResetApp()">রিসেট করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: UNIVERSAL EDIT -->
-  <div id="editModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <h3 id="editModalTitle">এন্ট্রি সম্পাদনা</h3>
-      <input type="hidden" id="editActionType">
-      <input type="hidden" id="editPrimaryIndex">
-      <input type="hidden" id="editSecondaryIndex">
-
-      <input type="text" id="editMainField" class="input-field" placeholder="নাম / বিবরণ">
-      <input type="number" id="editNumberField" class="input-field hidden" style="margin-top:8px;" placeholder="টাকা বা বয়স" inputmode="numeric">
-      <input type="text" id="editExtraField" class="input-field hidden" style="margin-top:8px;" placeholder="মন্তব্য / বিবরণ">
-      
-      <div style="font-size:0.75rem; color:#aaa; margin-top:8px;" id="editTimeNotice"></div>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeEditModal()">বাতিল</button>
-        <button class="btn-submit" onclick="saveUniversalEdit()">আপডেট করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SAFE JAVASCRIPT EXECUTION -->
-  <script>
-    var appState = {
-      adminPin: '1234',
-      pujaYear: '২০২৬',
-      contactYt: '',
-      contactFb: '',
-      contactWp: '',
-      graminChandaList: [],
-      memberAccounts: [],
-      mainExpenseCategories: [],
-      generalExpenses: [],
-      programData: { dance: [], song: [], recitation: [] },
-      sportsData: []
-    };
-
-    var activeMemberIndex = null;
-    var activeMainExpenseIndex = null;
-    var activeProgramCategory = 'dance';
-    var activeSportIndex = null;
-    var currentScreenId = 'homeScreen';
-    var firestoreDoc = null;
-
-    // লোকালে ডেটা ক্যাশ
-    try {
-      var cached = localStorage.getItem('puja_local_db');
-      if (cached) {
-        var parsed = JSON.parse(cached);
-        appState = Object.assign({}, appState, parsed);
-      }
-    } catch(e) {}
-
-    window.showScreen = function(screenId) {
-      currentScreenId = screenId;
-      var screens = [
-        'homeScreen', 'officialScreen', 'graminScreen', 
-        'memberScreen', 'memberLedgerScreen',
-        'mainExpenseScreen', 'mainExpenseDetailScreen',
-        'generalExpenseScreen', 'programScreen',
-        'sportsScreen', 'sportsDetailScreen',
-        'finalAuditScreen', 'publicScreen'
-      ];
-      screens.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-      });
-      var target = document.getElementById(screenId);
-      if (target) target.classList.remove('hidden');
-    };
-
-    window.openPinModal = function() {
-      var input = document.getElementById('inputPin');
-      input.value = '';
-      document.getElementById('pinModal').classList.remove('hidden');
-      setTimeout(function() { input.focus(); }, 150);
-    };
-
-    window.closePinModal = function() {
-      document.getElementById('pinModal').classList.add('hidden');
-    };
-
-    window.verifyPin = function() {
-      var entered = document.getElementById('inputPin').value.trim();
-      if (entered === (appState.adminPin || '1234')) {
-        closePinModal();
-        showScreen('officialScreen');
-      } else {
-        alert("ভুল পিন নম্বর! সঠিক পিন দিন।");
-        document.getElementById('inputPin').value = '';
-      }
-    };
-
-    window.formatInputText = function(str) {
-      if (!str) return '';
-      return str.replace(/[a-z]/g, function(c) { return c.toUpperCase(); }).trim();
-    };
-
-    document.addEventListener('input', function(e) {
-      if (e.target && e.target.type === 'text' && !e.target.id.includes('settingYtLink') && !e.target.id.includes('settingFbLink') && !e.target.id.includes('settingWpLink')) {
-        var start = e.target.selectionStart;
-        var end = e.target.selectionEnd;
-        var oldVal = e.target.value;
-        var newVal = oldVal.replace(/[a-z]/g, function(c) { return c.toUpperCase(); });
-        if (oldVal !== newVal) {
-          e.target.value = newVal;
-          e.target.setSelectionRange(start, end);
-        }
-      }
-    });
-
-    window.getCurrentDateTime = function() {
-      var now = new Date();
-      return now.toLocaleString('en-IN', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-      });
-    };
-
-    window.refreshYearDisplay = function() {
-      var year = appState.pujaYear || '২০২৬';
-      var el = document.getElementById('homeBannerText');
-      if (el) el.innerText = "কালীপুজো " + year + " এ আপনাদের সবাইকে স্বাগতম";
-    };
-
-    window.refreshUI = function() {
-      refreshYearDisplay();
-      if (currentScreenId === 'graminScreen') renderGraminChanda();
-      else if (currentScreenId === 'memberScreen') renderMemberList();
-      else if (currentScreenId === 'memberLedgerScreen') renderMemberLedger();
-      else if (currentScreenId === 'mainExpenseScreen') renderMainExpenseCategories();
-      else if (currentScreenId === 'mainExpenseDetailScreen') renderMainExpenseDetail();
-      else if (currentScreenId === 'generalExpenseScreen') renderGeneralExpenses();
-      else if (currentScreenId === 'programScreen') renderProgramList();
-      else if (currentScreenId === 'sportsScreen') renderSportsGames();
-      else if (currentScreenId === 'sportsDetailScreen') renderSportsWinners();
-      else if (currentScreenId === 'finalAuditScreen') renderFinalAudit();
-      else if (currentScreenId === 'publicScreen') renderPublicView();
-    };
-
-    window.persistData = function() {
-      try {
-        localStorage.setItem('puja_local_db', JSON.stringify(appState));
-      } catch(e) {}
-
-      if (firestoreDoc) {
-        firestoreDoc.set(appState).catch(function(err) {
-          console.warn("Cloud save warning:", err);
-        });
-      }
-    };
-
-    window.handleSocialClick = function(type) {
-      var link = '';
-      if (type === 'yt') link = appState.contactYt;
-      else if (type === 'fb') link = appState.contactFb;
-      else if (type === 'wp') link = appState.contactWp;
-
-      if (!link) {
-        alert("কমিটি লিঙ্ক সেট করেনি। অ্যাডমিন সেটিংস (⚙️) থেকে লিঙ্ক সেট করতে পারবেন।");
-        return;
-      }
-
-      if (type === 'wp' && !link.startsWith('http')) {
-        var cleanNum = link.replace(/[^0-9]/g, '');
-        window.open('https://wa.me/' + cleanNum, '_blank');
-      } else {
-        if (!link.startsWith('http://') && !link.startsWith('https://')) {
-          link = 'https://' + link;
-        }
-        window.open(link, '_blank');
-      }
-    };
-
-    window.openAdminSettingsModal = function() {
-      document.getElementById('settingYear').value = appState.pujaYear || '২০২৬';
-      document.getElementById('currentPin').value = '';
-      document.getElementById('newPin').value = '';
-      document.getElementById('settingYtLink').value = appState.contactYt || '';
-      document.getElementById('settingFbLink').value = appState.contactFb || '';
-      document.getElementById('settingWpLink').value = appState.contactWp || '';
-      document.getElementById('adminSettingsModal').classList.remove('hidden');
-    };
-    window.closeAdminSettingsModal = function() { document.getElementById('adminSettingsModal').classList.add('hidden'); };
-
-    window.saveAdminSettings = function() {
-      var newYear = document.getElementById('settingYear').value.trim();
-      var currPin = document.getElementById('currentPin').value.trim();
-      var newPin = document.getElementById('newPin').value.trim();
-      var ytLink = document.getElementById('settingYtLink').value.trim();
-      var fbLink = document.getElementById('settingFbLink').value.trim();
-      var wpLink = document.getElementById('settingWpLink').value.trim();
-
-      if (newYear) appState.pujaYear = newYear;
-      appState.contactYt = ytLink;
-      appState.contactFb = fbLink;
-      appState.contactWp = wpLink;
-
-      if (newPin) {
-        if (currPin !== (appState.adminPin || '1234')) {
-          alert("বর্তমান পিনটি সঠিক নয়! পিন পরিবর্তন হয়নি।");
-          return;
-        }
-        if (newPin.length < 4) {
-          alert("নতুন পিন অন্তত ৪ সংখ্যার হতে হবে!");
-          return;
-        }
-        appState.adminPin = newPin;
-        alert("পিন সফলভাবে পরিবর্তন হয়েছে!");
-      }
-
-      persistData();
-      alert("সমস্ত সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
-      closeAdminSettingsModal();
-      refreshYearDisplay();
-    };
-
-    window.openResetConfirmation = function() {
-      closeAdminSettingsModal();
-      document.getElementById('resetInputPin').value = '';
-      document.getElementById('resetPinModal').classList.remove('hidden');
-      setTimeout(function() { document.getElementById('resetInputPin').focus(); }, 100);
-    };
-    window.closeResetPinModal = function() { document.getElementById('resetPinModal').classList.add('hidden'); };
-
-    window.proceedResetApp = function() {
-      var pin = document.getElementById('resetInputPin').value.trim();
-      if (pin !== (appState.adminPin || '1234')) {
-        alert("ভুল পিন নম্বর! রিসেট করা সম্ভব নয়।");
-        return;
-      }
-
-      if (confirm("⚠️ আপনি কি নিশ্চিত যে সমস্ত চাঁদা, খরচ ও রেকর্ড মুছে সম্পূর্ণ নতুন করে শুরু করতে চান?")) {
-        appState.graminChandaList = [];
-        appState.memberAccounts = [];
-        appState.mainExpenseCategories = [];
-        appState.generalExpenses = [];
-        appState.programData = { dance: [], song: [], recitation: [] };
-        appState.sportsData = [];
-
-        persistData();
-        closeResetPinModal();
-        alert("অ্যাপের সমস্ত হিসাব সফলভাবে মুছে ফেলা হয়েছে!");
-        showScreen('homeScreen');
-      }
-    };
-
-    /* ১. গ্রামীন চাঁদা */
-    window.openGraminChandaScreen = function() { showScreen('graminScreen'); renderGraminChanda(); };
-    window.addGraminChanda = function() {
-      var name = formatInputText(document.getElementById('gName').value);
-      var amount = parseFloat(document.getElementById('gAmount').value);
-      if (!name) { alert("দাতার নাম লিখুন!"); return; }
-      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
-
-      appState.graminChandaList.unshift({ name: name, amount: amount, dateTime: getCurrentDateTime() });
-      persistData();
-      document.getElementById('gName').value = '';
-      document.getElementById('gAmount').value = '';
-      renderGraminChanda();
-    };
-    window.renderGraminChanda = function() {
-      var list = appState.graminChandaList || [];
-      var container = document.getElementById('graminList');
-      container.innerHTML = '';
-      var total = 0;
-      list.forEach(function(item, index) {
-        total += item.amount;
-        var card = document.createElement('div');
-        card.className = 'list-card';
-        card.innerHTML = 
-          '<div class="list-info">' +
-            '<div class="list-name">' + item.name + '</div>' +
-            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
-            '<div class="action-icons">' +
-              '<button class="btn-icon btn-edit" onclick="openGraminEdit(' + index + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" onclick="deleteGramin(' + index + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-      document.getElementById('graminTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    };
-    window.deleteGramin = function(index) {
-      if (confirm("এই গ্রামীন চাঁদা এন্ট্রি মুছে ফেলতে চান?")) {
-        appState.graminChandaList.splice(index, 1);
-        persistData();
-        renderGraminChanda();
-      }
-    };
-    window.openGraminEdit = function(index) {
-      var item = appState.graminChandaList[index];
-      setEditModal('gramin', index, null, 'গ্রামীন চাঁদা সম্পাদনা', 'দাতার নাম', item.name, item.amount, '', item.dateTime);
-    };
-
-    /* ২. মেম্বার চাঁদা */
-    window.openMemberChandaScreen = function() { showScreen('memberScreen'); renderMemberList(); };
-    window.createMember = function() {
-      var name = formatInputText(document.getElementById('newMemberName').value);
-      if (!name) { alert("মেম্বারের নাম লিখুন!"); return; }
-      if (!appState.memberAccounts) appState.memberAccounts = [];
-      appState.memberAccounts.unshift({ name: name, createdAt: getCurrentDateTime(), transactions: [] });
-      persistData();
-      document.getElementById('newMemberName').value = '';
-      renderMemberList();
-    };
-    window.renderMemberList = function() {
-      var members = appState.memberAccounts || [];
-      var container = document.getElementById('memberList');
-      container.innerHTML = '';
-      var grandTotal = 0;
-      members.forEach(function(member, index) {
-        var memberSum = 0;
-        if (member.transactions) {
-          member.transactions.forEach(function(t) { memberSum += t.amount; });
-        }
-        grandTotal += memberSum;
-        var card = document.createElement('div');
-        card.className = 'list-card folder-card';
-        card.innerHTML = 
-          '<div class="list-info" onclick="openMemberLedger(' + index + ')">' +
-            '<div class="list-name">👤 ' + member.name + '</div>' +
-            '<div class="list-subtext">মোট এন্ট্রি: ' + (member.transactions ? member.transactions.length : 0) + ' টি (ক্লিক করে দেখুন)</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="list-amount" onclick="openMemberLedger(' + index + ')">₹ ' + memberSum.toLocaleString('en-IN') + '</div>' +
-            '<div class="action-icons">' +
-              '<button class="btn-icon btn-edit" title="নাম বদলান" onclick="event.stopPropagation(); openMemberNameEdit(' + index + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" title="মেম্বার মুছুন" onclick="event.stopPropagation(); deleteMemberProfile(' + index + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-      document.getElementById('memberGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
-    };
-    window.openMemberNameEdit = function(index) {
-      setEditModal('member_name', index, null, 'মেম্বারের নাম পরিবর্তন', 'মেম্বারের নাম', appState.memberAccounts[index].name, null, '', '');
-    };
-    window.deleteMemberProfile = function(index) {
-      if (confirm('আপনি কি "' + appState.memberAccounts[index].name + '" মেম্বার ও তাঁর সব এন্ট্রি মুছে ফেলতে চান?')) {
-        appState.memberAccounts.splice(index, 1);
-        persistData();
-        renderMemberList();
-      }
-    };
-    window.openMemberLedger = function(index) {
-      activeMemberIndex = index;
-      document.getElementById('ledgerMemberName').innerText = appState.memberAccounts[index].name;
-      showScreen('memberLedgerScreen');
-      renderMemberLedger();
-    };
-    window.addMemberTransaction = function() {
-      var remarks = formatInputText(document.getElementById('mEntryRemarks').value);
-      var amount = parseFloat(document.getElementById('mEntryAmount').value);
-      if (!remarks) { alert("মন্তব্য বা কাজের বিবরণ (Remarks) লিখুন!"); return; }
-      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
-
-      if (!appState.memberAccounts[activeMemberIndex].transactions) {
-        appState.memberAccounts[activeMemberIndex].transactions = [];
-      }
-      appState.memberAccounts[activeMemberIndex].transactions.unshift({ remarks: remarks, amount: amount, dateTime: getCurrentDateTime() });
-      persistData();
-      document.getElementById('mEntryRemarks').value = '';
-      document.getElementById('mEntryAmount').value = '';
-      renderMemberLedger();
-    };
-    window.renderMemberLedger = function() {
-      var member = appState.memberAccounts[activeMemberIndex];
-      var container = document.getElementById('memberLedgerList');
-      container.innerHTML = '';
-      var total = 0;
-      if (member && member.transactions) {
-        member.transactions.forEach(function(item, tIndex) {
-          total += item.amount;
-          var card = document.createElement('div');
-          card.className = 'list-card';
-          card.innerHTML = 
-            '<div class="list-info">' +
-              '<div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">📌 ' + item.remarks + '</div>' +
-              '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
-            '</div>' +
-            '<div class="list-amount-actions">' +
-              '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
-              '<div class="action-icons">' +
-                '<button class="btn-icon btn-edit" onclick="openLedgerTransactionEdit(' + tIndex + ')">✏️</button>' +
-                '<button class="btn-icon btn-del" onclick="deleteMemberTransaction(' + tIndex + ')">🗑️</button>' +
-              '</div>' +
-            '</div>';
-          container.appendChild(card);
-        });
-      }
-      document.getElementById('memberIndividualTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    };
-    window.deleteMemberTransaction = function(tIndex) {
-      if (confirm("এই জমার এন্ট্রি মুছে ফেলতে চান?")) {
-        appState.memberAccounts[activeMemberIndex].transactions.splice(tIndex, 1);
-        persistData();
-        renderMemberLedger();
-      }
-    };
-    window.openLedgerTransactionEdit = function(tIndex) {
-      var tx = appState.memberAccounts[activeMemberIndex].transactions[tIndex];
-      setEditModal('ledger_tx', activeMemberIndex, tIndex, 'মেম্বার জমা সম্পাদনা', 'মন্তব্য / Remarks', tx.remarks, tx.amount, '', tx.dateTime);
-    };
-
-    /* ৩. প্রধান খরচ */
-    window.openMainExpenseScreen = function() { showScreen('mainExpenseScreen'); renderMainExpenseCategories(); };
-    window.createMainExpenseCategory = function() {
-      var name = formatInputText(document.getElementById('newMainCategoryName').value);
-      if (!name) { alert("প্রধান খরচের খাতের নাম লিখুন! (যেমন: প্রতিমা, মণ্ডপ)"); return; }
-      if (!appState.mainExpenseCategories) appState.mainExpenseCategories = [];
-      appState.mainExpenseCategories.unshift({ categoryName: name, createdAt: getCurrentDateTime(), payments: [] });
-      persistData();
-      document.getElementById('newMainCategoryName').value = '';
-      renderMainExpenseCategories();
-    };
-    window.renderMainExpenseCategories = function() {
-      var categories = appState.mainExpenseCategories || [];
-      var container = document.getElementById('mainExpenseCategoryList');
-      container.innerHTML = '';
-      var grandTotal = 0;
-      categories.forEach(function(cat, index) {
-        var sum = 0;
-        if (cat.payments) {
-          cat.payments.forEach(function(p) { sum += p.amount; });
-        }
-        grandTotal += sum;
-        var card = document.createElement('div');
-        card.className = 'list-card folder-card';
-        card.innerHTML = 
-          '<div class="list-info" onclick="openMainExpenseDetail(' + index + ')">' +
-            '<div class="list-name">🏛️ ' + cat.categoryName + '</div>' +
-            '<div class="list-subtext">প্রদত্ত কিস্তি: ' + (cat.payments ? cat.payments.length : 0) + ' টি (ক্লিক করে দেখুন)</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="list-amount" onclick="openMainExpenseDetail(' + index + ')">₹ ' + sum.toLocaleString('en-IN') + '</div>' +
-            '<div class="action-icons">' +
-              '<button class="btn-icon btn-edit" title="খাতের নাম বদলান" onclick="event.stopPropagation(); openMainCategoryNameEdit(' + index + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" title="খাতটি মুছুন" onclick="event.stopPropagation(); deleteMainExpenseCategory(' + index + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-      document.getElementById('mainExpenseGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
-    };
-    window.openMainCategoryNameEdit = function(index) {
-      setEditModal('main_cat_name', index, null, 'খাতের নাম পরিবর্তন', 'খাতের নাম', appState.mainExpenseCategories[index].categoryName, null, '', '');
-    };
-    window.deleteMainExpenseCategory = function(index) {
-      if (confirm('আপনি কি "' + appState.mainExpenseCategories[index].categoryName + '" খাতের সব হিসাব মুছে ফেলতে চান?')) {
-        appState.mainExpenseCategories.splice(index, 1);
-        persistData();
-        renderMainExpenseCategories();
-      }
-    };
-    window.openMainExpenseDetail = function(index) {
-      activeMainExpenseIndex = index;
-      document.getElementById('ledgerMainExpenseTitle').innerText = appState.mainExpenseCategories[index].categoryName;
-      showScreen('mainExpenseDetailScreen');
-      renderMainExpenseDetail();
-    };
-    window.addMainExpensePayment = function() {
-      var note = formatInputText(document.getElementById('mainExpDetailNote').value);
-      var amount = parseFloat(document.getElementById('mainExpDetailAmount').value);
-      if (!note) { alert("কিস্তি বা ভাউচারের বিবরণ লিখুন!"); return; }
-      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
-
-      if (!appState.mainExpenseCategories[activeMainExpenseIndex].payments) {
-        appState.mainExpenseCategories[activeMainExpenseIndex].payments = [];
-      }
-      appState.mainExpenseCategories[activeMainExpenseIndex].payments.unshift({ note: note, amount: amount, dateTime: getCurrentDateTime() });
-      persistData();
-      document.getElementById('mainExpDetailNote').value = '';
-      document.getElementById('mainExpDetailAmount').value = '';
-      renderMainExpenseDetail();
-    };
-    window.renderMainExpenseDetail = function() {
-      var cat = appState.mainExpenseCategories[activeMainExpenseIndex];
-      var container = document.getElementById('mainExpenseDetailList');
-      container.innerHTML = '';
-      var total = 0;
-      if (cat && cat.payments) {
-        cat.payments.forEach(function(pay, pIndex) {
-          total += pay.amount;
-          var card = document.createElement('div');
-          card.className = 'list-card';
-          card.innerHTML = 
-            '<div class="list-info">' +
-              '<div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">🧾 ' + pay.note + '</div>' +
-              '<div class="list-time">🕒 ' + pay.dateTime + '</div>' +
-            '</div>' +
-            '<div class="list-amount-actions">' +
-              '<div class="list-amount">₹ ' + pay.amount.toLocaleString('en-IN') + '</div>' +
-              '<div class="action-icons">' +
-                '<button class="btn-icon btn-edit" onclick="openMainPaymentEdit(' + pIndex + ')">✏️</button>' +
-                '<button class="btn-icon btn-del" onclick="deleteMainExpensePayment(' + pIndex + ')">🗑️</button>' +
-              '</div>' +
-            '</div>';
-          container.appendChild(card);
-        });
-      }
-      document.getElementById('mainExpenseCategoryTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    };
-    window.deleteMainExpensePayment = function(pIndex) {
-      if (confirm("এই কিস্তির এন্ট্রি মুছে ফেলতে চান?")) {
-        appState.mainExpenseCategories[activeMainExpenseIndex].payments.splice(pIndex, 1);
-        persistData();
-        renderMainExpenseDetail();
-      }
-    };
-    window.openMainPaymentEdit = function(pIndex) {
-      var pay = appState.mainExpenseCategories[activeMainExpenseIndex].payments[pIndex];
-      setEditModal('main_pay_edit', activeMainExpenseIndex, pIndex, 'কিস্তি সম্পাদনা', 'কিস্তির বিবরণ', pay.note, pay.amount, '', pay.dateTime);
-    };
-
-    /* ৪. সাধারণ খরচ */
-    window.openGeneralExpenseScreen = function() { showScreen('generalExpenseScreen'); renderGeneralExpenses(); };
-    window.addGeneralExpense = function() {
-      var title = formatInputText(document.getElementById('genExpTitle').value);
-      var amount = parseFloat(document.getElementById('genExpAmount').value);
-      if (!title) { alert("খরচের বিবরণ লিখুন!"); return; }
-      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
-
-      if (!appState.generalExpenses) appState.generalExpenses = [];
-      appState.generalExpenses.unshift({ title: title, amount: amount, dateTime: getCurrentDateTime() });
-      persistData();
-      document.getElementById('genExpTitle').value = '';
-      document.getElementById('genExpAmount').value = '';
-      renderGeneralExpenses();
-    };
-    window.renderGeneralExpenses = function() {
-      var list = appState.generalExpenses || [];
-      var container = document.getElementById('genExpenseList');
-      container.innerHTML = '';
-      var total = 0;
-      list.forEach(function(item, index) {
-        total += item.amount;
-        var card = document.createElement('div');
-        card.className = 'list-card';
-        card.innerHTML = 
-          '<div class="list-info">' +
-            '<div class="list-name">📝 ' + item.title + '</div>' +
-            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
-            '<div class="action-icons">' +
-              '<button class="btn-icon btn-edit" onclick="openGenExpenseEdit(' + index + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" onclick="deleteGenExpense(' + index + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-      document.getElementById('genExpenseTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    };
-    window.deleteGenExpense = function(index) {
-      if (confirm("এই সাধারণ খরচের হিসাব মুছে ফেলতে চান?")) {
-        appState.generalExpenses.splice(index, 1);
-        persistData();
-        renderGeneralExpenses();
-      }
-    };
-    window.openGenExpenseEdit = function(index) {
-      var item = appState.generalExpenses[index];
-      setEditModal('gen_expense', index, null, 'সাধারণ খরচ সম্পাদনা', 'খরচের বিবরণ', item.title, item.amount, '', item.dateTime);
-    };
-
-    /* ৫. অনুষ্ঠান কর্মসূচি */
-    window.openProgramScreen = function() { showScreen('programScreen'); switchProgramTab(activeProgramCategory); };
-    window.switchProgramTab = function(cat) {
-      activeProgramCategory = cat;
-      document.getElementById('tabNach').classList.remove('active');
-      document.getElementById('tabGan').classList.remove('active');
-      document.getElementById('tabAbritti').classList.remove('active');
-
-      if (cat === 'dance') document.getElementById('tabNach').classList.add('active');
-      else if (cat === 'song') document.getElementById('tabGan').classList.add('active');
-      else if (cat === 'recitation') document.getElementById('tabAbritti').classList.add('active');
-
-      renderProgramList();
-    };
-    window.addProgramEntry = function() {
-      var name = formatInputText(document.getElementById('progName').value);
-      var age = parseInt(document.getElementById('progAge').value);
-      var remarks = formatInputText(document.getElementById('progRemarks').value);
-
-      if (!name) { alert("অংশগ্রহণকারীর নাম লিখুন!"); return; }
-      if (isNaN(age) || age <= 0) { alert("সঠিক বয়স লিখুন!"); return; }
-
-      if (!appState.programData) appState.programData = { dance: [], song: [], recitation: [] };
-      if (!appState.programData[activeProgramCategory]) appState.programData[activeProgramCategory] = [];
-
-      appState.programData[activeProgramCategory].push({
-        name: name, age: age, remarks: remarks || 'নির্দিষ্ট নেই', dateTime: getCurrentDateTime()
-      });
-      appState.programData[activeProgramCategory].sort(function(a, b) { return a.age - b.age; });
-
-      persistData();
-      document.getElementById('progName').value = '';
-      document.getElementById('progAge').value = '';
-      document.getElementById('progRemarks').value = '';
-      renderProgramList();
-    };
-    window.renderProgramList = function() {
-      var list = (appState.programData && appState.programData[activeProgramCategory]) ? appState.programData[activeProgramCategory] : [];
-      var container = document.getElementById('programList');
-      container.innerHTML = '';
-
-      if (list.length === 0) {
-        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এই বিভাগে এখনও কোনো নাম নথিভুক্ত হয়নি।</div>';
-        return;
-      }
-
-      list.forEach(function(item, index) {
-        var card = document.createElement('div');
-        card.className = 'list-card';
-        card.style.cursor = 'pointer';
-        card.innerHTML = 
-          '<div class="list-info" onclick="viewCandidateDetail(\'' + activeProgramCategory + '\', ' + index + ')">' +
-            '<div class="list-name">🎭 ' + (index + 1) + '. ' + item.name + ' <span style="font-size:0.82rem; color:var(--gold-bright); font-weight:normal;">(' + item.age + ' বছর)</span></div>' +
-            '<div class="list-subtext">বিবরণ: ' + item.remarks + '</div>' +
-            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="action-icons" style="margin-top:4px;">' +
-              '<button class="btn-icon btn-edit" onclick="event.stopPropagation(); openProgramEdit(' + index + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" onclick="event.stopPropagation(); deleteProgramEntry(' + index + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-    };
-    window.viewCandidateDetail = function(cat, index) {
-      var item = appState.programData[cat][index];
-      var catName = cat === 'dance' ? '💃 নাচ' : (cat === 'song' ? '🎤 গান' : '📜 আবৃত্তি');
-
-      document.getElementById('viewProgName').innerText = item.name;
-      document.getElementById('viewProgAge').innerText = item.age;
-      document.getElementById('viewProgCat').innerText = catName;
-      document.getElementById('viewProgRemarks').innerText = item.remarks;
-      document.getElementById('viewProgTime').innerText = item.dateTime;
-
-      document.getElementById('candidateDetailModal').classList.remove('hidden');
-    };
-    window.closeCandidateDetailModal = function() { document.getElementById('candidateDetailModal').classList.add('hidden'); };
-    window.deleteProgramEntry = function(index) {
-      if (confirm("আপনি কি এই অংশগ্রহণকারীর নাম তালিকা থেকে মুছে ফেলতে চান?")) {
-        appState.programData[activeProgramCategory].splice(index, 1);
-        persistData();
-        renderProgramList();
-      }
-    };
-    window.openProgramEdit = function(index) {
-      var item = appState.programData[activeProgramCategory][index];
-      setEditModal('program_entry', activeProgramCategory, index, 'প্রতিযোগী সম্পাদনা', 'অংশগ্রহণকারীর নাম', item.name, item.age, item.remarks, item.dateTime);
-    };
-
-    window.generateProgramPdf = function() {
-      var progData = appState.programData || { dance: [], song: [], recitation: [] };
-      var year = appState.pujaYear || '২০২৬';
-
-      var printWindow = window.open('', '_blank');
-      var htmlContent = 
-        '<!DOCTYPE html><html lang="bn"><head><title>অনুষ্ঠান কর্মসূচি - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
-        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
-        '.section-head{background: #f2f2f2; padding: 8px 12px; margin-top: 20px; font-weight: bold; border-left: 5px solid #800020;}' +
-        'table{width: 100%; border-collapse: collapse; margin-top: 8px;} th, td{border: 1px solid #ccc; padding: 8px 10px; text-align: left; font-size: 14px;}' +
-        'th{background: #f9f9f9;} @media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
-        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
-        '<h2>নিউ ঝালাপাল্লা কমিটি</h2><h4>কালীপূজা ' + year + ' - অনুষ্ঠান কর্মসূচি (সঞ্চালক সূচি)</h4>' +
-        '<p style="text-align:center; font-size:12px; color:#666;">বয়স অনুযায়ী ছোট থেকে বড় সাজানো তালিকা</p>';
-
-      var categories = [
-        { key: 'dance', title: '💃 নাচ বিভাগ' },
-        { key: 'song', title: '🎤 গান বিভাগ' },
-        { key: 'recitation', title: '📜 আবৃত্তি বিভাগ' }
-      ];
-
-      categories.forEach(function(cat) {
-        htmlContent += '<div class="section-head">' + cat.title + '</div>';
-        var list = progData[cat.key] || [];
-        if (list.length === 0) {
-          htmlContent += '<p style="font-size:13px; color:#777; margin:6px 0;">কোনো নাম নথিভুক্ত নেই।</p>';
-        } else {
-          htmlContent += '<table><thead><tr><th style="width:8%;">ক্রম</th><th style="width:32%;">নাম</th><th style="width:15%;">বয়স</th><th style="width:45%;">বিষয় / গানের বা কবিতার নাম</th></tr></thead><tbody>';
-          list.forEach(function(item, i) {
-            htmlContent += '<tr><td>' + (i + 1) + '</td><td><strong>' + item.name + '</strong></td><td>' + item.age + ' বছর</td><td>' + item.remarks + '</td></tr>';
-          });
-          htmlContent += '</tbody></table>';
-        }
-      });
-
-      htmlContent += '</body></html>';
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-    };
-
-    /* ৬. খেলার কর্মসূচি */
-    window.openSportsScreen = function() { showScreen('sportsScreen'); renderSportsGames(); };
-    window.createSportGame = function() {
-      var name = formatInputText(document.getElementById('newSportName').value);
-      if (!name) { alert("খেলার নাম লিখুন!"); return; }
-
-      if (!appState.sportsData) appState.sportsData = [];
-      appState.sportsData.unshift({ gameName: name, createdAt: getCurrentDateTime(), winners: [] });
-      persistData();
-      document.getElementById('newSportName').value = '';
-      renderSportsGames();
-    };
-    window.renderSportsGames = function() {
-      var games = appState.sportsData || [];
-      var container = document.getElementById('sportsGameList');
-      container.innerHTML = '';
-
-      if (games.length === 0) {
-        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো খেলা যুক্ত করা হয়নি।</div>';
-        return;
-      }
-
-      games.forEach(function(game, index) {
-        var card = document.createElement('div');
-        card.className = 'list-card folder-card';
-        card.innerHTML = 
-          '<div class="list-info" onclick="openSportsDetail(' + index + ')">' +
-            '<div class="list-name">🏆 ' + game.gameName + '</div>' +
-            '<div class="list-subtext">বিজয়ীর সংখ্যা: ' + (game.winners ? game.winners.length : 0) + ' জন (ক্লিক করে দেখুন)</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="action-icons">' +
-              '<button class="btn-icon btn-edit" title="খেলার নাম বদলান" onclick="event.stopPropagation(); openSportNameEdit(' + index + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" title="খেলাটি মুছুন" onclick="event.stopPropagation(); deleteSportGame(' + index + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-    };
-    window.openSportNameEdit = function(index) {
-      setEditModal('sport_name', index, null, 'খেলার নাম পরিবর্তন', 'খেলার নাম', appState.sportsData[index].gameName, null, '', '');
-    };
-    window.deleteSportGame = function(index) {
-      if (confirm('আপনি কি "' + appState.sportsData[index].gameName + '" খেলা ও এর ফলাফল মুছে ফেলতে চান?')) {
-        appState.sportsData.splice(index, 1);
-        persistData();
-        renderSportsGames();
-      }
-    };
-    window.openSportsDetail = function(index) {
-      activeSportIndex = index;
-      document.getElementById('sportsDetailGameTitle').innerText = appState.sportsData[index].gameName;
-      showScreen('sportsDetailScreen');
-      renderSportsWinners();
-    };
-    window.addSportWinner = function() {
-      var rank = document.getElementById('sportRankSelect').value;
-      var winnerName = formatInputText(document.getElementById('sportWinnerName').value);
-      var remarks = formatInputText(document.getElementById('sportWinnerRemarks').value);
-
-      if (!winnerName) { alert("বিজয়ীর নাম লিখুন!"); return; }
-
-      if (!appState.sportsData[activeSportIndex].winners) {
-        appState.sportsData[activeSportIndex].winners = [];
-      }
-
-      appState.sportsData[activeSportIndex].winners.push({ rank: rank, winnerName: winnerName, remarks: remarks || '', dateTime: getCurrentDateTime() });
-      persistData();
-      document.getElementById('sportWinnerName').value = '';
-      document.getElementById('sportWinnerRemarks').value = '';
-      renderSportsWinners();
-    };
-    window.renderSportsWinners = function() {
-      var game = appState.sportsData[activeSportIndex];
-      var container = document.getElementById('sportsWinnerList');
-      container.innerHTML = '';
-
-      if (!game || !game.winners || game.winners.length === 0) {
-        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো ফলাফল যুক্ত করা হয়নি।</div>';
-        return;
-      }
-
-      game.winners.forEach(function(item, wIndex) {
-        var card = document.createElement('div');
-        card.className = 'list-card';
-        card.innerHTML = 
-          '<div class="list-info">' +
-            '<div class="list-name" style="color:var(--gold-bright);">' + item.rank + ': ' + item.winnerName + '</div>' +
-            (item.remarks ? '<div class="list-subtext">📌 ' + item.remarks + '</div>' : '') +
-            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
-          '</div>' +
-          '<div class="list-amount-actions">' +
-            '<div class="action-icons">' +
-              '<button class="btn-icon btn-edit" onclick="openSportWinnerEdit(' + wIndex + ')">✏️</button>' +
-              '<button class="btn-icon btn-del" onclick="deleteSportWinner(' + wIndex + ')">🗑️</button>' +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-    };
-    window.deleteSportWinner = function(wIndex) {
-      if (confirm("এই ফলাফল মুছে ফেলতে চান?")) {
-        appState.sportsData[activeSportIndex].winners.splice(wIndex, 1);
-        persistData();
-        renderSportsWinners();
-      }
-    };
-    window.openSportWinnerEdit = function(wIndex) {
-      var w = appState.sportsData[activeSportIndex].winners[wIndex];
-      setEditModal('sport_winner', activeSportIndex, wIndex, 'ফলাফল সম্পাদনা', 'বিজয়ীর নাম', w.winnerName, null, w.remarks, w.dateTime);
-    };
-
-    /* ৭. পূজো শেষের হিসাব (Final Audit) */
-    window.calculateAuditData = function() {
-      var graminList = appState.graminChandaList || [];
-      var members = appState.memberAccounts || [];
-      var mainCategories = appState.mainExpenseCategories || [];
-      var genExpenses = appState.generalExpenses || [];
-
-      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
-
-      var totalMember = 0;
-      var memberStats = members.map(function(m) {
-        var paid = 0;
-        if (m.transactions) {
-          m.transactions.forEach(function(t) { paid += (t.amount || 0); });
-        }
-        totalMember += paid;
-        return { name: m.name, paid: paid };
-      });
-
-      var totalMainExp = 0;
-      mainCategories.forEach(function(c) {
-        if (c.payments) {
-          c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); });
-        }
-      });
-
-      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
-
-      var totalIncome = totalGramin + totalMember;
-      var totalExpense = totalMainExp + totalGenExp;
-      var netBalance = totalIncome - totalExpense;
-      var memberCount = members.length;
-
-      var perHeadShare = 0;
-      var finalMemberSummary = [];
-
-      if (memberCount > 0) {
-        if (netBalance >= 0) {
-          var extraSurplus = netBalance - totalMember;
-          perHeadShare = extraSurplus / memberCount;
-
-          finalMemberSummary = memberStats.map(function(m) {
-            var willReceive = m.paid + perHeadShare;
-            return {
-              name: m.name, paid: m.paid, share: perHeadShare,
-              finalAmount: willReceive, status: 'RECEIVE',
-              note: 'নিজস্ব জমা ₹' + m.paid.toFixed(2) + ' + অতিরিক্ত ভাগ ₹' + perHeadShare.toFixed(2)
-            };
-          });
-        } else {
-          var deficit = Math.abs(netBalance);
-          var totalTarget = deficit + totalMember;
-          var perMemberTarget = totalTarget / memberCount;
-
-          finalMemberSummary = memberStats.map(function(m) {
-            var diff = perMemberTarget - m.paid;
-            if (diff > 0) {
-              return {
-                name: m.name, paid: m.paid, share: perMemberTarget,
-                finalAmount: diff, status: 'PAY',
-                note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2)
-              };
-            } else if (diff < 0) {
-              return {
-                name: m.name, paid: m.paid, share: perMemberTarget,
-                finalAmount: Math.abs(diff), status: 'RECEIVE',
-                note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)'
-              };
-            } else {
-              return {
-                name: m.name, paid: m.paid, share: perMemberTarget,
-                finalAmount: 0, status: 'EQUAL',
-                note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)'
-              };
-            }
-          });
-        }
-      }
-
-      return {
-        totalGramin: totalGramin, totalMember: totalMember, totalIncome: totalIncome,
-        totalMainExp: totalMainExp, totalGenExp: totalGenExp, totalExpense: totalExpense,
-        netBalance: netBalance, memberCount: memberCount, finalMemberSummary: finalMemberSummary
-      };
-    };
-
-    window.openFinalAuditScreen = function() { showScreen('finalAuditScreen'); renderFinalAudit(); };
-
-    window.renderFinalAudit = function() {
-      var data = calculateAuditData();
-
-      document.getElementById('auditGraminVal').innerText = "₹ " + data.totalGramin.toLocaleString('en-IN');
-      document.getElementById('auditMemberVal').innerText = "₹ " + data.totalMember.toLocaleString('en-IN');
-      document.getElementById('auditMainExpVal').innerText = "₹ " + data.totalMainExp.toLocaleString('en-IN');
-      document.getElementById('auditGenExpVal').innerText = "₹ " + data.totalGenExp.toLocaleString('en-IN');
-
-      var banner = document.getElementById('netAuditBanner');
-      if (data.netBalance >= 0) {
-        banner.className = 'net-banner net-surplus';
-        banner.innerHTML = 
-          '<div style="font-size:0.95rem; font-weight:bold;">🎉 উদ্বৃত্ত ব্যালেন্স (টাকা বেঁচেছে)</div>' +
-          '<div style="font-size:1.4rem; font-weight:700;">+ ₹ ' + data.netBalance.toLocaleString('en-IN') + '</div>' +
-          '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
-      } else {
-        banner.className = 'net-banner net-deficit';
-        banner.innerHTML = 
-          '<div style="font-size:0.95rem; font-weight:bold;">⚠️ ঘাটতি ব্যালেন্স (টাকা কম পড়েছে)</div>' +
-          '<div style="font-size:1.4rem; font-weight:700;">- ₹ ' + Math.abs(data.netBalance).toLocaleString('en-IN') + '</div>' +
-          '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
-      }
-
-      var listContainer = document.getElementById('auditSettlementList');
-      listContainer.innerHTML = '';
-
-      if (data.memberCount === 0) {
-        listContainer.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">কোনো মেম্বার নথিভুক্ত নেই।</div>';
-        return;
-      }
-
-      data.finalMemberSummary.forEach(function(m, idx) {
-        var card = document.createElement('div');
-        card.className = 'settlement-card';
-
-        var resultColor = '#2ecc71';
-        var resultText = '';
-
-        if (m.status === 'RECEIVE') {
-          resultColor = '#2ecc71';
-          resultText = 'ফেরত পাবেন: + ₹' + m.finalAmount.toFixed(2);
-        } else if (m.status === 'PAY') {
-          resultColor = '#e74c3c';
-          resultText = 'আরও দিতে হবে: - ₹' + m.finalAmount.toFixed(2);
-        } else {
-          resultColor = '#f5b041';
-          resultText = 'কোনো লেনদেন নেই (₹ 0.00)';
-        }
-
-        card.innerHTML = 
-          '<div class="settlement-name">👤 ' + (idx + 1) + '. ' + m.name + '</div>' +
-          '<div class="settlement-row"><span>পূর্বে জমা দেওয়া চাঁদা:</span><strong>₹ ' + m.paid.toLocaleString('en-IN') + '</strong></div>' +
-          '<div class="settlement-row" style="font-size:0.75rem; color:#ccc;"><span>' + m.note + '</span></div>' +
-          '<div class="settlement-result" style="color: ' + resultColor + ';"><span>চূড়ান্ত হিসাব:</span><span>' + resultText + '</span></div>';
-        listContainer.appendChild(card);
-      });
-    };
-
-    window.generateAuditPdf = function() {
-      var data = calculateAuditData();
-      var year = appState.pujaYear || '২০২৬';
-
-      var printWindow = window.open('', '_blank');
-      var statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
-      var statusTitle = data.netBalance >= 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2);
-
-      var htmlContent = 
-        '<!DOCTYPE html><html lang="bn"><head><title>পূজো শেষের হিসাব - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
-        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
-        '.kpi-table, .data-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td{border: 1px solid #aaa; padding: 8px 12px; font-size: 14px;}' +
-        '.kpi-table th{background: #f2f2f2; border: 1px solid #aaa; padding: 8px; font-size: 14px;}' +
-        '.status-box{margin-top: 15px; padding: 12px; border-radius: 6px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; background: ' + statusColor + ';}' +
-        '.section-head{background: #f7f7f7; padding: 8px 12px; margin-top: 25px; font-weight: bold; font-size: 16px; border-left: 5px solid #800020;}' +
-        '.data-table th, .data-table td{border: 1px solid #ccc; padding: 8px 10px; font-size: 13px; text-align: left;}' +
-        '.data-table th{background: #f0f0f0;} .receive{color: #27ae60; font-weight: bold;} .pay{color: #c0392b; font-weight: bold;}' +
-        '@media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
-        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ অডিট রিপোর্ট প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
-        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - পূজো শেষের চূড়ান্ত আয়-ব্যয় রিপোর্ট</h4>' +
-        '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
-        '<table class="kpi-table">' +
-          '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + data.totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + data.totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
-          '<tr><th>মোট মেম্বার চাঁদা</th><td>₹ ' + data.totalMember.toLocaleString('en-IN') + '</td><th>মোট সাধারণ খরচ</th><td>₹ ' + data.totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
-          '<tr style="background:#fdfefe; font-weight:bold;"><th>সর্বমোট জমা</th><td>₹ ' + data.totalIncome.toLocaleString('en-IN') + '</td><th>সর্বমোট খরচ</th><td>₹ ' + data.totalExpense.toLocaleString('en-IN') + '</td></tr>' +
-        '</table><div class="status-box">' + statusTitle + '</div>' +
-        '<div class="section-head">👥 মেম্বারভিত্তিক চূড়ান্ত হিসাব ও দেনা-পাওনা বিবরণী (মোট মেম্বার: ' + data.memberCount + ' জন)</div>' +
-        '<table class="data-table"><thead><tr><th style="width:8%;">ক্রম</th><th style="width:25%;">মেম্বারের নাম</th><th style="width:18%;">পূর্বে দেওয়া চাঁদা</th><th style="width:29%;">হিসাবের সূত্র / বিবরণ</th><th style="width:20%;">চূড়ান্ত সিদ্ধান্ত</th></tr></thead><tbody>';
-
-      data.finalMemberSummary.forEach(function(m, idx) {
-        var decisionHtml = '';
-        if (m.status === 'RECEIVE') decisionHtml = '<span class="receive">ফেরত পাবেন: ₹' + m.finalAmount.toFixed(2) + '</span>';
-        else if (m.status === 'PAY') decisionHtml = '<span class="pay">দিতে হবে: ₹' + m.finalAmount.toFixed(2) + '</span>';
-        else decisionHtml = '<span>হিসাব সমান (₹0.00)</span>';
-
-        htmlContent += '<tr><td>' + (idx + 1) + '</td><td><strong>' + m.name + '</strong></td><td>₹ ' + m.paid.toFixed(2) + '</td><td>' + m.note + '</td><td>' + decisionHtml + '</td></tr>';
-      });
-
-      htmlContent += '</tbody></table><div style="margin-top:40px; display:flex; justify-content:space-between; font-size:13px;"><div>.........................................<br>কোষাধ্যক্ষ / হিসাবরক্ষক</div><div>.........................................<br>সভাপতি / সম্পাদক</div></div></body></html>';
-
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-    };
-
-    /* ৮. পাবলিক ভিউ */
-    window.openPublicScreen = function() { showScreen('publicScreen'); renderPublicView(); };
-
-    window.renderPublicView = function() {
-      var graminList = appState.graminChandaList || [];
-      var members = appState.memberAccounts || [];
-      var mainCategories = appState.mainExpenseCategories || [];
-      var genExpenses = appState.generalExpenses || [];
-      var progData = appState.programData || { dance: [], song: [], recitation: [] };
-      var sportsData = appState.sportsData || [];
-
-      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
-      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
-      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
-      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
-
-      var totalIncome = totalGramin + totalMember;
-      var totalExpense = totalMainExp + totalGenExp;
-      var netBalance = totalIncome - totalExpense;
-
-      var container = document.getElementById('publicViewContent');
-      var html = '';
-
-      html += 
-        '<div class="total-card" style="margin-bottom:6px;">' +
-          '<span class="total-title">সর্বমোট সংগৃহীত চাঁদা:</span>' +
-          '<span class="total-amount">₹ ' + totalIncome.toLocaleString('en-IN') + '</span>' +
-        '</div>' +
-        '<div class="total-card" style="background:linear-gradient(135deg, rgba(74,0,17,0.8), rgba(26,4,8,0.9)); margin-bottom:6px;">' +
-          '<span class="total-title">সর্বমোট খরচ:</span>' +
-          '<span class="total-amount" style="color:#ff7979;">₹ ' + totalExpense.toLocaleString('en-IN') + '</span>' +
-        '</div>' +
-        '<div class="net-banner ' + (netBalance >= 0 ? 'net-surplus' : 'net-deficit') + '" style="margin-bottom:12px;">' +
-          '<div style="font-size:0.9rem; font-weight:bold;">' + (netBalance >= 0 ? 'বর্তমান স্থিতি (উদ্বৃত্ত)' : 'বর্তমান স্থিতি (ঘাটতি)') + '</div>' +
-          '<div style="font-size:1.35rem; font-weight:bold;">' + (netBalance >= 0 ? '+ ' : '- ') + '₹ ' + Math.abs(netBalance).toLocaleString('en-IN') + '</div>' +
-        '</div>';
-
-      html += '<div class="public-sec-header">🪙 গ্রামীন চাঁদা (মোট: ₹' + totalGramin.toLocaleString('en-IN') + ')</div>';
-      if (graminList.length === 0) {
-        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো এন্ট্রি নেই।</div>';
-      } else {
-        graminList.forEach(function(g, i) {
-          html += 
-            '<div class="list-card" style="margin-bottom:6px;">' +
-              '<div class="list-info">' +
-                '<div class="list-name">' + (i + 1) + '. ' + g.name + '</div>' +
-                '<div class="list-time">🕒 ' + g.dateTime + '</div>' +
-              '</div>' +
-              '<div class="list-amount" style="font-size:1rem;">₹ ' + g.amount.toLocaleString('en-IN') + '</div>' +
-            '</div>';
-        });
-      }
-
-      html += '<div class="public-sec-header">👥 মেম্বার চাঁদা (মোট: ₹' + totalMember.toLocaleString('en-IN') + ')</div>';
-      if (members.length === 0) {
-        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো মেম্বার এন্ট্রি নেই।</div>';
-      } else {
-        members.forEach(function(m, i) {
-          var mSum = 0;
-          var breakdownHtml = '';
-          if (m.transactions && m.transactions.length > 0) {
-            m.transactions.forEach(function(t) {
-              mSum += t.amount;
-              breakdownHtml += '<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 📌 ' + t.remarks + ': <strong>₹' + t.amount.toLocaleString('en-IN') + '</strong> (' + t.dateTime + ')</div>';
-            });
-          }
-          html += 
-            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
-              '<div style="display:flex; justify-content:space-between; width:100%; align-items:center;">' +
-                '<div class="list-name">👤 ' + (i + 1) + '. ' + m.name + '</div>' +
-                '<div class="list-amount" style="font-size:1rem;">₹ ' + mSum.toLocaleString('en-IN') + '</div>' +
-              '</div>' +
-              breakdownHtml +
-            '</div>';
-        });
-      }
-
-      html += '<div class="public-sec-header">🏛️ প্রধান খরচ (মোট: ₹' + totalMainExp.toLocaleString('en-IN') + ')</div>';
-      if (mainCategories.length === 0) {
-        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো প্রধান খরচ নেই।</div>';
-      } else {
-        mainCategories.forEach(function(c, i) {
-          var cSum = 0;
-          var payHtml = '';
-          if (c.payments && c.payments.length > 0) {
-            c.payments.forEach(function(p) {
-              cSum += p.amount;
-              payHtml += '<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 🧾 ' + p.note + ': <strong>₹' + p.amount.toLocaleString('en-IN') + '</strong> (' + p.dateTime + ')</div>';
-            });
-          }
-          html += 
-            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
-              '<div style="display:flex; justify-content:space-between; width:100%; align-items:center;">' +
-                '<div class="list-name">🏛️ ' + (i + 1) + '. ' + c.categoryName + '</div>' +
-                '<div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ' + cSum.toLocaleString('en-IN') + '</div>' +
-              '</div>' +
-              payHtml +
-            '</div>';
-        });
-      }
-
-      html += '<div class="public-sec-header">📝 সাধারণ খরচ (মোট: ₹' + totalGenExp.toLocaleString('en-IN') + ')</div>';
-      if (genExpenses.length === 0) {
-        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো সাধারণ খরচ নেই।</div>';
-      } else {
-        genExpenses.forEach(function(e, i) {
-          html += 
-            '<div class="list-card" style="margin-bottom:6px;">' +
-              '<div class="list-info">' +
-                '<div class="list-name">📝 ' + (i + 1) + '. ' + e.title + '</div>' +
-                '<div class="list-time">🕒 ' + e.dateTime + '</div>' +
-              '</div>' +
-              '<div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ' + e.amount.toLocaleString('en-IN') + '</div>' +
-            '</div>';
-        });
-      }
-
-      html += '<div class="public-sec-header">🪔 অনুষ্ঠান কর্মসূচি</div>';
-      var catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
-      ['dance', 'song', 'recitation'].forEach(function(k) {
-        html += '<div style="font-size:0.88rem; font-weight:bold; color:var(--text-muted); margin:4px 0 2px 4px;">' + catTitles[k] + ':</div>';
-        var pList = progData[k] || [];
-        if (pList.length === 0) {
-          html += '<div style="color:#aaa; font-size:0.8rem; padding-left:8px; margin-bottom:4px;">কোনো নাম নেই।</div>';
-        } else {
-          pList.forEach(function(p, idx) {
-            html += 
-              '<div class="list-card" style="padding:6px 10px; margin-bottom:4px;">' +
-                '<div class="list-info">' +
-                  '<div class="list-name" style="font-size:0.92rem;">' + (idx + 1) + '. ' + p.name + ' (' + p.age + ' বছর)</div>' +
-                  '<div class="list-subtext" style="font-size:0.75rem;">বিষয়: ' + p.remarks + '</div>' +
-                '</div>' +
-              '</div>';
-          });
-        }
-      });
-
-      html += '<div class="public-sec-header">🏆 খেলার কর্মসূচি ও ফলাফল</div>';
-      if (sportsData.length === 0) {
-        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো খেলা নেই।</div>';
-      } else {
-        sportsData.forEach(function(s, idx) {
-          var winHtml = '';
-          if (s.winners && s.winners.length > 0) {
-            s.winners.forEach(function(w) {
-              winHtml += '<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ' + w.rank + ': <strong>${w.winnerName}</strong> ' + (w.remarks ? '(' + w.remarks + ')' : '') + '</div>';
-            });
-          } else {
-            winHtml = '<div style="font-size:0.75rem; color:#aaa; padding-left:8px;">ফলাফল এখনও প্রকাশ হয়নি।</div>';
-          }
-          html += 
-            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
-              '<div class="list-name" style="color:#fff; margin-bottom:3px;">⚽ ' + (idx + 1) + '. ' + s.gameName + '</div>' +
-              winHtml +
-            '</div>';
-        });
-      }
-
-      container.innerHTML = html;
-    };
-
-    window.generatePublicReportPdf = function() {
-      var year = appState.pujaYear || '২০২৬';
-      var graminList = appState.graminChandaList || [];
-      var members = appState.memberAccounts || [];
-      var mainCategories = appState.mainExpenseCategories || [];
-      var genExpenses = appState.generalExpenses || [];
-      var progData = appState.programData || { dance: [], song: [], recitation: [] };
-      var sportsData = appState.sportsData || [];
-
-      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
-      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
-      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
-      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
-
-      var totalIncome = totalGramin + totalMember;
-      var totalExpense = totalMainExp + totalGenExp;
-      var netBalance = totalIncome - totalExpense;
-
-      var printWindow = window.open('', '_blank');
-      var htmlContent = 
-        '<!DOCTYPE html><html lang="bn"><head><title>কালীপূজা হিসাব বিবরণী - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
-        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
-        '.kpi-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td, .kpi-table th{border: 1px solid #aaa; padding: 6px 10px; font-size: 13px;}' +
-        '.kpi-table th{background: #f2f2f2;} .section-head{background: #f5f5f5; padding: 6px 10px; margin-top: 18px; font-weight: bold; border-left: 5px solid #800020;}' +
-        'table.data-table{width: 100%; border-collapse: collapse; margin-top: 6px;} table.data-table th, table.data-table td{border: 1px solid #ccc; 
+    <di
