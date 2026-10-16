@@ -2844,9 +2844,138 @@ window.appState.contactInsta = instaLink;
       }
     }
 
-    function generateProgramPdf() { alert("পিডিএফ প্রস্তুতি নেওয়া হচ্ছে..."); }
-    function generateAuditPdf() { alert("পিডিএফ প্রস্তুতি নেওয়া হচ্ছে..."); }
-    function generatePublicReportPdf() { alert("পিডিএফ প্রস্তুতি নেওয়া হচ্ছে..."); }
+        // সার্বজনীন প্রিন্ট ভিউয়ার
+    function openPdfPreview(title, htmlBody) {
+      document.getElementById('pdfModalHeader').innerText = title;
+      document.getElementById('pdfModalContent').innerHTML = htmlBody;
+      document.getElementById('universalPdfModal').classList.remove('hidden');
+    }
+
+    function closePdfPreview() {
+      document.getElementById('universalPdfModal').classList.add('hidden');
+    }
+
+    function triggerActualPrint() {
+      var content = document.getElementById('pdfModalContent').innerHTML;
+      var printFrame = document.getElementById('appPrintFrame');
+      if (!printFrame) {
+        printFrame = document.createElement('iframe');
+        printFrame.id = 'appPrintFrame';
+        printFrame.style.position = 'fixed';
+        printFrame.style.right = '0';
+        printFrame.style.bottom = '0';
+        printFrame.style.width = '0';
+        printFrame.style.height = '0';
+        printFrame.style.border = 'none';
+        document.body.appendChild(printFrame);
+      }
+      var pDoc = printFrame.contentWindow.document;
+      pDoc.open();
+      pDoc.write('<!DOCTYPE html><html><head><title>Print</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#111;} table{width:100%;border-collapse:collapse;margin-top:12px;} th,td{border:1px solid #aaa;padding:7px 10px;text-align:left;font-size:13px;} th{background:#f2f2f2;} h2,h4{text-align:center;margin:3px 0;}</style></head><body>' + content + '</body></html>');
+      pDoc.close();
+      
+      setTimeout(function() {
+        printFrame.contentWindow.focus();
+        printFrame.contentWindow.print();
+      }, 350);
+    }
+
+    // ১. অনুষ্ঠান PDF
+    function generateProgramPdf() {
+      var cat = window.activeProgramCategory || 'dance';
+      var catNames = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
+      var list = (window.appState.programData && window.appState.programData[cat]) ? window.appState.programData[cat] : [];
+      var year = window.appState.pujaYear || '২০২৬';
+
+      var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
+                 '<h4 style="text-align:center;">কালীপূজা ' + year + ' - ' + (catNames[cat] || 'অনুষ্ঠান তালিকা') + '</h4>' +
+                 '<p style="text-align:center; font-size:11px; color:#666;">তারিখ: ' + window.getCurrentDateTime() + '</p>' +
+                 '<table style="width:100%; border-collapse:collapse; margin-top:10px;"><thead><tr style="background:#eee;">' +
+                 '<th style="border:1px solid #ccc; padding:6px;">ক্রম</th>' +
+                 '<th style="border:1px solid #ccc; padding:6px;">নাম</th>' +
+                 '<th style="border:1px solid #ccc; padding:6px;">বয়স</th>' +
+                 '<th style="border:1px solid #ccc; padding:6px;">বিষয় / মন্তব্য</th></tr></thead><tbody>';
+
+      if (list.length === 0) {
+        html += '<tr><td colspan="4" style="text-align:center; padding:10px; border:1px solid #ccc;">এই বিভাগে কোনো নাম নেই।</td></tr>';
+      } else {
+        list.forEach(function(item, idx) {
+          html += '<tr><td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (idx + 1) + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:6px;"><strong>' + item.name + '</strong></td>' +
+                  '<td style="border:1px solid #ccc; padding:6px;">' + item.age + ' বছর</td>' +
+                  '<td style="border:1px solid #ccc; padding:6px;">' + item.remarks + '</td></tr>';
+        });
+      }
+      html += '</tbody></table>';
+
+      openPdfPreview('অনুষ্ঠান তালিকা রিপোর্ট', html);
+    }
+
+    // ২. অডিট রিপোর্ট PDF
+    function generateAuditPdf() {
+      var data = window.calculateAuditData();
+      var year = window.appState.pujaYear || '২০২৬';
+      var statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
+      var statusText = data.netBalance >= 0 ? ('উদ্বৃত্ত: + ₹' + data.netBalance.toFixed(2)) : ('ঘাটতি: - ₹' + Math.abs(data.netBalance).toFixed(2));
+
+      var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
+                 '<h4 style="text-align:center;">কালীপূজা ' + year + ' - চূড়ান্ত অডিট রিপোর্ট</h4>' +
+                 '<p style="text-align:center; font-size:11px; color:#666;">তারিখ: ' + window.getCurrentDateTime() + '</p>' +
+                 '<table style="width:100%; border-collapse:collapse; margin-top:10px;">' +
+                 '<tr><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট গ্রামীন চাঁদা</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + data.totalGramin.toLocaleString('en-IN') + '</td><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট প্রধান খরচ</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + data.totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট মেম্বার চাঁদা</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + data.totalMember.toLocaleString('en-IN') + '</td><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট সাধারণ খরচ</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + data.totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr style="font-weight:bold; background:#f5f5f5;"><th style="border:1px solid #ccc; padding:6px;">সর্বমোট সংগৃহীত চাঁদা</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + data.totalIncome.toLocaleString('en-IN') + '</td><th style="border:1px solid #ccc; padding:6px;">সর্বমোট খরচ</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + data.totalExpense.toLocaleString('en-IN') + '</td></tr></table>' +
+                 '<div style="background:' + statusColor + '; color:#fff; padding:8px; border-radius:6px; margin:10px 0; text-align:center; font-weight:bold;">' + statusText + '</div>' +
+                 '<h4 style="margin:12px 0 4px 0; text-align:left;">👥 মেম্বারদের দেনা-পাওনা বিবরণী:</h4>' +
+                 '<table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:6px;">ক্রম</th><th style="border:1px solid #ccc; padding:6px;">নাম</th><th style="border:1px solid #ccc; padding:6px;">দেওয়া চাঁদা</th><th style="border:1px solid #ccc; padding:6px;">সিদ্ধান্ত</th></tr></thead><tbody>';
+
+      data.finalMemberSummary.forEach(function(m, idx) {
+        var dec = m.status === 'RECEIVE' ? '<span style="color:#27ae60; font-weight:bold;">পাবেন: ₹' + m.finalAmount.toFixed(2) + '</span>' : (m.status === 'PAY' ? '<span style="color:#c0392b; font-weight:bold;">দেবেন: ₹' + m.finalAmount.toFixed(2) + '</span>' : 'সমান');
+        html += '<tr><td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (idx + 1) + '</td><td style="border:1px solid #ccc; padding:6px;"><strong>' + m.name + '</strong></td><td style="border:1px solid #ccc; padding:6px;">₹ ' + m.paid.toFixed(2) + '</td><td style="border:1px solid #ccc; padding:6px;">' + dec + '</td></tr>';
+      });
+
+      html += '</tbody></table>';
+
+      openPdfPreview('পূজো শেষের অডিট রিপোর্ট', html);
+    }
+
+    // ৩. সর্বসাধারণের রিপোর্ট PDF
+    function generatePublicReportPdf() {
+      var year = window.appState.pujaYear || '২০২৬';
+      var graminList = window.appState.graminChandaList || [];
+      var members = window.appState.memberAccounts || [];
+      var mainCategories = window.appState.mainExpenseCategories || [];
+      var genExpenses = window.appState.generalExpenses || [];
+
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
+      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
+      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
+
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
+
+      var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
+                 '<h4 style="text-align:center;">কালীপূজা ' + year + ' - সর্বসাধারণের হিসাব</h4>' +
+                 '<p style="text-align:center; font-size:11px; color:#666;">তারিখ: ' + window.getCurrentDateTime() + '</p>' +
+                 '<table style="width:100%; border-collapse:collapse; margin-top:10px;">' +
+                 '<tr><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট চাঁদা</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + totalIncome.toLocaleString('en-IN') + '</td><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট খরচ</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + totalExpense.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr style="font-weight:bold; background:#f0f0f0;"><th colspan="2" style="border:1px solid #ccc; padding:6px;">বর্তমান স্থিতি:</th><td colspan="2" style="border:1px solid #ccc; padding:6px; color:' + (netBalance >= 0 ? '#27ae60' : '#c0392b') + ';">' + (netBalance >= 0 ? '+ ₹' : '- ₹') + Math.abs(netBalance).toLocaleString('en-IN') + '</td></tr></table>' +
+                 '<h4 style="margin:12px 0 4px 0; text-align:left;">🪙 গ্রামীন চাঁদা তালিকা (' + graminList.length + ' জন):</h4>' +
+                 '<table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:6px;">ক্রম</th><th style="border:1px solid #ccc; padding:6px;">নাম</th><th style="border:1px solid #ccc; padding:6px;">টাকা</th></tr></thead><tbody>';
+
+      if (graminList.length === 0) {
+        html += '<tr><td colspan="3" style="text-align:center; padding:8px; border:1px solid #ccc;">কোনো তথ্য নেই।</td></tr>';
+      } else {
+        graminList.forEach(function(g, i) {
+          html += '<tr><td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (i + 1) + '</td><td style="border:1px solid #ccc; padding:6px;">' + g.name + '</td><td style="border:1px solid #ccc; padding:6px;">₹ ' + g.amount.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+      html += '</tbody></table>';
+
+      openPdfPreview('সর্বসাধারণের হিসাব বিবরণী', html);
+    }
 
     // ক্লাউড ডেটাবেস সংযোগ
     window.addEventListener('DOMContentLoaded', function() {
@@ -2887,5 +3016,27 @@ window.appState.contactInsta = instaLink;
       }
     });
   </script>
+    <!-- সার্বজনীন প্রিন্ট / PDF প্রিভিউ মডেল -->
+  <div id="universalPdfModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
+    <div class="modal-box" style="max-width: 500px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; padding: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gold-primary); padding-bottom: 8px; margin-bottom: 10px;">
+        <h3 id="pdfModalHeader" style="margin: 0; font-size: 1.1rem; color: var(--gold-bright);">ডকুমেন্ট প্রিভিউ</h3>
+        <button onclick="closePdfPreview()" style="background: transparent; border: none; color: #ff7675; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
+      
+      <!-- মোবাইল এবং কম্পিউটারে প্রিন্ট করার অ্যাকশন বাটন -->
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <button onclick="triggerActualPrint()" style="flex: 2; padding: 10px; background: linear-gradient(135deg, #27ae60, #2ecc71); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">
+          🖨️ প্রিন্ট / PDF সংরক্ষণ করুন
+        </button>
+        <button onclick="closePdfPreview()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid #666; border-radius: 8px; font-weight: bold; cursor: pointer;">
+          বন্ধ করুন
+        </button>
+      </div>
+
+      <!-- প্রিন্ট কনটেন্ট দেখার স্ক্রিন -->
+      <div id="pdfModalContent" style="flex: 1; overflow-y: auto; background: #ffffff; color: #111111; padding: 14px; border-radius: 8px; text-align: left; font-size: 13px;"></div>
+    </div>
+  </div>
 </body>
 </html>
