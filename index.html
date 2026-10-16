@@ -2923,36 +2923,51 @@ window.appState.contactInsta = instaLink;
     }
 
     // ১. অনুষ্ঠান PDF
-    function generateProgramPdf() {
-      var cat = window.activeProgramCategory || 'dance';
-      var catNames = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
-      var list = (window.appState.programData && window.appState.programData[cat]) ? window.appState.programData[cat] : [];
+       function generateProgramPdf() {
+      var progData = window.appState.programData || { dance: [], song: [], recitation: [] };
       var year = window.appState.pujaYear || '২০২৬';
 
-      var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
-                 '<h4 style="text-align:center;">কালীপূজা ' + year + ' - ' + (catNames[cat] || 'অনুষ্ঠান তালিকা') + '</h4>' +
-                 '<p style="text-align:center; font-size:11px; color:#666;">তারিখ: ' + window.getCurrentDateTime() + '</p>' +
-                 '<table style="width:100%; border-collapse:collapse; margin-top:10px;"><thead><tr style="background:#eee;">' +
-                 '<th style="border:1px solid #ccc; padding:6px;">ক্রম</th>' +
-                 '<th style="border:1px solid #ccc; padding:6px;">নাম</th>' +
-                 '<th style="border:1px solid #ccc; padding:6px;">বয়স</th>' +
-                 '<th style="border:1px solid #ccc; padding:6px;">বিষয় / মন্তব্য</th></tr></thead><tbody>';
+      var totalCandidates = (progData.dance?.length || 0) + (progData.song?.length || 0) + (progData.recitation?.length || 0);
 
-      if (list.length === 0) {
-        html += '<tr><td colspan="4" style="text-align:center; padding:10px; border:1px solid #ccc;">এই বিভাগে কোনো নাম নেই।</td></tr>';
-      } else {
-        list.forEach(function(item, idx) {
-          html += '<tr><td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (idx + 1) + '</td>' +
-                  '<td style="border:1px solid #ccc; padding:6px;"><strong>' + item.name + '</strong></td>' +
-                  '<td style="border:1px solid #ccc; padding:6px;">' + item.age + ' বছর</td>' +
-                  '<td style="border:1px solid #ccc; padding:6px;">' + item.remarks + '</td></tr>';
-        });
-      }
-      html += '</tbody></table>';
+      var html = '<h2 style="color:#800020; text-align:center; margin:0 0 4px 0;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
+                 '<h4 style="text-align:center; margin:0 0 6px 0; color:#333;">কালীপূজা ' + year + ' - সাংস্কৃতিক অনুষ্ঠান মঞ্চ মাস্টার শিট</h4>' +
+                 '<p style="text-align:center; font-size:11px; color:#666; margin-bottom:12px;">তারিখ: ' + window.getCurrentDateTime() + ' | মোট প্রতিযোগী: ' + totalCandidates + ' জন</p>';
 
-      openPdfPreview('অনুষ্ঠান তালিকা রিপোর্ট', html);
+      var sections = [
+        { key: 'dance', title: '💃 নাচ বিভাগ' },
+        { key: 'song', title: '🎤 গান বিভাগ' },
+        { key: 'recitation', title: '📜 আবৃত্তি বিভাগ' }
+      ];
+
+      sections.forEach(function(sec) {
+        var list = progData[sec.key] || [];
+        html += '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:10px;">' + sec.title + ' (মোট: ' + list.length + ' জন)</div>' +
+                '<table style="width:100%; border-collapse:collapse; margin-bottom:8px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:5px; font-size:11px; width:10%;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; font-size:11px; width:45%;">অংশগ্রহণকারীর নাম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; font-size:11px; width:15%;">বয়স</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; font-size:11px; width:30%;">বিষয় / মন্তব্য</th></tr></thead><tbody>';
+
+        if (list.length === 0) {
+          html += '<tr><td colspan="4" style="border:1px solid #ccc; padding:6px; text-align:center; font-size:11px; color:#777;">এই বিভাগে কোনো নাম নথিভুক্ত নেই।</td></tr>';
+        } else {
+          list.forEach(function(item, idx) {
+            html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center; font-size:11px;">' + (idx + 1) + '</td>' +
+                    '<td style="border:1px solid #ccc; padding:5px; font-size:11px;"><strong>' + item.name + '</strong></td>' +
+                    '<td style="border:1px solid #ccc; padding:5px; text-align:center; font-size:11px;">' + item.age + ' বছর</td>' +
+                    '<td style="border:1px solid #ccc; padding:5px; font-size:11px;">' + (item.remarks || 'নির্দিষ্ট নেই') + '</td></tr>';
+          });
+        }
+        html += '</tbody></table>';
+      });
+
+      html += '<div style="margin-top:25px; display:flex; justify-content:space-between; font-size:11px; color:#444;">' +
+              '<div>.........................................<br>সাংস্কৃতিক আহ্বায়ক</div>' +
+              '<div>.........................................<br>মঞ্চ সঞ্চালক</div>' +
+              '</div>';
+
+      openPdfPreview('সাংস্কৃতিক অনুষ্ঠান মাস্টার শিট', html);
     }
-
     // ২. অডিট রিপোর্ট PDF
     function generateAuditPdf() {
       var data = window.calculateAuditData();
