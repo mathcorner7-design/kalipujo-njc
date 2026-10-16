@@ -3067,13 +3067,57 @@ window.appState.contactInsta = instaLink;
       }
       html += '</tbody></table>';
 
-      // ৬. অনুষ্ঠান ও খেলার সংক্ষেপ
-      html += '<div style="background:#f2f2f2; border:1px solid #ddd; padding:8px; border-radius:4px; font-size:11px; color:#444; margin-top:8px;">' +
-              '🪔 অনুষ্ঠানে মোট প্রতিযোগী: <strong>' + ((progData.dance?.length || 0) + (progData.song?.length || 0) + (progData.recitation?.length || 0)) + ' জন</strong> | ' +
-              '🏆 মোট খেলাধুলার সংখ্যা: <strong>' + sportsData.length + ' টি</strong>' +
-              '</div>';
+            // ৬. অনুষ্ঠান কর্মসূচি (বিস্তারিত তালিকা)
+      html += '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:12px;">🪔 অনুষ্ঠান কর্মসূচি (প্রতিযোগীদের তালিকা)</div>';
+      var catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
+      ['dance', 'song', 'recitation'].forEach(function(k) {
+        var pList = progData[k] || [];
+        html += '<div style="font-weight:bold; font-size:11px; color:#800020; margin:6px 0 2px 2px;">' + catTitles[k] + ' (' + pList.length + ' জন):</div>' +
+                '<table style="width:100%; border-collapse:collapse; margin-bottom:6px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:10%;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:40%;">নাম</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:20%;">বয়স</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:30%;">বিষয় / মন্তব্য</th></tr></thead><tbody>';
 
-      openPdfPreview('সর্বসাধারণের পূর্ণাঙ্গ হিসাব বিবরণী', html);
+        if (pList.length === 0) {
+          html += '<tr><td colspan="4" style="border:1px solid #ccc; padding:5px; text-align:center; font-size:10px; color:#777;">এই বিভাগে কোনো নাম নথিভুক্ত নেই।</td></tr>';
+        } else {
+          pList.forEach(function(p, idx) {
+            html += '<tr><td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:10px;">' + (idx + 1) + '</td>' +
+                    '<td style="border:1px solid #ccc; padding:4px; font-size:10px;"><strong>' + p.name + '</strong></td>' +
+                    '<td style="border:1px solid #ccc; padding:4px; font-size:10px;">' + p.age + ' বছর</td>' +
+                    '<td style="border:1px solid #ccc; padding:4px; font-size:10px;">' + (p.remarks || 'নির্দিষ্ট নেই') + '</td></tr>';
+          });
+        }
+        html += '</tbody></table>';
+      });
+
+      // ৭. খেলার কর্মসূচি ও ফলাফল (বিস্তারিত তালিকা)
+      html += '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:12px;">🏆 খেলার কর্মসূচি ও বিজয়ীদের তালিকা</div>';
+      if (sportsData.length === 0) {
+        html += '<div style="padding:6px; font-size:11px; color:#777; border:1px solid #ccc; margin-top:4px;">কোনো খেলা যুক্ত করা হয়নি।</div>';
+      } else {
+        sportsData.forEach(function(s, idx) {
+          html += '<div style="font-weight:bold; font-size:11px; color:#333; margin:6px 0 2px 2px;">⚽ ' + (idx + 1) + '. ' + s.gameName + '</div>' +
+                  '<table style="width:100%; border-collapse:collapse; margin-bottom:6px;"><thead><tr style="background:#eee;">' +
+                  '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:25%;">স্থান / Rank</th>' +
+                  '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:45%;">বিজয়ীর নাম</th>' +
+                  '<th style="border:1px solid #ccc; padding:4px; font-size:11px; width:30%;">মন্তব্য</th></tr></thead><tbody>';
+
+          if (!s.winners || s.winners.length === 0) {
+            html += '<tr><td colspan="3" style="border:1px solid #ccc; padding:5px; text-align:center; font-size:10px; color:#777;">ফলাফল এখনও প্রকাশ করা হয়নি।</td></tr>';
+          } else {
+            s.winners.forEach(function(w) {
+              html += '<tr><td style="border:1px solid #ccc; padding:4px; font-size:10px; font-weight:bold; color:#800020;">🏅 ' + w.rank + '</td>' +
+                      '<td style="border:1px solid #ccc; padding:4px; font-size:10px;"><strong>' + w.winnerName + '</strong></td>' +
+                      '<td style="border:1px solid #ccc; padding:4px; font-size:10px;">' + (w.remarks || '-') + '</td></tr>';
+            });
+          }
+          html += '</tbody></table>';
+        });
+      }
+
+      openPdfPreview('সর্বসাধারণের পূর্ণাঙ্গ হিসাব ও বিবরণী', html); 
     }
 
     // ক্লাউড ডেটাবেস সংযোগ
