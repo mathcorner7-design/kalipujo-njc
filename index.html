@@ -2982,12 +2982,14 @@ window.appState.contactInsta = instaLink;
     }
 
     // ৩. সর্বসাধারণের রিপোর্ট PDF
-    function generatePublicReportPdf() {
+        function generatePublicReportPdf() {
       var year = window.appState.pujaYear || '২০২৬';
       var graminList = window.appState.graminChandaList || [];
       var members = window.appState.memberAccounts || [];
       var mainCategories = window.appState.mainExpenseCategories || [];
       var genExpenses = window.appState.generalExpenses || [];
+      var progData = window.appState.programData || { dance: [], song: [], recitation: [] };
+      var sportsData = window.appState.sportsData || [];
 
       var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
       var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
@@ -2998,25 +3000,80 @@ window.appState.contactInsta = instaLink;
       var totalExpense = totalMainExp + totalGenExp;
       var netBalance = totalIncome - totalExpense;
 
-      var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
-                 '<h4 style="text-align:center;">কালীপূজা ' + year + ' - সর্বসাধারণের হিসাব</h4>' +
-                 '<p style="text-align:center; font-size:11px; color:#666;">তারিখ: ' + window.getCurrentDateTime() + '</p>' +
-                 '<table style="width:100%; border-collapse:collapse; margin-top:10px;">' +
-                 '<tr><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট চাঁদা</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + totalIncome.toLocaleString('en-IN') + '</td><th style="border:1px solid #ccc; padding:6px; background:#f9f9f9;">মোট খরচ</th><td style="border:1px solid #ccc; padding:6px;">₹ ' + totalExpense.toLocaleString('en-IN') + '</td></tr>' +
-                 '<tr style="font-weight:bold; background:#f0f0f0;"><th colspan="2" style="border:1px solid #ccc; padding:6px;">বর্তমান স্থিতি:</th><td colspan="2" style="border:1px solid #ccc; padding:6px; color:' + (netBalance >= 0 ? '#27ae60' : '#c0392b') + ';">' + (netBalance >= 0 ? '+ ₹' : '- ₹') + Math.abs(netBalance).toLocaleString('en-IN') + '</td></tr></table>' +
-                 '<h4 style="margin:12px 0 4px 0; text-align:left;">🪙 গ্রামীন চাঁদা তালিকা (' + graminList.length + ' জন):</h4>' +
-                 '<table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:6px;">ক্রম</th><th style="border:1px solid #ccc; padding:6px;">নাম</th><th style="border:1px solid #ccc; padding:6px;">টাকা</th></tr></thead><tbody>';
+      var html = '<h2 style="color:#800020; text-align:center; margin:0 0 4px 0;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
+                 '<h4 style="text-align:center; margin:0 0 6px 0; color:#333;">কালীপূজা ' + year + ' - সর্বসাধারণের পূর্ণাঙ্গ হিসাব ও বিবরণী</h4>' +
+                 '<p style="text-align:center; font-size:11px; color:#666; margin-bottom:10px;">প্রিন্ট তারিখ: ' + window.getCurrentDateTime() + '</p>' +
+                 
+                 // ১. সার্বিক আর্থিক অবস্থা
+                 '<table style="width:100%; border-collapse:collapse; margin-bottom:12px;">' +
+                 '<tr><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2; font-size:12px;">মোট গ্রামীন চাঁদা</th><td style="border:1px solid #aaa; padding:6px; font-size:12px;">₹ ' + totalGramin.toLocaleString('en-IN') + '</td><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2; font-size:12px;">মোট প্রধান খরচ</th><td style="border:1px solid #aaa; padding:6px; font-size:12px; color:#c0392b;">₹ ' + totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2; font-size:12px;">মোট মেম্বার চাঁদা</th><td style="border:1px solid #aaa; padding:6px; font-size:12px;">₹ ' + totalMember.toLocaleString('en-IN') + '</td><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2; font-size:12px;">মোট সাধারণ খরচ</th><td style="border:1px solid #aaa; padding:6px; font-size:12px; color:#c0392b;">₹ ' + totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr style="font-weight:bold; background:#fafafa;"><th style="border:1px solid #aaa; padding:6px; font-size:12px;">সর্বমোট জমা</th><td style="border:1px solid #aaa; padding:6px; font-size:12px;">₹ ' + totalIncome.toLocaleString('en-IN') + '</td><th style="border:1px solid #aaa; padding:6px; font-size:12px;">সর্বমোট খরচ</th><td style="border:1px solid #aaa; padding:6px; font-size:12px; color:#c0392b;">₹ ' + totalExpense.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr style="font-weight:bold;"><th colspan="2" style="border:1px solid #aaa; padding:6px; text-align:right; font-size:12px;">বর্তমান আর্থিক স্থিতি:</th><td colspan="2" style="border:1px solid #aaa; padding:6px; font-size:13px; color:' + (netBalance >= 0 ? '#27ae60' : '#c0392b') + ';">' + (netBalance >= 0 ? '+ ₹ ' : '- ₹ ') + Math.abs(netBalance).toLocaleString('en-IN') + '</td></tr></table>' +
+
+                 // ২. গ্রামীন চাঁদা
+                 '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:10px;">🪙 গ্রামীন চাঁদা তালিকা (মোট: ₹' + totalGramin.toLocaleString('en-IN') + ')</div>' +
+                 '<table style="width:100%; border-collapse:collapse; margin-bottom:10px;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:10%;">ক্রম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px;">দাতার নাম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:30%;">টাকা</th></tr></thead><tbody>';
 
       if (graminList.length === 0) {
-        html += '<tr><td colspan="3" style="text-align:center; padding:8px; border:1px solid #ccc;">কোনো তথ্য নেই।</td></tr>';
+        html += '<tr><td colspan="3" style="border:1px solid #ccc; padding:6px; text-align:center; font-size:11px;">কোনো এন্ট্রি নেই।</td></tr>';
       } else {
         graminList.forEach(function(g, i) {
-          html += '<tr><td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (i + 1) + '</td><td style="border:1px solid #ccc; padding:6px;">' + g.name + '</td><td style="border:1px solid #ccc; padding:6px;">₹ ' + g.amount.toLocaleString('en-IN') + '</td></tr>';
+          html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center; font-size:11px;">' + (i + 1) + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px;">' + g.name + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px; font-weight:bold;">₹ ' + g.amount.toLocaleString('en-IN') + '</td></tr>';
         });
       }
       html += '</tbody></table>';
 
-      openPdfPreview('সর্বসাধারণের হিসাব বিবরণী', html);
+      // ৩. মেম্বার চাঁদা
+      html += '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:10px;">👥 মেম্বার চাঁদা তালিকা (মোট: ₹' + totalMember.toLocaleString('en-IN') + ')</div>' +
+              '<table style="width:100%; border-collapse:collapse; margin-bottom:10px;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:10%;">ক্রম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px;">মেম্বারের নাম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:30%;">মোট জমা</th></tr></thead><tbody>';
+
+      if (members.length === 0) {
+        html += '<tr><td colspan="3" style="border:1px solid #ccc; padding:6px; text-align:center; font-size:11px;">কোনো মেম্বার এন্ট্রি নেই।</td></tr>';
+      } else {
+        members.forEach(function(m, i) {
+          var mSum = 0;
+          if (m.transactions) m.transactions.forEach(function(t) { mSum += t.amount; });
+          html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center; font-size:11px;">' + (i + 1) + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px;"><strong>' + m.name + '</strong></td><td style="border:1px solid #ccc; padding:5px; font-size:11px; font-weight:bold;">₹ ' + mSum.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+      html += '</tbody></table>';
+
+      // ৪. প্রধান খরচ
+      html += '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:10px;">🏛️ প্রধান খরচ তালিকা (মোট: ₹' + totalMainExp.toLocaleString('en-IN') + ')</div>' +
+              '<table style="width:100%; border-collapse:collapse; margin-bottom:10px;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:10%;">ক্রম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px;">খাতের নাম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:30%;">খরচ</th></tr></thead><tbody>';
+
+      if (mainCategories.length === 0) {
+        html += '<tr><td colspan="3" style="border:1px solid #ccc; padding:6px; text-align:center; font-size:11px;">কোনো প্রধান খরচ নেই।</td></tr>';
+      } else {
+        mainCategories.forEach(function(c, i) {
+          var cSum = 0;
+          if (c.payments) c.payments.forEach(function(p) { cSum += p.amount; });
+          html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center; font-size:11px;">' + (i + 1) + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px;">' + c.categoryName + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px; font-weight:bold; color:#c0392b;">₹ ' + cSum.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+      html += '</tbody></table>';
+
+      // ৫. সাধারণ খরচ
+      html += '<div style="background:#800020; color:#fff; padding:4px 8px; font-weight:bold; font-size:12px; margin-top:10px;">📝 সাধারণ খরচ তালিকা (মোট: ₹' + totalGenExp.toLocaleString('en-IN') + ')</div>' +
+              '<table style="width:100%; border-collapse:collapse; margin-bottom:12px;"><thead><tr style="background:#eee;"><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:10%;">ক্রম</th><th style="border:1px solid #ccc; padding:5px; font-size:11px;">খরচের বিবরণ</th><th style="border:1px solid #ccc; padding:5px; font-size:11px; width:30%;">টাকা</th></tr></thead><tbody>';
+
+      if (genExpenses.length === 0) {
+        html += '<tr><td colspan="3" style="border:1px solid #ccc; padding:6px; text-align:center; font-size:11px;">কোনো সাধারণ খরচ নেই।</td></tr>';
+      } else {
+        genExpenses.forEach(function(e, i) {
+          html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center; font-size:11px;">' + (i + 1) + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px;">' + e.title + '</td><td style="border:1px solid #ccc; padding:5px; font-size:11px; font-weight:bold; color:#c0392b;">₹ ' + e.amount.toLocaleString('en-IN') + '</td></tr>';
+        });
+      }
+      html += '</tbody></table>';
+
+      // ৬. অনুষ্ঠান ও খেলার সংক্ষেপ
+      html += '<div style="background:#f2f2f2; border:1px solid #ddd; padding:8px; border-radius:4px; font-size:11px; color:#444; margin-top:8px;">' +
+              '🪔 অনুষ্ঠানে মোট প্রতিযোগী: <strong>' + ((progData.dance?.length || 0) + (progData.song?.length || 0) + (progData.recitation?.length || 0)) + ' জন</strong> | ' +
+              '🏆 মোট খেলাধুলার সংখ্যা: <strong>' + sportsData.length + ' টি</strong>' +
+              '</div>';
+
+      openPdfPreview('সর্বসাধারণের পূর্ণাঙ্গ হিসাব বিবরণী', html);
     }
 
     // ক্লাউড ডেটাবেস সংযোগ
@@ -3077,7 +3134,7 @@ window.appState.contactInsta = instaLink;
       </div>
 
       <!-- প্রিন্ট কনটেন্ট দেখার স্ক্রিন -->
-      <div id="pdfModalContent" style="flex: 1; overflow-y: auto; background: #ffffff; color: #111111; padding: 14px; border-radius: 8px; text-align: left; font-size: 13px;"></div>
+      <div id="pdfModalContent" style="width: 100%; max-height: 65vh; overflow-y: scroll; -webkit-overflow-scrolling: touch; background: #ffffff; color: #111111; padding: 12px; border-radius: 8px; text-align: left; font-size: 13px; box-sizing: border-box;"></div>
     </div>
   </div>
 </body>
