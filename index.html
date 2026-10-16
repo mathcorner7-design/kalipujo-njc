@@ -7,11 +7,11 @@
   <title>কালীপূজা হিসাব - নিউ ঝালাপাল্লা কমিটি</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase SDKs (Most Stable CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
     :root {
@@ -614,7 +614,7 @@
     <!-- 1. HOME SCREEN -->
     <div id="homeScreen" class="screen">
       <div class="header-box">
-        <div class="sync-badge" id="syncStatus">☁️ লাইভ ক্লাউড সিঙ্ক চালু আছে</div>
+        <div class="sync-badge" id="syncStatus">☁️ ক্লাউড কানেক্ট হচ্ছে...</div>
         <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
         <div class="main-banner" id="homeBannerText">কালীপুজো ২০২৬ এ আপনাদের সবাইকে স্বাগতম</div>
       </div>
@@ -1095,24 +1095,10 @@
     </div>
   </div>
 
-  <!-- FIREBASE LOGIC & REALTIME SYNC -->
+  <!-- FIREBASE LOGIC & UI SCRIPT -->
   <script>
-    // আপনার ফায়ারবেস কনফিগারেশন
-    const firebaseConfig = {
-      apiKey: "AIzaSyAAaG35fMbzgdxcuMLFDHRHoxP2qnL0t24",
-      authDomain: "new-jhalapala-committee.firebaseapp.com",
-      projectId: "new-jhalapala-committee",
-      storageBucket: "new-jhalapala-committee.firebasestorage.app",
-      messagingSenderId: "379287603039",
-      appId: "1:379287603039:web:15e1451a6f0e37074398ea"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const docRef = db.collection("pujaData").doc("accounts2026");
-
-    // গ্লোবাল স্টেট
-    let appState = {
+    // ডিফল্ট স্টেট
+    var appState = {
       adminPin: '1234',
       pujaYear: '২০২৬',
       contactYt: '',
@@ -1126,33 +1112,58 @@
       sportsData: []
     };
 
-    let activeMemberIndex = null;
-    let activeMainExpenseIndex = null;
-    let activeProgramCategory = 'dance';
-    let activeSportIndex = null;
-    let currentScreenId = 'homeScreen';
+    var activeMemberIndex = null;
+    var activeMainExpenseIndex = null;
+    var activeProgramCategory = 'dance';
+    var activeSportIndex = null;
+    var currentScreenId = 'homeScreen';
+    var docRef = null;
 
-    // ক্লাউড ডেটাবেস থেকে রিয়েল-টাইম ডাটা সিঙ্ক
-    docRef.onSnapshot((doc) => {
-      if (doc.exists) {
-        const cloudData = doc.data();
-        appState = { ...appState, ...cloudData };
-        document.getElementById('syncStatus').innerText = "☁️ লাইভ ক্লাউড সিঙ্ক চালু আছে";
-      } else {
-        // ডেটাবেস ফাঁকা থাকলে প্রথমবার ইনিশিয়ালাইজ করা
-        pushToCloud();
+    // Firebase Initialization
+    try {
+      var firebaseConfig = {
+        apiKey: "AIzaSyAAaG35fMbzgdxcuMLFDHRHoxP2qnL0t24",
+        authDomain: "new-jhalapala-committee.firebaseapp.com",
+        projectId: "new-jhalapala-committee",
+        storageBucket: "new-jhalapala-committee.firebasestorage.app",
+        messagingSenderId: "379287603039",
+        appId: "1:379287603039:web:15e1451a6f0e37074398ea"
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
       }
-      refreshUI();
-    }, (error) => {
-      console.error("Firebase sync error:", error);
-      document.getElementById('syncStatus').innerText = "⚠️ অফলাইন মোড (লোকাল ক্যাশ)";
-    });
+      var db = firebase.firestore();
+      docRef = db.collection("pujaData").doc("accounts2026");
 
-    // ক্লাউডে ডেটা সেভ করার কেন্দ্রীয় ফাংশন
-    function pushToCloud() {
-      docRef.set(appState).catch(err => {
-        console.error("Error saving data:", err);
+      // রিয়েল-টাইম ক্লাউড লিসেনার
+      docRef.onSnapshot(function(doc) {
+        if (doc && doc.exists) {
+          var cloudData = doc.data();
+          appState = Object.assign({}, appState, cloudData);
+          var badge = document.getElementById('syncStatus');
+          if (badge) badge.innerText = "☁️ লাইভ ক্লাউড সিঙ্ক চালু আছে";
+        } else {
+          pushToCloud();
+        }
+        refreshUI();
+      }, function(error) {
+        console.warn("Firestore Listener Notice:", error);
+        var badge = document.getElementById('syncStatus');
+        if (badge) badge.innerText = "☁️ লোকাল ক্যাশ সিঙ্ক চালু";
       });
+    } catch (e) {
+      console.warn("Firebase Init fallback:", e);
+      var badge = document.getElementById('syncStatus');
+      if (badge) badge.innerText = "☁️ ক্লাউড স্ট্যান্ডবাই";
+    }
+
+    function pushToCloud() {
+      if (docRef) {
+        docRef.set(appState).catch(function(err) {
+          console.error("Cloud save warning:", err);
+        });
+      }
     }
 
     function refreshUI() {
@@ -1172,15 +1183,15 @@
 
     function formatInputText(str) {
       if (!str) return '';
-      return str.replace(/[a-z]/g, c => c.toUpperCase()).trim();
+      return str.replace(/[a-z]/g, function(c) { return c.toUpperCase(); }).trim();
     }
 
     document.addEventListener('input', function(e) {
       if (e.target && e.target.type === 'text' && !e.target.id.includes('settingYtLink') && !e.target.id.includes('settingFbLink') && !e.target.id.includes('settingWpLink')) {
-        const start = e.target.selectionStart;
-        const end = e.target.selectionEnd;
-        const oldVal = e.target.value;
-        const newVal = oldVal.replace(/[a-z]/g, c => c.toUpperCase());
+        var start = e.target.selectionStart;
+        var end = e.target.selectionEnd;
+        var oldVal = e.target.value;
+        var newVal = oldVal.replace(/[a-z]/g, function(c) { return c.toUpperCase(); });
         if (oldVal !== newVal) {
           e.target.value = newVal;
           e.target.setSelectionRange(start, end);
@@ -1189,13 +1200,14 @@
     });
 
     function refreshYearDisplay() {
-      const year = appState.pujaYear || '২০২৬';
-      document.getElementById('homeBannerText').innerText = `কালীপুজো ${year} এ আপনাদের সবাইকে স্বাগতম`;
+      var year = appState.pujaYear || '২০২৬';
+      var el = document.getElementById('homeBannerText');
+      if (el) el.innerText = "কালীপুজো " + year + " এ আপনাদের সবাইকে স্বাগতম";
     }
 
     function showScreen(screenId) {
       currentScreenId = screenId;
-      const screens = [
+      var screens = [
         'homeScreen', 'officialScreen', 'graminScreen', 
         'memberScreen', 'memberLedgerScreen',
         'mainExpenseScreen', 'mainExpenseDetailScreen',
@@ -1203,16 +1215,16 @@
         'sportsScreen', 'sportsDetailScreen',
         'finalAuditScreen', 'publicScreen'
       ];
-      screens.forEach(id => {
-        const el = document.getElementById(id);
+      screens.forEach(function(id) {
+        var el = document.getElementById(id);
         if (el) el.classList.add('hidden');
       });
-      const target = document.getElementById(screenId);
+      var target = document.getElementById(screenId);
       if (target) target.classList.remove('hidden');
     }
 
     function handleSocialClick(type) {
-      let link = '';
+      var link = '';
       if (type === 'yt') link = appState.contactYt;
       else if (type === 'fb') link = appState.contactFb;
       else if (type === 'wp') link = appState.contactWp;
@@ -1223,8 +1235,8 @@
       }
 
       if (type === 'wp' && !link.startsWith('http')) {
-        const cleanNum = link.replace(/[^0-9]/g, '');
-        window.open(`https://wa.me/${cleanNum}`, '_blank');
+        var cleanNum = link.replace(/[^0-9]/g, '');
+        window.open('https://wa.me/' + cleanNum, '_blank');
       } else {
         if (!link.startsWith('http://') && !link.startsWith('https://')) {
           link = 'https://' + link;
@@ -1234,14 +1246,15 @@
     }
 
     function openPinModal() {
-      document.getElementById('inputPin').value = '';
+      var input = document.getElementById('inputPin');
+      input.value = '';
       document.getElementById('pinModal').classList.remove('hidden');
-      setTimeout(() => document.getElementById('inputPin').focus(), 150);
+      setTimeout(function() { input.focus(); }, 150);
     }
     function closePinModal() { document.getElementById('pinModal').classList.add('hidden'); }
 
     function verifyPin() {
-      const entered = document.getElementById('inputPin').value.trim();
+      var entered = document.getElementById('inputPin').value.trim();
       if (entered === (appState.adminPin || '1234')) {
         closePinModal();
         showScreen('officialScreen');
@@ -1263,12 +1276,12 @@
     function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').classList.add('hidden'); }
 
     function saveAdminSettings() {
-      const newYear = document.getElementById('settingYear').value.trim();
-      const currPin = document.getElementById('currentPin').value.trim();
-      const newPin = document.getElementById('newPin').value.trim();
-      const ytLink = document.getElementById('settingYtLink').value.trim();
-      const fbLink = document.getElementById('settingFbLink').value.trim();
-      const wpLink = document.getElementById('settingWpLink').value.trim();
+      var newYear = document.getElementById('settingYear').value.trim();
+      var currPin = document.getElementById('currentPin').value.trim();
+      var newPin = document.getElementById('newPin').value.trim();
+      var ytLink = document.getElementById('settingYtLink').value.trim();
+      var fbLink = document.getElementById('settingFbLink').value.trim();
+      var wpLink = document.getElementById('settingWpLink').value.trim();
 
       if (newYear) appState.pujaYear = newYear;
       appState.contactYt = ytLink;
@@ -1297,18 +1310,18 @@
       closeAdminSettingsModal();
       document.getElementById('resetInputPin').value = '';
       document.getElementById('resetPinModal').classList.remove('hidden');
-      setTimeout(() => document.getElementById('resetInputPin').focus(), 150);
+      setTimeout(function() { document.getElementById('resetInputPin').focus(); }, 150);
     }
     function closeResetPinModal() { document.getElementById('resetPinModal').classList.add('hidden'); }
 
     function proceedResetApp() {
-      const pin = document.getElementById('resetInputPin').value.trim();
+      var pin = document.getElementById('resetInputPin').value.trim();
       if (pin !== (appState.adminPin || '1234')) {
         alert("ভুল পিন নম্বর! রিসেট করা সম্ভব নয়।");
         return;
       }
 
-      const confirmReset = confirm("⚠️ চূড়ান্ত সতর্কবার্তা!\n\nআপনি কি নিশ্চিত যে ক্লাউডের সমস্ত চাঁদা, খরচ, অনুষ্ঠান ও খেলার রেকর্ড ডিলিট করতে চান? এটি সবার ফোন থেকে মুছে যাবে।");
+      var confirmReset = confirm("⚠️ চূড়ান্ত সতর্কবার্তা!\n\nআপনি কি নিশ্চিত যে ক্লাউডের সমস্ত চাঁদা, খরচ, অনুষ্ঠান ও খেলার রেকর্ড ডিলিট করতে চান? এটি সবার ফোন থেকে মুছে যাবে।");
 
       if (confirmReset) {
         appState.graminChandaList = [];
@@ -1326,7 +1339,7 @@
     }
 
     function getCurrentDateTime() {
-      const now = new Date();
+      var now = new Date();
       return now.toLocaleString('en-IN', {
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: true
@@ -1339,42 +1352,41 @@
       renderGraminChanda();
     }
     function addGraminChanda() {
-      const name = formatInputText(document.getElementById('gName').value);
-      const amount = parseFloat(document.getElementById('gAmount').value);
+      var name = formatInputText(document.getElementById('gName').value);
+      var amount = parseFloat(document.getElementById('gAmount').value);
       if (!name) { alert("দাতার নাম লিখুন!"); return; }
       if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
 
-      appState.graminChandaList.unshift({ name, amount, dateTime: getCurrentDateTime() });
+      appState.graminChandaList.unshift({ name: name, amount: amount, dateTime: getCurrentDateTime() });
       pushToCloud();
       document.getElementById('gName').value = '';
       document.getElementById('gAmount').value = '';
       renderGraminChanda();
     }
     function renderGraminChanda() {
-      const list = appState.graminChandaList || [];
-      const container = document.getElementById('graminList');
+      var list = appState.graminChandaList || [];
+      var container = document.getElementById('graminList');
       container.innerHTML = '';
-      let total = 0;
-      list.forEach((item, index) => {
+      var total = 0;
+      list.forEach(function(item, index) {
         total += item.amount;
-        const card = document.createElement('div');
+        var card = document.createElement('div');
         card.className = 'list-card';
-        card.innerHTML = `
-          <div class="list-info">
-            <div class="list-name">${item.name}</div>
-            <div class="list-time">🕒 ${item.dateTime}</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="list-amount">₹ ${item.amount.toLocaleString('en-IN')}</div>
-            <div class="action-icons">
-              <button class="btn-icon btn-edit" onclick="openGraminEdit(${index})">✏️</button>
-              <button class="btn-icon btn-del" onclick="deleteGramin(${index})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info">' +
+            '<div class="list-name">' + item.name + '</div>' +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" onclick="openGraminEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="deleteGramin(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
-      document.getElementById('graminTotalText').innerText = `₹ ${total.toLocaleString('en-IN')}`;
+      document.getElementById('graminTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
     }
     function deleteGramin(index) {
       if (confirm("এই গ্রামীন চাঁদা এন্ট্রি মুছে ফেলতে চান?")) {
@@ -1384,7 +1396,7 @@
       }
     }
     function openGraminEdit(index) {
-      const item = appState.graminChandaList[index];
+      var item = appState.graminChandaList[index];
       setEditModal('gramin', index, null, 'গ্রামীন চাঁদা সম্পাদনা', 'দাতার নাম', item.name, item.amount, '', item.dateTime);
     }
 
@@ -1394,47 +1406,48 @@
       renderMemberList();
     }
     function createMember() {
-      const name = formatInputText(document.getElementById('newMemberName').value);
+      var name = formatInputText(document.getElementById('newMemberName').value);
       if (!name) { alert("মেম্বারের নাম লিখুন!"); return; }
       if (!appState.memberAccounts) appState.memberAccounts = [];
-      appState.memberAccounts.unshift({ name, createdAt: getCurrentDateTime(), transactions: [] });
+      appState.memberAccounts.unshift({ name: name, createdAt: getCurrentDateTime(), transactions: [] });
       pushToCloud();
       document.getElementById('newMemberName').value = '';
       renderMemberList();
     }
     function renderMemberList() {
-      const members = appState.memberAccounts || [];
-      const container = document.getElementById('memberList');
+      var members = appState.memberAccounts || [];
+      var container = document.getElementById('memberList');
       container.innerHTML = '';
-      let grandTotal = 0;
-      members.forEach((member, index) => {
-        let memberSum = 0;
-        if (member.transactions) member.transactions.forEach(t => memberSum += t.amount);
+      var grandTotal = 0;
+      members.forEach(function(member, index) {
+        var memberSum = 0;
+        if (member.transactions) {
+          member.transactions.forEach(function(t) { memberSum += t.amount; });
+        }
         grandTotal += memberSum;
-        const card = document.createElement('div');
+        var card = document.createElement('div');
         card.className = 'list-card folder-card';
-        card.innerHTML = `
-          <div class="list-info" onclick="openMemberLedger(${index})">
-            <div class="list-name">👤 ${member.name}</div>
-            <div class="list-subtext">মোট এন্ট্রি: ${member.transactions ? member.transactions.length : 0} টি (ক্লিক করে দেখুন)</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="list-amount" onclick="openMemberLedger(${index})">₹ ${memberSum.toLocaleString('en-IN')}</div>
-            <div class="action-icons">
-              <button class="btn-icon btn-edit" title="নাম বদলান" onclick="event.stopPropagation(); openMemberNameEdit(${index})">✏️</button>
-              <button class="btn-icon btn-del" title="মেম্বার মুছুন" onclick="event.stopPropagation(); deleteMemberProfile(${index})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info" onclick="openMemberLedger(' + index + ')">' +
+            '<div class="list-name">👤 ' + member.name + '</div>' +
+            '<div class="list-subtext">মোট এন্ট্রি: ' + (member.transactions ? member.transactions.length : 0) + ' টি (ক্লিক করে দেখুন)</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount" onclick="openMemberLedger(' + index + ')">₹ ' + memberSum.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" title="নাম বদলান" onclick="event.stopPropagation(); openMemberNameEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" title="মেম্বার মুছুন" onclick="event.stopPropagation(); deleteMemberProfile(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
-      document.getElementById('memberGrandTotalText').innerText = `₹ ${grandTotal.toLocaleString('en-IN')}`;
+      document.getElementById('memberGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
     }
     function openMemberNameEdit(index) {
       setEditModal('member_name', index, null, 'মেম্বারের নাম পরিবর্তন', 'মেম্বারের নাম', appState.memberAccounts[index].name, null, '', '');
     }
     function deleteMemberProfile(index) {
-      if (confirm(`আপনি কি "${appState.memberAccounts[index].name}" মেম্বার ও তাঁর সব এন্ট্রি মুছে ফেলতে চান?`)) {
+      if (confirm('আপনি কি "' + appState.memberAccounts[index].name + '" মেম্বার ও তাঁর সব এন্ট্রি মুছে ফেলতে চান?')) {
         appState.memberAccounts.splice(index, 1);
         pushToCloud();
         renderMemberList();
@@ -1447,47 +1460,46 @@
       renderMemberLedger();
     }
     function addMemberTransaction() {
-      const remarks = formatInputText(document.getElementById('mEntryRemarks').value);
-      const amount = parseFloat(document.getElementById('mEntryAmount').value);
+      var remarks = formatInputText(document.getElementById('mEntryRemarks').value);
+      var amount = parseFloat(document.getElementById('mEntryAmount').value);
       if (!remarks) { alert("মন্তব্য বা কাজের বিবরণ (Remarks) লিখুন!"); return; }
       if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
 
       if (!appState.memberAccounts[activeMemberIndex].transactions) {
         appState.memberAccounts[activeMemberIndex].transactions = [];
       }
-      appState.memberAccounts[activeMemberIndex].transactions.unshift({ remarks, amount, dateTime: getCurrentDateTime() });
+      appState.memberAccounts[activeMemberIndex].transactions.unshift({ remarks: remarks, amount: amount, dateTime: getCurrentDateTime() });
       pushToCloud();
       document.getElementById('mEntryRemarks').value = '';
       document.getElementById('mEntryAmount').value = '';
       renderMemberLedger();
     }
     function renderMemberLedger() {
-      const member = appState.memberAccounts[activeMemberIndex];
-      const container = document.getElementById('memberLedgerList');
+      var member = appState.memberAccounts[activeMemberIndex];
+      var container = document.getElementById('memberLedgerList');
       container.innerHTML = '';
-      let total = 0;
+      var total = 0;
       if (member && member.transactions) {
-        member.transactions.forEach((item, tIndex) => {
+        member.transactions.forEach(function(item, tIndex) {
           total += item.amount;
-          const card = document.createElement('div');
+          var card = document.createElement('div');
           card.className = 'list-card';
-          card.innerHTML = `
-            <div class="list-info">
-              <div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">📌 ${item.remarks}</div>
-              <div class="list-time">🕒 ${item.dateTime}</div>
-            </div>
-            <div class="list-amount-actions">
-              <div class="list-amount">₹ ${item.amount.toLocaleString('en-IN')}</div>
-              <div class="action-icons">
-                <button class="btn-icon btn-edit" onclick="openLedgerTransactionEdit(${tIndex})">✏️</button>
-                <button class="btn-icon btn-del" onclick="deleteMemberTransaction(${tIndex})">🗑️</button>
-              </div>
-            </div>
-          `;
+          card.innerHTML = 
+            '<div class="list-info">' +
+              '<div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">📌 ' + item.remarks + '</div>' +
+              '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+            '</div>' +
+            '<div class="list-amount-actions">' +
+              '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+              '<div class="action-icons">' +
+                '<button class="btn-icon btn-edit" onclick="openLedgerTransactionEdit(' + tIndex + ')">✏️</button>' +
+                '<button class="btn-icon btn-del" onclick="deleteMemberTransaction(' + tIndex + ')">🗑️</button>' +
+              '</div>' +
+            '</div>';
           container.appendChild(card);
         });
       }
-      document.getElementById('memberIndividualTotalText').innerText = `₹ ${total.toLocaleString('en-IN')}`;
+      document.getElementById('memberIndividualTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
     }
     function deleteMemberTransaction(tIndex) {
       if (confirm("এই জমার এন্ট্রি মুছে ফেলতে চান?")) {
@@ -1497,7 +1509,7 @@
       }
     }
     function openLedgerTransactionEdit(tIndex) {
-      const tx = appState.memberAccounts[activeMemberIndex].transactions[tIndex];
+      var tx = appState.memberAccounts[activeMemberIndex].transactions[tIndex];
       setEditModal('ledger_tx', activeMemberIndex, tIndex, 'মেম্বার জমা সম্পাদনা', 'মন্তব্য / Remarks', tx.remarks, tx.amount, '', tx.dateTime);
     }
 
@@ -1507,7 +1519,7 @@
       renderMainExpenseCategories();
     }
     function createMainExpenseCategory() {
-      const name = formatInputText(document.getElementById('newMainCategoryName').value);
+      var name = formatInputText(document.getElementById('newMainCategoryName').value);
       if (!name) { alert("প্রধান খরচের খাতের নাম লিখুন! (যেমন: প্রতিমা, মণ্ডপ)"); return; }
       if (!appState.mainExpenseCategories) appState.mainExpenseCategories = [];
       appState.mainExpenseCategories.unshift({ categoryName: name, createdAt: getCurrentDateTime(), payments: [] });
@@ -1516,38 +1528,39 @@
       renderMainExpenseCategories();
     }
     function renderMainExpenseCategories() {
-      const categories = appState.mainExpenseCategories || [];
-      const container = document.getElementById('mainExpenseCategoryList');
+      var categories = appState.mainExpenseCategories || [];
+      var container = document.getElementById('mainExpenseCategoryList');
       container.innerHTML = '';
-      let grandTotal = 0;
-      categories.forEach((cat, index) => {
-        let sum = 0;
-        if (cat.payments) cat.payments.forEach(p => sum += p.amount);
+      var grandTotal = 0;
+      categories.forEach(function(cat, index) {
+        var sum = 0;
+        if (cat.payments) {
+          cat.payments.forEach(function(p) { sum += p.amount; });
+        }
         grandTotal += sum;
-        const card = document.createElement('div');
+        var card = document.createElement('div');
         card.className = 'list-card folder-card';
-        card.innerHTML = `
-          <div class="list-info" onclick="openMainExpenseDetail(${index})">
-            <div class="list-name">🏛️ ${cat.categoryName}</div>
-            <div class="list-subtext">প্রদত্ত কিস্তি: ${cat.payments ? cat.payments.length : 0} টি (ক্লিক করে দেখুন)</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="list-amount" onclick="openMainExpenseDetail(${index})">₹ ${sum.toLocaleString('en-IN')}</div>
-            <div class="action-icons">
-              <button class="btn-icon btn-edit" title="খাতের নাম বদলান" onclick="event.stopPropagation(); openMainCategoryNameEdit(${index})">✏️</button>
-              <button class="btn-icon btn-del" title="খাতটি মুছুন" onclick="event.stopPropagation(); deleteMainExpenseCategory(${index})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info" onclick="openMainExpenseDetail(' + index + ')">' +
+            '<div class="list-name">🏛️ ' + cat.categoryName + '</div>' +
+            '<div class="list-subtext">প্রদত্ত কিস্তি: ' + (cat.payments ? cat.payments.length : 0) + ' টি (ক্লিক করে দেখুন)</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount" onclick="openMainExpenseDetail(' + index + ')">₹ ' + sum.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" title="খাতের নাম বদলান" onclick="event.stopPropagation(); openMainCategoryNameEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" title="খাতটি মুছুন" onclick="event.stopPropagation(); deleteMainExpenseCategory(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
-      document.getElementById('mainExpenseGrandTotalText').innerText = `₹ ${grandTotal.toLocaleString('en-IN')}`;
+      document.getElementById('mainExpenseGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
     }
     function openMainCategoryNameEdit(index) {
       setEditModal('main_cat_name', index, null, 'খাতের নাম পরিবর্তন', 'খাতের নাম', appState.mainExpenseCategories[index].categoryName, null, '', '');
     }
     function deleteMainExpenseCategory(index) {
-      if (confirm(`আপনি কি "${appState.mainExpenseCategories[index].categoryName}" খাতের সব হিসাব মুছে ফেলতে চান?`)) {
+      if (confirm('আপনি কি "' + appState.mainExpenseCategories[index].categoryName + '" খাতের সব হিসাব মুছে ফেলতে চান?')) {
         appState.mainExpenseCategories.splice(index, 1);
         pushToCloud();
         renderMainExpenseCategories();
@@ -1560,47 +1573,46 @@
       renderMainExpenseDetail();
     }
     function addMainExpensePayment() {
-      const note = formatInputText(document.getElementById('mainExpDetailNote').value);
-      const amount = parseFloat(document.getElementById('mainExpDetailAmount').value);
+      var note = formatInputText(document.getElementById('mainExpDetailNote').value);
+      var amount = parseFloat(document.getElementById('mainExpDetailAmount').value);
       if (!note) { alert("কিস্তি বা ভাউচারের বিবরণ লিখুন!"); return; }
       if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
 
       if (!appState.mainExpenseCategories[activeMainExpenseIndex].payments) {
         appState.mainExpenseCategories[activeMainExpenseIndex].payments = [];
       }
-      appState.mainExpenseCategories[activeMainExpenseIndex].payments.unshift({ note, amount, dateTime: getCurrentDateTime() });
+      appState.mainExpenseCategories[activeMainExpenseIndex].payments.unshift({ note: note, amount: amount, dateTime: getCurrentDateTime() });
       pushToCloud();
       document.getElementById('mainExpDetailNote').value = '';
       document.getElementById('mainExpDetailAmount').value = '';
       renderMainExpenseDetail();
     }
     function renderMainExpenseDetail() {
-      const cat = appState.mainExpenseCategories[activeMainExpenseIndex];
-      const container = document.getElementById('mainExpenseDetailList');
+      var cat = appState.mainExpenseCategories[activeMainExpenseIndex];
+      var container = document.getElementById('mainExpenseDetailList');
       container.innerHTML = '';
-      let total = 0;
+      var total = 0;
       if (cat && cat.payments) {
-        cat.payments.forEach((pay, pIndex) => {
+        cat.payments.forEach(function(pay, pIndex) {
           total += pay.amount;
-          const card = document.createElement('div');
+          var card = document.createElement('div');
           card.className = 'list-card';
-          card.innerHTML = `
-            <div class="list-info">
-              <div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">🧾 ${pay.note}</div>
-              <div class="list-time">🕒 ${pay.dateTime}</div>
-            </div>
-            <div class="list-amount-actions">
-              <div class="list-amount">₹ ${pay.amount.toLocaleString('en-IN')}</div>
-              <div class="action-icons">
-                <button class="btn-icon btn-edit" onclick="openMainPaymentEdit(${pIndex})">✏️</button>
-                <button class="btn-icon btn-del" onclick="deleteMainExpensePayment(${pIndex})">🗑️</button>
-              </div>
-            </div>
-          `;
+          card.innerHTML = 
+            '<div class="list-info">' +
+              '<div class="list-name" style="font-size:0.95rem; color:var(--gold-bright);">🧾 ' + pay.note + '</div>' +
+              '<div class="list-time">🕒 ' + pay.dateTime + '</div>' +
+            '</div>' +
+            '<div class="list-amount-actions">' +
+              '<div class="list-amount">₹ ' + pay.amount.toLocaleString('en-IN') + '</div>' +
+              '<div class="action-icons">' +
+                '<button class="btn-icon btn-edit" onclick="openMainPaymentEdit(' + pIndex + ')">✏️</button>' +
+                '<button class="btn-icon btn-del" onclick="deleteMainExpensePayment(' + pIndex + ')">🗑️</button>' +
+              '</div>' +
+            '</div>';
           container.appendChild(card);
         });
       }
-      document.getElementById('mainExpenseCategoryTotalText').innerText = `₹ ${total.toLocaleString('en-IN')}`;
+      document.getElementById('mainExpenseCategoryTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
     }
     function deleteMainExpensePayment(pIndex) {
       if (confirm("এই কিস্তির এন্ট্রি মুছে ফেলতে চান?")) {
@@ -1610,7 +1622,7 @@
       }
     }
     function openMainPaymentEdit(pIndex) {
-      const pay = appState.mainExpenseCategories[activeMainExpenseIndex].payments[pIndex];
+      var pay = appState.mainExpenseCategories[activeMainExpenseIndex].payments[pIndex];
       setEditModal('main_pay_edit', activeMainExpenseIndex, pIndex, 'কিস্তি সম্পাদনা', 'কিস্তির বিবরণ', pay.note, pay.amount, '', pay.dateTime);
     }
 
@@ -1620,43 +1632,42 @@
       renderGeneralExpenses();
     }
     function addGeneralExpense() {
-      const title = formatInputText(document.getElementById('genExpTitle').value);
-      const amount = parseFloat(document.getElementById('genExpAmount').value);
+      var title = formatInputText(document.getElementById('genExpTitle').value);
+      var amount = parseFloat(document.getElementById('genExpAmount').value);
       if (!title) { alert("খরচের বিবরণ লিখুন!"); return; }
       if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
 
       if (!appState.generalExpenses) appState.generalExpenses = [];
-      appState.generalExpenses.unshift({ title, amount, dateTime: getCurrentDateTime() });
+      appState.generalExpenses.unshift({ title: title, amount: amount, dateTime: getCurrentDateTime() });
       pushToCloud();
       document.getElementById('genExpTitle').value = '';
       document.getElementById('genExpAmount').value = '';
       renderGeneralExpenses();
     }
     function renderGeneralExpenses() {
-      const list = appState.generalExpenses || [];
-      const container = document.getElementById('genExpenseList');
+      var list = appState.generalExpenses || [];
+      var container = document.getElementById('genExpenseList');
       container.innerHTML = '';
-      let total = 0;
-      list.forEach((item, index) => {
+      var total = 0;
+      list.forEach(function(item, index) {
         total += item.amount;
-        const card = document.createElement('div');
+        var card = document.createElement('div');
         card.className = 'list-card';
-        card.innerHTML = `
-          <div class="list-info">
-            <div class="list-name">📝 ${item.title}</div>
-            <div class="list-time">🕒 ${item.dateTime}</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="list-amount">₹ ${item.amount.toLocaleString('en-IN')}</div>
-            <div class="action-icons">
-              <button class="btn-icon btn-edit" onclick="openGenExpenseEdit(${index})">✏️</button>
-              <button class="btn-icon btn-del" onclick="deleteGenExpense(${index})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info">' +
+            '<div class="list-name">📝 ' + item.title + '</div>' +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="list-amount">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" onclick="openGenExpenseEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="deleteGenExpense(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
-      document.getElementById('genExpenseTotalText').innerText = `₹ ${total.toLocaleString('en-IN')}`;
+      document.getElementById('genExpenseTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
     }
     function deleteGenExpense(index) {
       if (confirm("এই সাধারণ খরচের হিসাব মুছে ফেলতে চান?")) {
@@ -1666,7 +1677,7 @@
       }
     }
     function openGenExpenseEdit(index) {
-      const item = appState.generalExpenses[index];
+      var item = appState.generalExpenses[index];
       setEditModal('gen_expense', index, null, 'সাধারণ খরচ সম্পাদনা', 'খরচের বিবরণ', item.title, item.amount, '', item.dateTime);
     }
 
@@ -1688,9 +1699,9 @@
       renderProgramList();
     }
     function addProgramEntry() {
-      const name = formatInputText(document.getElementById('progName').value);
-      const age = parseInt(document.getElementById('progAge').value);
-      const remarks = formatInputText(document.getElementById('progRemarks').value);
+      var name = formatInputText(document.getElementById('progName').value);
+      var age = parseInt(document.getElementById('progAge').value);
+      var remarks = formatInputText(document.getElementById('progRemarks').value);
 
       if (!name) { alert("অংশগ্রহণকারীর নাম লিখুন!"); return; }
       if (isNaN(age) || age <= 0) { alert("সঠিক বয়স লিখুন!"); return; }
@@ -1699,9 +1710,9 @@
       if (!appState.programData[activeProgramCategory]) appState.programData[activeProgramCategory] = [];
 
       appState.programData[activeProgramCategory].push({
-        name, age, remarks: remarks || 'নির্দিষ্ট নেই', dateTime: getCurrentDateTime()
+        name: name, age: age, remarks: remarks || 'নির্দিষ্ট নেই', dateTime: getCurrentDateTime()
       });
-      appState.programData[activeProgramCategory].sort((a, b) => a.age - b.age);
+      appState.programData[activeProgramCategory].sort(function(a, b) { return a.age - b.age; });
 
       pushToCloud();
       document.getElementById('progName').value = '';
@@ -1710,38 +1721,37 @@
       renderProgramList();
     }
     function renderProgramList() {
-      const list = (appState.programData && appState.programData[activeProgramCategory]) ? appState.programData[activeProgramCategory] : [];
-      const container = document.getElementById('programList');
+      var list = (appState.programData && appState.programData[activeProgramCategory]) ? appState.programData[activeProgramCategory] : [];
+      var container = document.getElementById('programList');
       container.innerHTML = '';
 
       if (list.length === 0) {
-        container.innerHTML = `<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এই বিভাগে এখনও কোনো নাম নথিভুক্ত হয়নি।</div>`;
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এই বিভাগে এখনও কোনো নাম নথিভুক্ত হয়নি।</div>';
         return;
       }
 
-      list.forEach((item, index) => {
-        const card = document.createElement('div');
+      list.forEach(function(item, index) {
+        var card = document.createElement('div');
         card.className = 'list-card';
         card.style.cursor = 'pointer';
-        card.innerHTML = `
-          <div class="list-info" onclick="viewCandidateDetail('${activeProgramCategory}', ${index})">
-            <div class="list-name">🎭 ${index + 1}. ${item.name} <span style="font-size:0.82rem; color:var(--gold-bright); font-weight:normal;">(${item.age} বছর)</span></div>
-            <div class="list-subtext">বিবরণ: ${item.remarks}</div>
-            <div class="list-time">🕒 ${item.dateTime}</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="action-icons" style="margin-top:4px;">
-              <button class="btn-icon btn-edit" onclick="event.stopPropagation(); openProgramEdit(${index})">✏️</button>
-              <button class="btn-icon btn-del" onclick="event.stopPropagation(); deleteProgramEntry(${index})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info" onclick="viewCandidateDetail(\'' + activeProgramCategory + '\', ' + index + ')">' +
+            '<div class="list-name">🎭 ' + (index + 1) + '. ' + item.name + ' <span style="font-size:0.82rem; color:var(--gold-bright); font-weight:normal;">(' + item.age + ' বছর)</span></div>' +
+            '<div class="list-subtext">বিবরণ: ' + item.remarks + '</div>' +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="action-icons" style="margin-top:4px;">' +
+              '<button class="btn-icon btn-edit" onclick="event.stopPropagation(); openProgramEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="event.stopPropagation(); deleteProgramEntry(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
     }
     function viewCandidateDetail(cat, index) {
-      const item = appState.programData[cat][index];
-      const catName = cat === 'dance' ? '💃 নাচ' : (cat === 'song' ? '🎤 গান' : '📜 আবৃত্তি');
+      var item = appState.programData[cat][index];
+      var catName = cat === 'dance' ? '💃 নাচ' : (cat === 'song' ? '🎤 গান' : '📜 আবৃত্তি');
 
       document.getElementById('viewProgName').innerText = item.name;
       document.getElementById('viewProgAge').innerText = item.age;
@@ -1760,78 +1770,46 @@
       }
     }
     function openProgramEdit(index) {
-      const item = appState.programData[activeProgramCategory][index];
+      var item = appState.programData[activeProgramCategory][index];
       setEditModal('program_entry', activeProgramCategory, index, 'প্রতিযোগী সম্পাদনা', 'অংশগ্রহণকারীর নাম', item.name, item.age, item.remarks, item.dateTime);
     }
+
     function generateProgramPdf() {
-      const progData = appState.programData || { dance: [], song: [], recitation: [] };
-      const year = appState.pujaYear || '২০২৬';
+      var progData = appState.programData || { dance: [], song: [], recitation: [] };
+      var year = appState.pujaYear || '২০২৬';
 
-      let printWindow = window.open('', '_blank');
-      let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="bn">
-        <head>
-          <title>অনুষ্ঠান কর্মসূচি - নিউ ঝালাপাল্লা কমিটি (${year})</title>
-          <style>
-            body { font-family: 'Hind Siliguri', sans-serif, Arial; padding: 25px; color: #111; }
-            h2, h4 { text-align: center; margin: 4px 0; }
-            h2 { color: #800020; font-size: 24px; }
-            .section-head { background: #f2f2f2; padding: 8px 12px; margin-top: 20px; font-weight: bold; font-size: 16px; border-left: 5px solid #800020; }
-            table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-            th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; font-size: 14px; }
-            th { background: #f9f9f9; }
-            @media print { .no-print { display: none; } body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          <div class="no-print" style="margin-bottom: 15px; text-align: right;">
-            <button onclick="window.print()" style="padding: 10px 18px; background: #800020; color: #fff; border: none; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button>
-          </div>
-          <h2>নিউ ঝালাপাল্লা কমিটি</h2>
-          <h4>কালীপূজা ${year} - অনুষ্ঠান কর্মসূচি (সঞ্চালক সূচি)</h4>
-          <p style="text-align:center; font-size:12px; color:#666;">বয়স অনুযায়ী ছোট থেকে বড় সাজানো তালিকা</p>
-      `;
+      var printWindow = window.open('', '_blank');
+      var htmlContent = 
+        '<!DOCTYPE html><html lang="bn"><head><title>অনুষ্ঠান কর্মসূচি - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
+        '.section-head{background: #f2f2f2; padding: 8px 12px; margin-top: 20px; font-weight: bold; border-left: 5px solid #800020;}' +
+        'table{width: 100%; border-collapse: collapse; margin-top: 8px;} th, td{border: 1px solid #ccc; padding: 8px 10px; text-align: left; font-size: 14px;}' +
+        'th{background: #f9f9f9;} @media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
+        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি</h2><h4>কালীপূজা ' + year + ' - অনুষ্ঠান কর্মসূচি (সঞ্চালক সূচি)</h4>' +
+        '<p style="text-align:center; font-size:12px; color:#666;">বয়স অনুযায়ী ছোট থেকে বড় সাজানো তালিকা</p>';
 
-      const categories = [
+      var categories = [
         { key: 'dance', title: '💃 নাচ বিভাগ' },
         { key: 'song', title: '🎤 গান বিভাগ' },
         { key: 'recitation', title: '📜 আবৃত্তি বিভাগ' }
       ];
 
-      categories.forEach(cat => {
-        htmlContent += `<div class="section-head">${cat.title}</div>`;
-        const list = progData[cat.key] || [];
+      categories.forEach(function(cat) {
+        htmlContent += '<div class="section-head">' + cat.title + '</div>';
+        var list = progData[cat.key] || [];
         if (list.length === 0) {
-          htmlContent += `<p style="font-size:13px; color:#777; margin:6px 0;">কোনো নাম নথিভুক্ত নেই।</p>`;
+          htmlContent += '<p style="font-size:13px; color:#777; margin:6px 0;">কোনো নাম নথিভুক্ত নেই।</p>';
         } else {
-          htmlContent += `
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 8%;">ক্রম</th>
-                  <th style="width: 32%;">নাম</th>
-                  <th style="width: 15%;">বয়স</th>
-                  <th style="width: 45%;">বিষয় / গানের বা কবিতার নাম</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-          list.forEach((item, i) => {
-            htmlContent += `
-              <tr>
-                <td>${i + 1}</td>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.age} বছর</td>
-                <td>${item.remarks}</td>
-              </tr>
-            `;
+          htmlContent += '<table><thead><tr><th style="width:8%;">ক্রম</th><th style="width:32%;">নাম</th><th style="width:15%;">বয়স</th><th style="width:45%;">বিষয় / গানের বা কবিতার নাম</th></tr></thead><tbody>';
+          list.forEach(function(item, i) {
+            htmlContent += '<tr><td>' + (i + 1) + '</td><td><strong>' + item.name + '</strong></td><td>' + item.age + ' বছর</td><td>' + item.remarks + '</td></tr>';
           });
-          htmlContent += `</tbody></table>`;
+          htmlContent += '</tbody></table>';
         }
       });
 
-      htmlContent += `</body></html>`;
+      htmlContent += '</body></html>';
       printWindow.document.write(htmlContent);
       printWindow.document.close();
     }
@@ -1842,7 +1820,7 @@
       renderSportsGames();
     }
     function createSportGame() {
-      const name = formatInputText(document.getElementById('newSportName').value);
+      var name = formatInputText(document.getElementById('newSportName').value);
       if (!name) { alert("খেলার নাম লিখুন!"); return; }
 
       if (!appState.sportsData) appState.sportsData = [];
@@ -1852,30 +1830,29 @@
       renderSportsGames();
     }
     function renderSportsGames() {
-      const games = appState.sportsData || [];
-      const container = document.getElementById('sportsGameList');
+      var games = appState.sportsData || [];
+      var container = document.getElementById('sportsGameList');
       container.innerHTML = '';
 
       if (games.length === 0) {
-        container.innerHTML = `<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো খেলা যুক্ত করা হয়নি।</div>`;
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো খেলা যুক্ত করা হয়নি।</div>';
         return;
       }
 
-      games.forEach((game, index) => {
-        const card = document.createElement('div');
+      games.forEach(function(game, index) {
+        var card = document.createElement('div');
         card.className = 'list-card folder-card';
-        card.innerHTML = `
-          <div class="list-info" onclick="openSportsDetail(${index})">
-            <div class="list-name">🏆 ${game.gameName}</div>
-            <div class="list-subtext">বিজয়ীর সংখ্যা: ${game.winners ? game.winners.length : 0} জন (ক্লিক করে দেখুন)</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="action-icons">
-              <button class="btn-icon btn-edit" title="খেলার নাম বদলান" onclick="event.stopPropagation(); openSportNameEdit(${index})">✏️</button>
-              <button class="btn-icon btn-del" title="খেলাটি মুছুন" onclick="event.stopPropagation(); deleteSportGame(${index})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info" onclick="openSportsDetail(' + index + ')">' +
+            '<div class="list-name">🏆 ' + game.gameName + '</div>' +
+            '<div class="list-subtext">বিজয়ীর সংখ্যা: ' + (game.winners ? game.winners.length : 0) + ' জন (ক্লিক করে দেখুন)</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" title="খেলার নাম বদলান" onclick="event.stopPropagation(); openSportNameEdit(' + index + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" title="খেলাটি মুছুন" onclick="event.stopPropagation(); deleteSportGame(' + index + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
     }
@@ -1883,7 +1860,7 @@
       setEditModal('sport_name', index, null, 'খেলার নাম পরিবর্তন', 'খেলার নাম', appState.sportsData[index].gameName, null, '', '');
     }
     function deleteSportGame(index) {
-      if (confirm(`আপনি কি "${appState.sportsData[index].gameName}" খেলা ও এর ফলাফল মুছে ফেলতে চান?`)) {
+      if (confirm('আপনি কি "' + appState.sportsData[index].gameName + '" খেলা ও এর ফলাফল মুছে ফেলতে চান?')) {
         appState.sportsData.splice(index, 1);
         pushToCloud();
         renderSportsGames();
@@ -1896,9 +1873,9 @@
       renderSportsWinners();
     }
     function addSportWinner() {
-      const rank = document.getElementById('sportRankSelect').value;
-      const winnerName = formatInputText(document.getElementById('sportWinnerName').value);
-      const remarks = formatInputText(document.getElementById('sportWinnerRemarks').value);
+      var rank = document.getElementById('sportRankSelect').value;
+      var winnerName = formatInputText(document.getElementById('sportWinnerName').value);
+      var remarks = formatInputText(document.getElementById('sportWinnerRemarks').value);
 
       if (!winnerName) { alert("বিজয়ীর নাম লিখুন!"); return; }
 
@@ -1906,38 +1883,37 @@
         appState.sportsData[activeSportIndex].winners = [];
       }
 
-      appState.sportsData[activeSportIndex].winners.push({ rank, winnerName, remarks: remarks || '', dateTime: getCurrentDateTime() });
+      appState.sportsData[activeSportIndex].winners.push({ rank: rank, winnerName: winnerName, remarks: remarks || '', dateTime: getCurrentDateTime() });
       pushToCloud();
       document.getElementById('sportWinnerName').value = '';
       document.getElementById('sportWinnerRemarks').value = '';
       renderSportsWinners();
     }
     function renderSportsWinners() {
-      const game = appState.sportsData[activeSportIndex];
-      const container = document.getElementById('sportsWinnerList');
+      var game = appState.sportsData[activeSportIndex];
+      var container = document.getElementById('sportsWinnerList');
       container.innerHTML = '';
 
       if (!game || !game.winners || game.winners.length === 0) {
-        container.innerHTML = `<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো ফলাফল যুক্ত করা হয়নি।</div>`;
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">এখনও কোনো ফলাফল যুক্ত করা হয়নি।</div>';
         return;
       }
 
-      game.winners.forEach((item, wIndex) => {
-        const card = document.createElement('div');
+      game.winners.forEach(function(item, wIndex) {
+        var card = document.createElement('div');
         card.className = 'list-card';
-        card.innerHTML = `
-          <div class="list-info">
-            <div class="list-name" style="color:var(--gold-bright);">${item.rank}: ${item.winnerName}</div>
-            ${item.remarks ? `<div class="list-subtext">📌 ${item.remarks}</div>` : ''}
-            <div class="list-time">🕒 ${item.dateTime}</div>
-          </div>
-          <div class="list-amount-actions">
-            <div class="action-icons">
-              <button class="btn-icon btn-edit" onclick="openSportWinnerEdit(${wIndex})">✏️</button>
-              <button class="btn-icon btn-del" onclick="deleteSportWinner(${wIndex})">🗑️</button>
-            </div>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="list-info">' +
+            '<div class="list-name" style="color:var(--gold-bright);">' + item.rank + ': ' + item.winnerName + '</div>' +
+            (item.remarks ? '<div class="list-subtext">📌 ' + item.remarks + '</div>' : '') +
+            '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+          '</div>' +
+          '<div class="list-amount-actions">' +
+            '<div class="action-icons">' +
+              '<button class="btn-icon btn-edit" onclick="openSportWinnerEdit(' + wIndex + ')">✏️</button>' +
+              '<button class="btn-icon btn-del" onclick="deleteSportWinner(' + wIndex + ')">🗑️</button>' +
+            '</div>' +
+          '</div>';
         container.appendChild(card);
       });
     }
@@ -1949,79 +1925,83 @@
       }
     }
     function openSportWinnerEdit(wIndex) {
-      const w = appState.sportsData[activeSportIndex].winners[wIndex];
+      var w = appState.sportsData[activeSportIndex].winners[wIndex];
       setEditModal('sport_winner', activeSportIndex, wIndex, 'ফলাফল সম্পাদনা', 'বিজয়ীর নাম', w.winnerName, null, w.remarks, w.dateTime);
     }
 
     /* ৭. পূজো শেষের হিসাব (Final Audit) */
     function calculateAuditData() {
-      const graminList = appState.graminChandaList || [];
-      const members = appState.memberAccounts || [];
-      const mainCategories = appState.mainExpenseCategories || [];
-      const genExpenses = appState.generalExpenses || [];
+      var graminList = appState.graminChandaList || [];
+      var members = appState.memberAccounts || [];
+      var mainCategories = appState.mainExpenseCategories || [];
+      var genExpenses = appState.generalExpenses || [];
 
-      let totalGramin = 0; graminList.forEach(g => totalGramin += (g.amount || 0));
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
 
-      let totalMember = 0;
-      const memberStats = members.map(m => {
-        let paid = 0;
-        if (m.transactions) m.transactions.forEach(t => paid += (t.amount || 0));
+      var totalMember = 0;
+      var memberStats = members.map(function(m) {
+        var paid = 0;
+        if (m.transactions) {
+          m.transactions.forEach(function(t) { paid += (t.amount || 0); });
+        }
         totalMember += paid;
         return { name: m.name, paid: paid };
       });
 
-      let totalMainExp = 0;
-      mainCategories.forEach(c => {
-        if (c.payments) c.payments.forEach(p => totalMainExp += (p.amount || 0));
+      var totalMainExp = 0;
+      mainCategories.forEach(function(c) {
+        if (c.payments) {
+          c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); });
+        }
       });
 
-      let totalGenExp = 0; genExpenses.forEach(e => totalGenExp += (e.amount || 0));
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
 
-      const totalIncome = totalGramin + totalMember;
-      const totalExpense = totalMainExp + totalGenExp;
-      const netBalance = totalIncome - totalExpense;
-      const memberCount = members.length;
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
+      var memberCount = members.length;
 
-      let perHeadShare = 0;
-      let finalMemberSummary = [];
+      var perHeadShare = 0;
+      var finalMemberSummary = [];
 
       if (memberCount > 0) {
         if (netBalance >= 0) {
-          const extraSurplus = netBalance - totalMember;
+          var extraSurplus = netBalance - totalMember;
           perHeadShare = extraSurplus / memberCount;
 
-          finalMemberSummary = memberStats.map(m => {
-            const willReceive = m.paid + perHeadShare;
+          finalMemberSummary = memberStats.map(function(m) {
+            var willReceive = m.paid + perHeadShare;
             return {
               name: m.name, paid: m.paid, share: perHeadShare,
               finalAmount: willReceive, status: 'RECEIVE',
-              note: `নিজস্ব জমা ₹${m.paid.toFixed(2)} + অতিরিক্ত ভাগ ₹${perHeadShare.toFixed(2)}`
+              note: 'নিজস্ব জমা ₹' + m.paid.toFixed(2) + ' + অতিরিক্ত ভাগ ₹' + perHeadShare.toFixed(2)
             };
           });
         } else {
-          const deficit = Math.abs(netBalance);
-          const totalTarget = deficit + totalMember;
-          const perMemberTarget = totalTarget / memberCount;
+          var deficit = Math.abs(netBalance);
+          var totalTarget = deficit + totalMember;
+          var perMemberTarget = totalTarget / memberCount;
 
-          finalMemberSummary = memberStats.map(m => {
-            const diff = perMemberTarget - m.paid;
+          finalMemberSummary = memberStats.map(function(m) {
+            var diff = perMemberTarget - m.paid;
             if (diff > 0) {
               return {
                 name: m.name, paid: m.paid, share: perMemberTarget,
                 finalAmount: diff, status: 'PAY',
-                note: `জনপ্রতি দায়িত্ব ₹${perMemberTarget.toFixed(2)} - দেওয়া হয়েছে ₹${m.paid.toFixed(2)}`
+                note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2)
               };
             } else if (diff < 0) {
               return {
                 name: m.name, paid: m.paid, share: perMemberTarget,
                 finalAmount: Math.abs(diff), status: 'RECEIVE',
-                note: `বেশি দেওয়া হয়েছে (দায়িত্ব ₹${perMemberTarget.toFixed(2)} এর বিপরীতে)`
+                note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)'
               };
             } else {
               return {
                 name: m.name, paid: m.paid, share: perMemberTarget,
                 finalAmount: 0, status: 'EQUAL',
-                note: `হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)`
+                note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)'
               };
             }
           });
@@ -2029,9 +2009,9 @@
       }
 
       return {
-        totalGramin, totalMember, totalIncome,
-        totalMainExp, totalGenExp, totalExpense,
-        netBalance, memberCount, finalMemberSummary
+        totalGramin: totalGramin, totalMember: totalMember, totalIncome: totalIncome,
+        totalMainExp: totalMainExp, totalGenExp: totalGenExp, totalExpense: totalExpense,
+        netBalance: netBalance, memberCount: memberCount, finalMemberSummary: finalMemberSummary
       };
     }
 
@@ -2041,176 +2021,102 @@
     }
 
     function renderFinalAudit() {
-      const data = calculateAuditData();
+      var data = calculateAuditData();
 
-      document.getElementById('auditGraminVal').innerText = `₹ ${data.totalGramin.toLocaleString('en-IN')}`;
-      document.getElementById('auditMemberVal').innerText = `₹ ${data.totalMember.toLocaleString('en-IN')}`;
-      document.getElementById('auditMainExpVal').innerText = `₹ ${data.totalMainExp.toLocaleString('en-IN')}`;
-      document.getElementById('auditGenExpVal').innerText = `₹ ${data.totalGenExp.toLocaleString('en-IN')}`;
+      document.getElementById('auditGraminVal').innerText = "₹ " + data.totalGramin.toLocaleString('en-IN');
+      document.getElementById('auditMemberVal').innerText = "₹ " + data.totalMember.toLocaleString('en-IN');
+      document.getElementById('auditMainExpVal').innerText = "₹ " + data.totalMainExp.toLocaleString('en-IN');
+      document.getElementById('auditGenExpVal').innerText = "₹ " + data.totalGenExp.toLocaleString('en-IN');
 
-      const banner = document.getElementById('netAuditBanner');
+      var banner = document.getElementById('netAuditBanner');
       if (data.netBalance >= 0) {
         banner.className = 'net-banner net-surplus';
-        banner.innerHTML = `
-          <div style="font-size:0.95rem; font-weight:bold;">🎉 উদ্বৃত্ত ব্যালেন্স (টাকা বেঁচেছে)</div>
-          <div style="font-size:1.4rem; font-weight:700;">+ ₹ ${data.netBalance.toLocaleString('en-IN')}</div>
-          <div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹${data.totalIncome.toLocaleString('en-IN')} | মোট খরচ: ₹${data.totalExpense.toLocaleString('en-IN')}</div>
-        `;
+        banner.innerHTML = 
+          '<div style="font-size:0.95rem; font-weight:bold;">🎉 উদ্বৃত্ত ব্যালেন্স (টাকা বেঁচেছে)</div>' +
+          '<div style="font-size:1.4rem; font-weight:700;">+ ₹ ' + data.netBalance.toLocaleString('en-IN') + '</div>' +
+          '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
       } else {
         banner.className = 'net-banner net-deficit';
-        banner.innerHTML = `
-          <div style="font-size:0.95rem; font-weight:bold;">⚠️ ঘাটতি ব্যালেন্স (টাকা কম পড়েছে)</div>
-          <div style="font-size:1.4rem; font-weight:700;">- ₹ ${Math.abs(data.netBalance).toLocaleString('en-IN')}</div>
-          <div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹${data.totalIncome.toLocaleString('en-IN')} | মোট খরচ: ₹${data.totalExpense.toLocaleString('en-IN')}</div>
-        `;
+        banner.innerHTML = 
+          '<div style="font-size:0.95rem; font-weight:bold;">⚠️ ঘাটতি ব্যালেন্স (টাকা কম পড়েছে)</div>' +
+          '<div style="font-size:1.4rem; font-weight:700;">- ₹ ' + Math.abs(data.netBalance).toLocaleString('en-IN') + '</div>' +
+          '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
       }
 
-      const listContainer = document.getElementById('auditSettlementList');
+      var listContainer = document.getElementById('auditSettlementList');
       listContainer.innerHTML = '';
 
       if (data.memberCount === 0) {
-        listContainer.innerHTML = `<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">কোনো মেম্বার নথিভুক্ত নেই।</div>`;
+        listContainer.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">কোনো মেম্বার নথিভুক্ত নেই।</div>';
         return;
       }
 
-      data.finalMemberSummary.forEach((m, idx) => {
-        const card = document.createElement('div');
+      data.finalMemberSummary.forEach(function(m, idx) {
+        var card = document.createElement('div');
         card.className = 'settlement-card';
 
-        let resultColor = '#2ecc71';
-        let resultText = '';
+        var resultColor = '#2ecc71';
+        var resultText = '';
 
         if (m.status === 'RECEIVE') {
           resultColor = '#2ecc71';
-          resultText = `ফেরত পাবেন: + ₹${m.finalAmount.toFixed(2)}`;
+          resultText = 'ফেরত পাবেন: + ₹' + m.finalAmount.toFixed(2);
         } else if (m.status === 'PAY') {
           resultColor = '#e74c3c';
-          resultText = `আরও দিতে হবে: - ₹${m.finalAmount.toFixed(2)}`;
+          resultText = 'আরও দিতে হবে: - ₹' + m.finalAmount.toFixed(2);
         } else {
           resultColor = '#f5b041';
-          resultText = `কোনো লেনদেন নেই (₹ 0.00)`;
+          resultText = 'কোনো লেনদেন নেই (₹ 0.00)';
         }
 
-        card.innerHTML = `
-          <div class="settlement-name">👤 ${idx + 1}. ${m.name}</div>
-          <div class="settlement-row">
-            <span>পূর্বে জমা দেওয়া চাঁদা:</span>
-            <strong>₹ ${m.paid.toLocaleString('en-IN')}</strong>
-          </div>
-          <div class="settlement-row" style="font-size:0.75rem; color:#ccc;">
-            <span>${m.note}</span>
-          </div>
-          <div class="settlement-result" style="color: ${resultColor};">
-            <span>চূড়ান্ত হিসাব:</span>
-            <span>${resultText}</span>
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="settlement-name">👤 ' + (idx + 1) + '. ' + m.name + '</div>' +
+          '<div class="settlement-row"><span>পূর্বে জমা দেওয়া চাঁদা:</span><strong>₹ ' + m.paid.toLocaleString('en-IN') + '</strong></div>' +
+          '<div class="settlement-row" style="font-size:0.75rem; color:#ccc;"><span>' + m.note + '</span></div>' +
+          '<div class="settlement-result" style="color: ' + resultColor + ';"><span>চূড়ান্ত হিসাব:</span><span>' + resultText + '</span></div>';
         listContainer.appendChild(card);
       });
     }
 
     function generateAuditPdf() {
-      const data = calculateAuditData();
-      const year = appState.pujaYear || '২০২৬';
+      var data = calculateAuditData();
+      var year = appState.pujaYear || '২০২৬';
 
-      let printWindow = window.open('', '_blank');
-      let statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
-      let statusTitle = data.netBalance >= 0 ? `উদ্বৃত্ত (টাকা বেঁচেছে): + ₹${data.netBalance.toFixed(2)}` : `ঘাটতি (টাকা কম পড়েছে): - ₹${Math.abs(data.netBalance).toFixed(2)}`;
+      var printWindow = window.open('', '_blank');
+      var statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
+      var statusTitle = data.netBalance >= 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2);
 
-      let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="bn">
-        <head>
-          <title>পূজো শেষের হিসাব ও মেম্বার সেটেলমেন্ট - নিউ ঝালাপাল্লা কমিটি (${year})</title>
-          <style>
-            body { font-family: 'Hind Siliguri', sans-serif, Arial; padding: 25px; color: #111; }
-            h2, h3, h4 { text-align: center; margin: 4px 0; }
-            h2 { color: #800020; font-size: 24px; }
-            .kpi-table, .data-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            .kpi-table td { border: 1px solid #aaa; padding: 8px 12px; font-size: 14px; }
-            .kpi-table th { background: #f2f2f2; border: 1px solid #aaa; padding: 8px; font-size: 14px; }
-            .status-box { margin-top: 15px; padding: 12px; border-radius: 6px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; background: ${statusColor}; }
-            .section-head { background: #f7f7f7; padding: 8px 12px; margin-top: 25px; font-weight: bold; font-size: 16px; border-left: 5px solid #800020; }
-            .data-table th, .data-table td { border: 1px solid #ccc; padding: 8px 10px; font-size: 13px; text-align: left; }
-            .data-table th { background: #f0f0f0; }
-            .receive { color: #27ae60; font-weight: bold; }
-            .pay { color: #c0392b; font-weight: bold; }
-            @media print { .no-print { display: none; } body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          <div class="no-print" style="margin-bottom: 15px; text-align: right;">
-            <button onclick="window.print()" style="padding: 10px 18px; background: #800020; color: #fff; border: none; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;">🖨️ অডিট রিপোর্ট প্রিন্ট / PDF সংরক্ষণ করুন</button>
-          </div>
-          <h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2>
-          <h4>কালীপূজা ${year} - পূজো শেষের চূড়ান্ত আয়-ব্যয় ও মেম্বার সেটেলমেন্ট রিপোর্ট</h4>
-          <p style="text-align:center; font-size:12px; color:#666;">তারিখ: ${getCurrentDateTime()}</p>
+      var htmlContent = 
+        '<!DOCTYPE html><html lang="bn"><head><title>পূজো শেষের হিসাব ও মেম্বার সেটেলমেন্ট - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
+        '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
+        '.kpi-table, .data-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td{border: 1px solid #aaa; padding: 8px 12px; font-size: 14px;}' +
+        '.kpi-table th{background: #f2f2f2; border: 1px solid #aaa; padding: 8px; font-size: 14px;}' +
+        '.status-box{margin-top: 15px; padding: 12px; border-radius: 6px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; background: ' + statusColor + ';}' +
+        '.section-head{background: #f7f7f7; padding: 8px 12px; margin-top: 25px; font-weight: bold; font-size: 16px; border-left: 5px solid #800020;}' +
+        '.data-table th, .data-table td{border: 1px solid #ccc; padding: 8px 10px; font-size: 13px; text-align: left;}' +
+        '.data-table th{background: #f0f0f0;} .receive{color: #27ae60; font-weight: bold;} .pay{color: #c0392b; font-weight: bold;}' +
+        '@media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
+        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ অডিট রিপোর্ট প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
+        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - পূজো শেষের চূড়ান্ত আয়-ব্যয় ও মেম্বার সেটেলমেন্ট রিপোর্ট</h4>' +
+        '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
+        '<table class="kpi-table">' +
+          '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + data.totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + data.totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr><th>মোট মেম্বার চাঁদা</th><td>₹ ' + data.totalMember.toLocaleString('en-IN') + '</td><th>মোট সাধারণ খরচ</th><td>₹ ' + data.totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
+          '<tr style="background:#fdfefe; font-weight:bold;"><th>সর্বমোট জমা</th><td>₹ ' + data.totalIncome.toLocaleString('en-IN') + '</td><th>সর্বমোট খরচ</th><td>₹ ' + data.totalExpense.toLocaleString('en-IN') + '</td></tr>' +
+        '</table><div class="status-box">' + statusTitle + '</div>' +
+        '<div class="section-head">👥 মেম্বারভিত্তিক চূড়ান্ত হিসাব ও দেনা-পাওনা বিবরণী (মোট মেম্বার: ' + data.memberCount + ' জন)</div>' +
+        '<table class="data-table"><thead><tr><th style="width:8%;">ক্রম</th><th style="width:25%;">মেম্বারের নাম</th><th style="width:18%;">পূর্বে দেওয়া চাঁদা</th><th style="width:29%;">হিসাবের সূত্র / বিবরণ</th><th style="width:20%;">চূড়ান্ত সিদ্ধান্ত</th></tr></thead><tbody>';
 
-          <table class="kpi-table">
-            <tr>
-              <th>মোট গ্রামীন চাঁদা</th>
-              <td>₹ ${data.totalGramin.toLocaleString('en-IN')}</td>
-              <th>মোট প্রধান খরচ</th>
-              <td>₹ ${data.totalMainExp.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <th>মোট মেম্বার চাঁদা</th>
-              <td>₹ ${data.totalMember.toLocaleString('en-IN')}</td>
-              <th>মোট সাধারণ খরচ</th>
-              <td>₹ ${data.totalGenExp.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr style="background:#fdfefe; font-weight:bold;">
-              <th>সর্বমোট জমা</th>
-              <td>₹ ${data.totalIncome.toLocaleString('en-IN')}</td>
-              <th>সর্বমোট খরচ</th>
-              <td>₹ ${data.totalExpense.toLocaleString('en-IN')}</td>
-            </tr>
-          </table>
+      data.finalMemberSummary.forEach(function(m, idx) {
+        var decisionHtml = '';
+        if (m.status === 'RECEIVE') decisionHtml = '<span class="receive">ফেরত পাবেন: ₹' + m.finalAmount.toFixed(2) + '</span>';
+        else if (m.status === 'PAY') decisionHtml = '<span class="pay">দিতে হবে: ₹' + m.finalAmount.toFixed(2) + '</span>';
+        else decisionHtml = '<span>হিসাব সমান (₹0.00)</span>';
 
-          <div class="status-box">${statusTitle}</div>
-
-          <div class="section-head">👥 মেম্বারভিত্তিক চূড়ান্ত হিসাব ও দেনা-পাওনা বিবরণী (মোট মেম্বার: ${data.memberCount} জন)</div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width: 8%;">ক্রম</th>
-                <th style="width: 25%;">মেম্বারের নাম</th>
-                <th style="width: 18%;">পূর্বে দেওয়া চাঁদা</th>
-                <th style="width: 29%;">হিসাবের সূত্র / বিবরণ</th>
-                <th style="width: 20%;">চূড়ান্ত সিদ্ধান্ত</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
-
-      data.finalMemberSummary.forEach((m, idx) => {
-        let decisionHtml = '';
-        if (m.status === 'RECEIVE') decisionHtml = `<span class="receive">ফেরত পাবেন: ₹${m.finalAmount.toFixed(2)}</span>`;
-        else if (m.status === 'PAY') decisionHtml = `<span class="pay">দিতে হবে: ₹${m.finalAmount.toFixed(2)}</span>`;
-        else decisionHtml = `<span>হিসাব সমান (₹0.00)</span>`;
-
-        htmlContent += `
-          <tr>
-            <td>${idx + 1}</td>
-            <td><strong>${m.name}</strong></td>
-            <td>₹ ${m.paid.toFixed(2)}</td>
-            <td>${m.note}</td>
-            <td>${decisionHtml}</td>
-          </tr>
-        `;
+        htmlContent += '<tr><td>' + (idx + 1) + '</td><td><strong>' + m.name + '</strong></td><td>₹ ' + m.paid.toFixed(2) + '</td><td>' + m.note + '</td><td>' + decisionHtml + '</td></tr>';
       });
 
-      htmlContent += `
-            </tbody>
-          </table>
-
-          <div style="margin-top: 40px; display: flex; justify-content: space-between; font-size: 13px;">
-            <div>.........................................<br>কোষাধ্যক্ষ / হিসাবরক্ষক</div>
-            <div>.........................................<br>সভাপতি / সম্পাদক</div>
-          </div>
-        </body>
-        </html>
-      `;
+      htmlContent += '</tbody></table><div style="margin-top:40px; display:flex; justify-content:space-between; font-size:13px;"><div>.........................................<br>কোষাধ্যক্ষ / হিসাবরক্ষক</div><div>.........................................<br>সভাপতি / সম্পাদক</div></div></body></html>';
 
       printWindow.document.write(htmlContent);
       printWindow.document.close();
@@ -2223,164 +2129,157 @@
     }
 
     function renderPublicView() {
-      const graminList = appState.graminChandaList || [];
-      const members = appState.memberAccounts || [];
-      const mainCategories = appState.mainExpenseCategories || [];
-      const genExpenses = appState.generalExpenses || [];
-      const progData = appState.programData || { dance: [], song: [], recitation: [] };
-      const sportsData = appState.sportsData || [];
+      var graminList = appState.graminChandaList || [];
+      var members = appState.memberAccounts || [];
+      var mainCategories = appState.mainExpenseCategories || [];
+      var genExpenses = appState.generalExpenses || [];
+      var progData = appState.programData || { dance: [], song: [], recitation: [] };
+      var sportsData = appState.sportsData || [];
 
-      let totalGramin = 0; graminList.forEach(g => totalGramin += (g.amount || 0));
-      let totalMember = 0; members.forEach(m => { if (m.transactions) m.transactions.forEach(t => totalMember += (t.amount || 0)); });
-      let totalMainExp = 0; mainCategories.forEach(c => { if (c.payments) c.payments.forEach(p => totalMainExp += (p.amount || 0)); });
-      let totalGenExp = 0; genExpenses.forEach(e => totalGenExp += (e.amount || 0));
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
+      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
+      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
 
-      const totalIncome = totalGramin + totalMember;
-      const totalExpense = totalMainExp + totalGenExp;
-      const netBalance = totalIncome - totalExpense;
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMainExp + totalGenExp;
+      var netBalance = totalIncome - totalExpense;
 
-      const container = document.getElementById('publicViewContent');
-      let html = '';
+      var container = document.getElementById('publicViewContent');
+      var html = '';
 
-      html += `
-        <div class="total-card" style="margin-bottom:6px;">
-          <span class="total-title">সর্বমোট সংগৃহীত চাঁদা:</span>
-          <span class="total-amount">₹ ${totalIncome.toLocaleString('en-IN')}</span>
-        </div>
-        <div class="total-card" style="background:linear-gradient(135deg, rgba(74,0,17,0.8), rgba(26,4,8,0.9)); margin-bottom:6px;">
-          <span class="total-title">সর্বমোট খরচ:</span>
-          <span class="total-amount" style="color:#ff7979;">₹ ${totalExpense.toLocaleString('en-IN')}</span>
-        </div>
-        <div class="net-banner ${netBalance >= 0 ? 'net-surplus' : 'net-deficit'}" style="margin-bottom:12px;">
-          <div style="font-size:0.9rem; font-weight:bold;">${netBalance >= 0 ? 'বর্তমান স্থিতি (উদ্বৃত্ত)' : 'বর্তমান স্থিতি (ঘাটতি)'}</div>
-          <div style="font-size:1.35rem; font-weight:bold;">${netBalance >= 0 ? '+ ' : '- '}₹ ${Math.abs(netBalance).toLocaleString('en-IN')}</div>
-        </div>
-      `;
+      html += 
+        '<div class="total-card" style="margin-bottom:6px;">' +
+          '<span class="total-title">সর্বমোট সংগৃহীত চাঁদা:</span>' +
+          '<span class="total-amount">₹ ' + totalIncome.toLocaleString('en-IN') + '</span>' +
+        '</div>' +
+        '<div class="total-card" style="background:linear-gradient(135deg, rgba(74,0,17,0.8), rgba(26,4,8,0.9)); margin-bottom:6px;">' +
+          '<span class="total-title">সর্বমোট খরচ:</span>' +
+          '<span class="total-amount" style="color:#ff7979;">₹ ' + totalExpense.toLocaleString('en-IN') + '</span>' +
+        '</div>' +
+        '<div class="net-banner ' + (netBalance >= 0 ? 'net-surplus' : 'net-deficit') + '" style="margin-bottom:12px;">' +
+          '<div style="font-size:0.9rem; font-weight:bold;">' + (netBalance >= 0 ? 'বর্তমান স্থিতি (উদ্বৃত্ত)' : 'বর্তমান স্থিতি (ঘাটতি)') + '</div>' +
+          '<div style="font-size:1.35rem; font-weight:bold;">' + (netBalance >= 0 ? '+ ' : '- ') + '₹ ' + Math.abs(netBalance).toLocaleString('en-IN') + '</div>' +
+        '</div>';
 
-      html += `<div class="public-sec-header">🪙 গ্রামীন চাঁদা (মোট: ₹${totalGramin.toLocaleString('en-IN')})</div>`;
+      html += '<div class="public-sec-header">🪙 গ্রামীন চাঁদা (মোট: ₹' + totalGramin.toLocaleString('en-IN') + ')</div>';
       if (graminList.length === 0) {
-        html += `<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো এন্ট্রি নেই।</div>`;
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো এন্ট্রি নেই।</div>';
       } else {
-        graminList.forEach((g, i) => {
-          html += `
-            <div class="list-card" style="margin-bottom:6px;">
-              <div class="list-info">
-                <div class="list-name">${i + 1}. ${g.name}</div>
-                <div class="list-time">🕒 ${g.dateTime}</div>
-              </div>
-              <div class="list-amount" style="font-size:1rem;">₹ ${g.amount.toLocaleString('en-IN')}</div>
-            </div>
-          `;
+        graminList.forEach(function(g, i) {
+          html += 
+            '<div class="list-card" style="margin-bottom:6px;">' +
+              '<div class="list-info">' +
+                '<div class="list-name">' + (i + 1) + '. ' + g.name + '</div>' +
+                '<div class="list-time">🕒 ' + g.dateTime + '</div>' +
+              '</div>' +
+              '<div class="list-amount" style="font-size:1rem;">₹ ' + g.amount.toLocaleString('en-IN') + '</div>' +
+            '</div>';
         });
       }
 
-      html += `<div class="public-sec-header">👥 মেম্বার চাঁদা (মোট: ₹${totalMember.toLocaleString('en-IN')})</div>`;
+      html += '<div class="public-sec-header">👥 মেম্বার চাঁদা (মোট: ₹' + totalMember.toLocaleString('en-IN') + ')</div>';
       if (members.length === 0) {
-        html += `<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো মেম্বার এন্ট্রি নেই।</div>`;
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো মেম্বার এন্ট্রি নেই।</div>';
       } else {
-        members.forEach((m, i) => {
-          let mSum = 0;
-          let breakdownHtml = '';
+        members.forEach(function(m, i) {
+          var mSum = 0;
+          var breakdownHtml = '';
           if (m.transactions && m.transactions.length > 0) {
-            m.transactions.forEach(t => {
+            m.transactions.forEach(function(t) {
               mSum += t.amount;
-              breakdownHtml += `<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 📌 ${t.remarks}: <strong>₹${t.amount.toLocaleString('en-IN')}</strong> (${t.dateTime})</div>`;
+              breakdownHtml += '<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 📌 ' + t.remarks + ': <strong>₹' + t.amount.toLocaleString('en-IN') + '</strong> (' + t.dateTime + ')</div>';
             });
           }
-          html += `
-            <div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">
-              <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                <div class="list-name">👤 ${i + 1}. ${m.name}</div>
-                <div class="list-amount" style="font-size:1rem;">₹ ${mSum.toLocaleString('en-IN')}</div>
-              </div>
-              ${breakdownHtml}
-            </div>
-          `;
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div style="display:flex; justify-content:space-between; width:100%; align-items:center;">' +
+                '<div class="list-name">👤 ' + (i + 1) + '. ' + m.name + '</div>' +
+                '<div class="list-amount" style="font-size:1rem;">₹ ' + mSum.toLocaleString('en-IN') + '</div>' +
+              '</div>' +
+              breakdownHtml +
+            '</div>';
         });
       }
 
-      html += `<div class="public-sec-header">🏛️ প্রধান খরচ (মোট: ₹${totalMainExp.toLocaleString('en-IN')})</div>`;
+      html += '<div class="public-sec-header">🏛️ প্রধান খরচ (মোট: ₹' + totalMainExp.toLocaleString('en-IN') + ')</div>';
       if (mainCategories.length === 0) {
-        html += `<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো প্রধান খরচ নেই।</div>`;
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো প্রধান খরচ নেই।</div>';
       } else {
-        mainCategories.forEach((c, i) => {
-          let cSum = 0;
-          let payHtml = '';
+        mainCategories.forEach(function(c, i) {
+          var cSum = 0;
+          var payHtml = '';
           if (c.payments && c.payments.length > 0) {
-            c.payments.forEach(p => {
+            c.payments.forEach(function(p) {
               cSum += p.amount;
-              payHtml += `<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 🧾 ${p.note}: <strong>₹${p.amount.toLocaleString('en-IN')}</strong> (${p.dateTime})</div>`;
+              payHtml += '<div style="font-size:0.75rem; color:#ddd; padding-left:8px;">↳ 🧾 ' + p.note + ': <strong>₹' + p.amount.toLocaleString('en-IN') + '</strong> (' + p.dateTime + ')</div>';
             });
           }
-          html += `
-            <div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">
-              <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                <div class="list-name">🏛️ ${i + 1}. ${c.categoryName}</div>
-                <div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ${cSum.toLocaleString('en-IN')}</div>
-              </div>
-              ${payHtml}
-            </div>
-          `;
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div style="display:flex; justify-content:space-between; width:100%; align-items:center;">' +
+                '<div class="list-name">🏛️ ' + (i + 1) + '. ' + c.categoryName + '</div>' +
+                '<div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ' + cSum.toLocaleString('en-IN') + '</div>' +
+              '</div>' +
+              payHtml +
+            '</div>';
         });
       }
 
-      html += `<div class="public-sec-header">📝 সাধারণ খরচ (মোট: ₹${totalGenExp.toLocaleString('en-IN')})</div>`;
+      html += '<div class="public-sec-header">📝 সাধারণ খরচ (মোট: ₹' + totalGenExp.toLocaleString('en-IN') + ')</div>';
       if (genExpenses.length === 0) {
-        html += `<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো সাধারণ খরচ নেই।</div>`;
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো সাধারণ খরচ নেই।</div>';
       } else {
-        genExpenses.forEach((e, i) => {
-          html += `
-            <div class="list-card" style="margin-bottom:6px;">
-              <div class="list-info">
-                <div class="list-name">📝 ${i + 1}. ${e.title}</div>
-                <div class="list-time">🕒 ${e.dateTime}</div>
-              </div>
-              <div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ${e.amount.toLocaleString('en-IN')}</div>
-            </div>
-          `;
+        genExpenses.forEach(function(e, i) {
+          html += 
+            '<div class="list-card" style="margin-bottom:6px;">' +
+              '<div class="list-info">' +
+                '<div class="list-name">📝 ' + (i + 1) + '. ' + e.title + '</div>' +
+                '<div class="list-time">🕒 ' + e.dateTime + '</div>' +
+              '</div>' +
+              '<div class="list-amount" style="font-size:1rem; color:#ff7979;">₹ ' + e.amount.toLocaleString('en-IN') + '</div>' +
+            '</div>';
         });
       }
 
-      html += `<div class="public-sec-header">🪔 অনুষ্ঠান কর্মসূচি</div>`;
-      const catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
-      ['dance', 'song', 'recitation'].forEach(k => {
-        html += `<div style="font-size:0.88rem; font-weight:bold; color:var(--text-muted); margin:4px 0 2px 4px;">${catTitles[k]}:</div>`;
-        const pList = progData[k] || [];
+      html += '<div class="public-sec-header">🪔 অনুষ্ঠান কর্মসূচি</div>';
+      var catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
+      ['dance', 'song', 'recitation'].forEach(function(k) {
+        html += '<div style="font-size:0.88rem; font-weight:bold; color:var(--text-muted); margin:4px 0 2px 4px;">' + catTitles[k] + ':</div>';
+        var pList = progData[k] || [];
         if (pList.length === 0) {
-          html += `<div style="color:#aaa; font-size:0.8rem; padding-left:8px; margin-bottom:4px;">কোনো নাম নেই।</div>`;
+          html += '<div style="color:#aaa; font-size:0.8rem; padding-left:8px; margin-bottom:4px;">কোনো নাম নেই।</div>';
         } else {
-          pList.forEach((p, idx) => {
-            html += `
-              <div class="list-card" style="padding:6px 10px; margin-bottom:4px;">
-                <div class="list-info">
-                  <div class="list-name" style="font-size:0.92rem;">${idx + 1}. ${p.name} (${p.age} বছর)</div>
-                  <div class="list-subtext" style="font-size:0.75rem;">বিষয়: ${p.remarks}</div>
-                </div>
-              </div>
-            `;
+          pList.forEach(function(p, idx) {
+            html += 
+              '<div class="list-card" style="padding:6px 10px; margin-bottom:4px;">' +
+                '<div class="list-info">' +
+                  '<div class="list-name" style="font-size:0.92rem;">' + (idx + 1) + '. ' + p.name + ' (' + p.age + ' বছর)</div>' +
+                  '<div class="list-subtext" style="font-size:0.75rem;">বিষয়: ' + p.remarks + '</div>' +
+                '</div>' +
+              '</div>';
           });
         }
       });
 
-      html += `<div class="public-sec-header">🏆 খেলার কর্মসূচি ও ফলাফল</div>`;
+      html += '<div class="public-sec-header">🏆 খেলার কর্মসূচি ও ফলাফল</div>';
       if (sportsData.length === 0) {
-        html += `<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো খেলা নেই।</div>`;
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো খেলা নেই।</div>';
       } else {
-        sportsData.forEach((s, idx) => {
-          let winHtml = '';
+        sportsData.forEach(function(s, idx) {
+          var winHtml = '';
           if (s.winners && s.winners.length > 0) {
-            s.winners.forEach(w => {
-              winHtml += `<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ${w.rank}: <strong>${w.winnerName}</strong> ${w.remarks ? '(' + w.remarks + ')' : ''}</div>`;
+            s.winners.forEach(function(w) {
+              winHtml += '<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ' + w.rank + ': <strong>' + w.winnerName + '</strong> ' + (w.remarks ? '(' + w.remarks + ')' : '') + '</div>';
             });
           } else {
-            winHtml = `<div style="font-size:0.75rem; color:#aaa; padding-left:8px;">ফলাফল এখনও প্রকাশ হয়নি।</div>`;
+            winHtml = '<div style="font-size:0.75rem; color:#aaa; padding-left:8px;">ফলাফল এখনও প্রকাশ হয়নি।</div>';
           }
-          html += `
-            <div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">
-              <div class="list-name" style="color:#fff; margin-bottom:3px;">⚽ ${idx + 1}. ${s.gameName}</div>
-              ${winHtml}
-            </div>
-          `;
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div class="list-name" style="color:#fff; margin-bottom:3px;">⚽ ' + (idx + 1) + '. ' + s.gameName + '</div>' +
+              winHtml +
+            '</div>';
         });
       }
 
@@ -2388,28 +2287,18 @@
     }
 
     function generatePublicReportPdf() {
-      const year = appState.pujaYear || '২০২৬';
-      const graminList = appState.graminChandaList || [];
-      const members = appState.memberAccounts || [];
-      const mainCategories = appState.mainExpenseCategories || [];
-      const genExpenses = appState.generalExpenses || [];
-      const progData = appState.programData || { dance: [], song: [], recitation: [] };
-      const sportsData = appState.sportsData || [];
+      var year = appState.pujaYear || '২০২৬';
+      var graminList = appState.graminChandaList || [];
+      var members = appState.memberAccounts || [];
+      var mainCategories = appState.mainExpenseCategories || [];
+      var genExpenses = appState.generalExpenses || [];
+      var progData = appState.programData || { dance: [], song: [], recitation: [] };
+      var sportsData = appState.sportsData || [];
 
-      let totalGramin = 0; graminList.forEach(g => totalGramin += (g.amount || 0));
-      let totalMember = 0; members.forEach(m => { if (m.transactions) m.transactions.forEach(t => totalMember += (t.amount || 0)); });
-      let totalMainExp = 0; mainCategories.forEach(c => { if (c.payments) c.payments.forEach(p => totalMainExp += (p.amount || 0)); });
-      let totalGenExp = 0; genExpenses.forEach(e => totalGenExp += (e.amount || 0));
+      var totalGramin = 0; graminList.forEach(function(g) { totalGramin += (g.amount || 0); });
+      var totalMember = 0; members.forEach(function(m) { if (m.transactions) m.transactions.forEach(function(t) { totalMember += (t.amount || 0); }); });
+      var totalMainExp = 0; mainCategories.forEach(function(c) { if (c.payments) c.payments.forEach(function(p) { totalMainExp += (p.amount || 0); }); });
+      var totalGenExp = 0; genExpenses.forEach(function(e) { totalGenExp += (e.amount || 0); });
 
-      const totalIncome = totalGramin + totalMember;
-      const totalExpense = totalMainExp + totalGenExp;
-      const netBalance = totalIncome - totalExpense;
-
-      let printWindow = window.open('', '_blank');
-      let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="bn">
-        <head>
-          <title>কালীপূজা হিসাব বিবরণী - নিউ ঝালাপাল্লা কমিটি (${year})</title>
-          <style>
-            body { font-family: 'Hind Siliguri', sans-serif, Arial; padding: 25px; color: #111; }
+      var totalIncome = totalGramin + totalMember;
+      var totalExpense = totalMain
