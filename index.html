@@ -105,12 +105,19 @@
     .settlement-result { margin-top: 6px; padding-top: 5px; border-top: 1px dashed rgba(245, 176, 65, 0.4); font-size: 0.98rem; font-weight: 700; display: flex; justify-content: space-between; }
     .public-container { width: 100%; flex-grow: 1; overflow-y: auto; text-align: left; padding-right: 4px; margin-bottom: 6px; }
     .public-sec-header { background: linear-gradient(90deg, rgba(128, 0, 32, 0.9), transparent); border-left: 4px solid var(--gold-bright); padding: 6px 10px; font-size: 1.05rem; font-weight: 700; color: var(--gold-bright); margin: 14px 0 8px 0; border-radius: 4px; }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 16px; }
-    .modal-box { width: 100%; max-width: 330px; background: #1a0408; border: 2px solid var(--gold-bright); border-radius: 18px; padding: 20px 16px; text-align: center; box-shadow: 0 0 25px rgba(245, 176, 65, 0.4); max-height: 90vh; overflow-y: auto; }
+    
+    /* MODAL OVERLAY STYLES */
+    .modal-overlay { 
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); 
+      display: flex; justify-content: center; align-items: center; 
+      z-index: 99999 !important; padding: 16px; 
+    }
+    .modal-box { width: 100%; max-width: 330px; background: #1a0408; border: 2px solid var(--gold-bright); border-radius: 18px; padding: 20px 16px; text-align: center; box-shadow: 0 0 30px rgba(245, 176, 65, 0.6); max-height: 90vh; overflow-y: auto; }
     .modal-box h3 { color: var(--gold-bright); margin-bottom: 12px; font-size: 1.2rem; }
     .modal-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .btn-submit { flex: 1; padding: 8px; border-radius: 8px; border: none; background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: 700; cursor: pointer; }
-    .btn-cancel { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #777; background: transparent; color: #ccc; cursor: pointer; }
+    .btn-submit { flex: 1; padding: 10px; border-radius: 8px; border: none; background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: 700; cursor: pointer; }
+    .btn-cancel { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #777; background: transparent; color: #ccc; cursor: pointer; }
     .footer-text { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-top: 4px; }
     .sync-badge { font-size: 0.72rem; color: var(--gold-primary); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
     @keyframes pulseGlow { 0% { transform: scale(0.95); opacity: 0.4; } 100% { transform: scale(1.15); opacity: 0.85; } }
@@ -120,7 +127,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <!-- INLINE APPLICATION LOGIC IN HEAD TO GUARANTEE AVAILABILITY -->
   <script>
     var appState = {
       adminPin: '1234',
@@ -172,7 +178,9 @@
       var input = document.getElementById('inputPin');
       if (input) input.value = '';
       var modal = document.getElementById('pinModal');
-      if (modal) modal.classList.remove('hidden');
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
       setTimeout(function() { if (input) input.focus(); }, 150);
     }
 
@@ -1087,7 +1095,10 @@
     }
 
     /* ৮. পাবলিক ভিউ */
-    function openPublicScreen() { showScreen('publicScreen'); renderPublicView(); }
+    function openPublicScreen() { 
+      showScreen('publicScreen'); 
+      renderPublicView(); 
+    }
 
     function renderPublicView() {
       var graminList = appState.graminChandaList || [];
@@ -1443,7 +1454,6 @@
       closeEditModal();
     }
 
-    // ব্যাকগ্রাউন্ডে ফায়ারবেস কানেক্ট করা
     window.addEventListener('load', function() {
       refreshYearDisplay();
       try {
@@ -1498,7 +1508,7 @@
     <div id="homeScreen" class="screen">
       <div class="header-box">
         <div class="sync-badge" id="syncStatus">☁️ লাইভ ক্লাউড সিঙ্ক চালু হচ্ছে...</div>
-        <h1 class="committee-title">নিউ ঝালাপাল্লা কমিটি</h1>
+        <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
         <div class="main-banner" id="homeBannerText">কালীপুজো ২০২৬ এ আপনাদের সবাইকে স্বাগতম</div>
       </div>
 
@@ -1545,7 +1555,7 @@
         </div>
       </div>
 
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 2. OFFICIAL DASHBOARD -->
@@ -1597,7 +1607,7 @@
         </div>
       </div>
 
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 3. GRAMIN CHANDA SCREEN -->
@@ -1620,7 +1630,7 @@
       </div>
 
       <div class="list-container" id="graminList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 4. MEMBER CHANDA DIRECTORY SCREEN -->
@@ -1646,7 +1656,7 @@
       </div>
 
       <div class="list-container" id="memberList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 5. INDIVIDUAL MEMBER LEDGER SCREEN -->
@@ -1669,7 +1679,7 @@
       </div>
 
       <div class="list-container" id="memberLedgerList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 6. MAIN EXPENSE DIRECTORY SCREEN -->
@@ -1695,7 +1705,7 @@
       </div>
 
       <div class="list-container" id="mainExpenseCategoryList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 7. MAIN EXPENSE DETAIL LEDGER SCREEN -->
@@ -1718,7 +1728,7 @@
       </div>
 
       <div class="list-container" id="mainExpenseDetailList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 8. GENERAL EXPENSE SCREEN -->
@@ -1741,7 +1751,7 @@
       </div>
 
       <div class="list-container" id="genExpenseList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 9. PROGRAM DIRECTORY SCREEN -->
@@ -1774,7 +1784,7 @@
       </div>
 
       <div class="list-container" id="programList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 10. SPORTS DIRECTORY SCREEN -->
@@ -1795,7 +1805,7 @@
       </div>
 
       <div class="list-container" id="sportsGameList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
     <!-- 11. SPORTS RESULT SCREEN -->
@@ -1820,8 +1830,7 @@
       </div>
 
       <div class="list-container" id="sportsWinnerList"></div>
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপাল্লা কমিটি (২০০২)</div>
     </div>
 
-    <!-- 12. FINAL AUDIT SCREEN -->
-    <di
+    <!-- 12. 
