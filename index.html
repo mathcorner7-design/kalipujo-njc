@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
   
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
   <style>
     :root {
       --bg-color: #0d0103;
@@ -605,8 +609,8 @@
     <!-- 1. HOME SCREEN -->
     <div id="homeScreen" class="screen">
       <div class="header-box">
-        <div class="sync-badge" id="syncStatus">☁️ রিয়েল-টাইম ক্লাউড চালু আছে</div>
-        <h1 class="committee-title">নিউ ঝালাপাল্লা কমিটি</h1>
+        <div class="sync-badge" id="syncStatus">☁️ লাইভ ক্লাউড সিঙ্ক চালু হচ্ছে...</div>
+        <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
         <div class="main-banner" id="homeBannerText">কালীপুজো ২০২৬ এ আপনাদের সবাইকে স্বাগতম</div>
       </div>
 
@@ -618,12 +622,12 @@
       </div>
 
       <div class="button-group">
-        <button class="btn btn-official" onclick="openPinModal()">
+        <button type="button" class="btn btn-official" onclick="openPinModal()">
           <span>🔒</span>
           <span>OFFICIAL ENTRY</span>
         </button>
 
-        <button class="btn btn-public" onclick="openPublicScreen()">
+        <button type="button" class="btn btn-public" onclick="openPublicScreen()">
           <span>👥</span>
           <span>সবার জন্য (হিসাব দেখুন)</span>
         </button>
@@ -1086,7 +1090,7 @@
     </div>
   </div>
 
-  <!-- CORE APPLICATION LOGIC (INDEPENDENT OF NETWORK) -->
+  <!-- SAFE JAVASCRIPT EXECUTION -->
   <script>
     var appState = {
       adminPin: '1234',
@@ -1109,7 +1113,7 @@
     var currentScreenId = 'homeScreen';
     var firestoreDoc = null;
 
-    // লোকাল ক্যাশ লোড করা (ইন্টারনেট না থাকলেও বাটন সাথে সাথে খুলবে)
+    // লোকালে ডেটা ক্যাশ
     try {
       var cached = localStorage.getItem('puja_local_db');
       if (cached) {
@@ -1118,7 +1122,7 @@
       }
     } catch(e) {}
 
-    function showScreen(screenId) {
+    window.showScreen = function(screenId) {
       currentScreenId = screenId;
       var screens = [
         'homeScreen', 'officialScreen', 'graminScreen', 
@@ -1134,20 +1138,20 @@
       });
       var target = document.getElementById(screenId);
       if (target) target.classList.remove('hidden');
-    }
+    };
 
-    function openPinModal() {
+    window.openPinModal = function() {
       var input = document.getElementById('inputPin');
       input.value = '';
       document.getElementById('pinModal').classList.remove('hidden');
-      setTimeout(function() { input.focus(); }, 100);
-    }
+      setTimeout(function() { input.focus(); }, 150);
+    };
 
-    function closePinModal() {
+    window.closePinModal = function() {
       document.getElementById('pinModal').classList.add('hidden');
-    }
+    };
 
-    function verifyPin() {
+    window.verifyPin = function() {
       var entered = document.getElementById('inputPin').value.trim();
       if (entered === (appState.adminPin || '1234')) {
         closePinModal();
@@ -1156,12 +1160,12 @@
         alert("ভুল পিন নম্বর! সঠিক পিন দিন।");
         document.getElementById('inputPin').value = '';
       }
-    }
+    };
 
-    function formatInputText(str) {
+    window.formatInputText = function(str) {
       if (!str) return '';
       return str.replace(/[a-z]/g, function(c) { return c.toUpperCase(); }).trim();
-    }
+    };
 
     document.addEventListener('input', function(e) {
       if (e.target && e.target.type === 'text' && !e.target.id.includes('settingYtLink') && !e.target.id.includes('settingFbLink') && !e.target.id.includes('settingWpLink')) {
@@ -1176,21 +1180,21 @@
       }
     });
 
-    function getCurrentDateTime() {
+    window.getCurrentDateTime = function() {
       var now = new Date();
       return now.toLocaleString('en-IN', {
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: true
       });
-    }
+    };
 
-    function refreshYearDisplay() {
+    window.refreshYearDisplay = function() {
       var year = appState.pujaYear || '২০২৬';
       var el = document.getElementById('homeBannerText');
       if (el) el.innerText = "কালীপুজো " + year + " এ আপনাদের সবাইকে স্বাগতম";
-    }
+    };
 
-    function refreshUI() {
+    window.refreshUI = function() {
       refreshYearDisplay();
       if (currentScreenId === 'graminScreen') renderGraminChanda();
       else if (currentScreenId === 'memberScreen') renderMemberList();
@@ -1203,9 +1207,9 @@
       else if (currentScreenId === 'sportsDetailScreen') renderSportsWinners();
       else if (currentScreenId === 'finalAuditScreen') renderFinalAudit();
       else if (currentScreenId === 'publicScreen') renderPublicView();
-    }
+    };
 
-    function persistData() {
+    window.persistData = function() {
       try {
         localStorage.setItem('puja_local_db', JSON.stringify(appState));
       } catch(e) {}
@@ -1215,9 +1219,9 @@
           console.warn("Cloud save warning:", err);
         });
       }
-    }
+    };
 
-    function handleSocialClick(type) {
+    window.handleSocialClick = function(type) {
       var link = '';
       if (type === 'yt') link = appState.contactYt;
       else if (type === 'fb') link = appState.contactFb;
@@ -1237,9 +1241,9 @@
         }
         window.open(link, '_blank');
       }
-    }
+    };
 
-    function openAdminSettingsModal() {
+    window.openAdminSettingsModal = function() {
       document.getElementById('settingYear').value = appState.pujaYear || '২০২৬';
       document.getElementById('currentPin').value = '';
       document.getElementById('newPin').value = '';
@@ -1247,10 +1251,10 @@
       document.getElementById('settingFbLink').value = appState.contactFb || '';
       document.getElementById('settingWpLink').value = appState.contactWp || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
-    }
-    function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').classList.add('hidden'); }
+    };
+    window.closeAdminSettingsModal = function() { document.getElementById('adminSettingsModal').classList.add('hidden'); };
 
-    function saveAdminSettings() {
+    window.saveAdminSettings = function() {
       var newYear = document.getElementById('settingYear').value.trim();
       var currPin = document.getElementById('currentPin').value.trim();
       var newPin = document.getElementById('newPin').value.trim();
@@ -1280,17 +1284,17 @@
       alert("সমস্ত সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
       closeAdminSettingsModal();
       refreshYearDisplay();
-    }
+    };
 
-    function openResetConfirmation() {
+    window.openResetConfirmation = function() {
       closeAdminSettingsModal();
       document.getElementById('resetInputPin').value = '';
       document.getElementById('resetPinModal').classList.remove('hidden');
       setTimeout(function() { document.getElementById('resetInputPin').focus(); }, 100);
-    }
-    function closeResetPinModal() { document.getElementById('resetPinModal').classList.add('hidden'); }
+    };
+    window.closeResetPinModal = function() { document.getElementById('resetPinModal').classList.add('hidden'); };
 
-    function proceedResetApp() {
+    window.proceedResetApp = function() {
       var pin = document.getElementById('resetInputPin').value.trim();
       if (pin !== (appState.adminPin || '1234')) {
         alert("ভুল পিন নম্বর! রিসেট করা সম্ভব নয়।");
@@ -1310,11 +1314,11 @@
         alert("অ্যাপের সমস্ত হিসাব সফলভাবে মুছে ফেলা হয়েছে!");
         showScreen('homeScreen');
       }
-    }
+    };
 
     /* ১. গ্রামীন চাঁদা */
-    function openGraminChandaScreen() { showScreen('graminScreen'); renderGraminChanda(); }
-    function addGraminChanda() {
+    window.openGraminChandaScreen = function() { showScreen('graminScreen'); renderGraminChanda(); };
+    window.addGraminChanda = function() {
       var name = formatInputText(document.getElementById('gName').value);
       var amount = parseFloat(document.getElementById('gAmount').value);
       if (!name) { alert("দাতার নাম লিখুন!"); return; }
@@ -1325,8 +1329,8 @@
       document.getElementById('gName').value = '';
       document.getElementById('gAmount').value = '';
       renderGraminChanda();
-    }
-    function renderGraminChanda() {
+    };
+    window.renderGraminChanda = function() {
       var list = appState.graminChandaList || [];
       var container = document.getElementById('graminList');
       container.innerHTML = '';
@@ -1350,22 +1354,22 @@
         container.appendChild(card);
       });
       document.getElementById('graminTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    }
-    function deleteGramin(index) {
+    };
+    window.deleteGramin = function(index) {
       if (confirm("এই গ্রামীন চাঁদা এন্ট্রি মুছে ফেলতে চান?")) {
         appState.graminChandaList.splice(index, 1);
         persistData();
         renderGraminChanda();
       }
-    }
-    function openGraminEdit(index) {
+    };
+    window.openGraminEdit = function(index) {
       var item = appState.graminChandaList[index];
       setEditModal('gramin', index, null, 'গ্রামীন চাঁদা সম্পাদনা', 'দাতার নাম', item.name, item.amount, '', item.dateTime);
-    }
+    };
 
     /* ২. মেম্বার চাঁদা */
-    function openMemberChandaScreen() { showScreen('memberScreen'); renderMemberList(); }
-    function createMember() {
+    window.openMemberChandaScreen = function() { showScreen('memberScreen'); renderMemberList(); };
+    window.createMember = function() {
       var name = formatInputText(document.getElementById('newMemberName').value);
       if (!name) { alert("মেম্বারের নাম লিখুন!"); return; }
       if (!appState.memberAccounts) appState.memberAccounts = [];
@@ -1373,8 +1377,8 @@
       persistData();
       document.getElementById('newMemberName').value = '';
       renderMemberList();
-    }
-    function renderMemberList() {
+    };
+    window.renderMemberList = function() {
       var members = appState.memberAccounts || [];
       var container = document.getElementById('memberList');
       container.innerHTML = '';
@@ -1402,24 +1406,24 @@
         container.appendChild(card);
       });
       document.getElementById('memberGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
-    }
-    function openMemberNameEdit(index) {
+    };
+    window.openMemberNameEdit = function(index) {
       setEditModal('member_name', index, null, 'মেম্বারের নাম পরিবর্তন', 'মেম্বারের নাম', appState.memberAccounts[index].name, null, '', '');
-    }
-    function deleteMemberProfile(index) {
+    };
+    window.deleteMemberProfile = function(index) {
       if (confirm('আপনি কি "' + appState.memberAccounts[index].name + '" মেম্বার ও তাঁর সব এন্ট্রি মুছে ফেলতে চান?')) {
         appState.memberAccounts.splice(index, 1);
         persistData();
         renderMemberList();
       }
-    }
-    function openMemberLedger(index) {
+    };
+    window.openMemberLedger = function(index) {
       activeMemberIndex = index;
       document.getElementById('ledgerMemberName').innerText = appState.memberAccounts[index].name;
       showScreen('memberLedgerScreen');
       renderMemberLedger();
-    }
-    function addMemberTransaction() {
+    };
+    window.addMemberTransaction = function() {
       var remarks = formatInputText(document.getElementById('mEntryRemarks').value);
       var amount = parseFloat(document.getElementById('mEntryAmount').value);
       if (!remarks) { alert("মন্তব্য বা কাজের বিবরণ (Remarks) লিখুন!"); return; }
@@ -1433,8 +1437,8 @@
       document.getElementById('mEntryRemarks').value = '';
       document.getElementById('mEntryAmount').value = '';
       renderMemberLedger();
-    }
-    function renderMemberLedger() {
+    };
+    window.renderMemberLedger = function() {
       var member = appState.memberAccounts[activeMemberIndex];
       var container = document.getElementById('memberLedgerList');
       container.innerHTML = '';
@@ -1460,22 +1464,22 @@
         });
       }
       document.getElementById('memberIndividualTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    }
-    function deleteMemberTransaction(tIndex) {
+    };
+    window.deleteMemberTransaction = function(tIndex) {
       if (confirm("এই জমার এন্ট্রি মুছে ফেলতে চান?")) {
         appState.memberAccounts[activeMemberIndex].transactions.splice(tIndex, 1);
         persistData();
         renderMemberLedger();
       }
-    }
-    function openLedgerTransactionEdit(tIndex) {
+    };
+    window.openLedgerTransactionEdit = function(tIndex) {
       var tx = appState.memberAccounts[activeMemberIndex].transactions[tIndex];
       setEditModal('ledger_tx', activeMemberIndex, tIndex, 'মেম্বার জমা সম্পাদনা', 'মন্তব্য / Remarks', tx.remarks, tx.amount, '', tx.dateTime);
-    }
+    };
 
     /* ৩. প্রধান খরচ */
-    function openMainExpenseScreen() { showScreen('mainExpenseScreen'); renderMainExpenseCategories(); }
-    function createMainExpenseCategory() {
+    window.openMainExpenseScreen = function() { showScreen('mainExpenseScreen'); renderMainExpenseCategories(); };
+    window.createMainExpenseCategory = function() {
       var name = formatInputText(document.getElementById('newMainCategoryName').value);
       if (!name) { alert("প্রধান খরচের খাতের নাম লিখুন! (যেমন: প্রতিমা, মণ্ডপ)"); return; }
       if (!appState.mainExpenseCategories) appState.mainExpenseCategories = [];
@@ -1483,8 +1487,8 @@
       persistData();
       document.getElementById('newMainCategoryName').value = '';
       renderMainExpenseCategories();
-    }
-    function renderMainExpenseCategories() {
+    };
+    window.renderMainExpenseCategories = function() {
       var categories = appState.mainExpenseCategories || [];
       var container = document.getElementById('mainExpenseCategoryList');
       container.innerHTML = '';
@@ -1512,24 +1516,24 @@
         container.appendChild(card);
       });
       document.getElementById('mainExpenseGrandTotalText').innerText = "₹ " + grandTotal.toLocaleString('en-IN');
-    }
-    function openMainCategoryNameEdit(index) {
+    };
+    window.openMainCategoryNameEdit = function(index) {
       setEditModal('main_cat_name', index, null, 'খাতের নাম পরিবর্তন', 'খাতের নাম', appState.mainExpenseCategories[index].categoryName, null, '', '');
-    }
-    function deleteMainExpenseCategory(index) {
+    };
+    window.deleteMainExpenseCategory = function(index) {
       if (confirm('আপনি কি "' + appState.mainExpenseCategories[index].categoryName + '" খাতের সব হিসাব মুছে ফেলতে চান?')) {
         appState.mainExpenseCategories.splice(index, 1);
         persistData();
         renderMainExpenseCategories();
       }
-    }
-    function openMainExpenseDetail(index) {
+    };
+    window.openMainExpenseDetail = function(index) {
       activeMainExpenseIndex = index;
       document.getElementById('ledgerMainExpenseTitle').innerText = appState.mainExpenseCategories[index].categoryName;
       showScreen('mainExpenseDetailScreen');
       renderMainExpenseDetail();
-    }
-    function addMainExpensePayment() {
+    };
+    window.addMainExpensePayment = function() {
       var note = formatInputText(document.getElementById('mainExpDetailNote').value);
       var amount = parseFloat(document.getElementById('mainExpDetailAmount').value);
       if (!note) { alert("কিস্তি বা ভাউচারের বিবরণ লিখুন!"); return; }
@@ -1543,8 +1547,8 @@
       document.getElementById('mainExpDetailNote').value = '';
       document.getElementById('mainExpDetailAmount').value = '';
       renderMainExpenseDetail();
-    }
-    function renderMainExpenseDetail() {
+    };
+    window.renderMainExpenseDetail = function() {
       var cat = appState.mainExpenseCategories[activeMainExpenseIndex];
       var container = document.getElementById('mainExpenseDetailList');
       container.innerHTML = '';
@@ -1570,22 +1574,22 @@
         });
       }
       document.getElementById('mainExpenseCategoryTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    }
-    function deleteMainExpensePayment(pIndex) {
+    };
+    window.deleteMainExpensePayment = function(pIndex) {
       if (confirm("এই কিস্তির এন্ট্রি মুছে ফেলতে চান?")) {
         appState.mainExpenseCategories[activeMainExpenseIndex].payments.splice(pIndex, 1);
         persistData();
         renderMainExpenseDetail();
       }
-    }
-    function openMainPaymentEdit(pIndex) {
+    };
+    window.openMainPaymentEdit = function(pIndex) {
       var pay = appState.mainExpenseCategories[activeMainExpenseIndex].payments[pIndex];
       setEditModal('main_pay_edit', activeMainExpenseIndex, pIndex, 'কিস্তি সম্পাদনা', 'কিস্তির বিবরণ', pay.note, pay.amount, '', pay.dateTime);
-    }
+    };
 
     /* ৪. সাধারণ খরচ */
-    function openGeneralExpenseScreen() { showScreen('generalExpenseScreen'); renderGeneralExpenses(); }
-    function addGeneralExpense() {
+    window.openGeneralExpenseScreen = function() { showScreen('generalExpenseScreen'); renderGeneralExpenses(); };
+    window.addGeneralExpense = function() {
       var title = formatInputText(document.getElementById('genExpTitle').value);
       var amount = parseFloat(document.getElementById('genExpAmount').value);
       if (!title) { alert("খরচের বিবরণ লিখুন!"); return; }
@@ -1597,8 +1601,8 @@
       document.getElementById('genExpTitle').value = '';
       document.getElementById('genExpAmount').value = '';
       renderGeneralExpenses();
-    }
-    function renderGeneralExpenses() {
+    };
+    window.renderGeneralExpenses = function() {
       var list = appState.generalExpenses || [];
       var container = document.getElementById('genExpenseList');
       container.innerHTML = '';
@@ -1622,22 +1626,22 @@
         container.appendChild(card);
       });
       document.getElementById('genExpenseTotalText').innerText = "₹ " + total.toLocaleString('en-IN');
-    }
-    function deleteGenExpense(index) {
+    };
+    window.deleteGenExpense = function(index) {
       if (confirm("এই সাধারণ খরচের হিসাব মুছে ফেলতে চান?")) {
         appState.generalExpenses.splice(index, 1);
         persistData();
         renderGeneralExpenses();
       }
-    }
-    function openGenExpenseEdit(index) {
+    };
+    window.openGenExpenseEdit = function(index) {
       var item = appState.generalExpenses[index];
       setEditModal('gen_expense', index, null, 'সাধারণ খরচ সম্পাদনা', 'খরচের বিবরণ', item.title, item.amount, '', item.dateTime);
-    }
+    };
 
     /* ৫. অনুষ্ঠান কর্মসূচি */
-    function openProgramScreen() { showScreen('programScreen'); switchProgramTab(activeProgramCategory); }
-    function switchProgramTab(cat) {
+    window.openProgramScreen = function() { showScreen('programScreen'); switchProgramTab(activeProgramCategory); };
+    window.switchProgramTab = function(cat) {
       activeProgramCategory = cat;
       document.getElementById('tabNach').classList.remove('active');
       document.getElementById('tabGan').classList.remove('active');
@@ -1648,8 +1652,8 @@
       else if (cat === 'recitation') document.getElementById('tabAbritti').classList.add('active');
 
       renderProgramList();
-    }
-    function addProgramEntry() {
+    };
+    window.addProgramEntry = function() {
       var name = formatInputText(document.getElementById('progName').value);
       var age = parseInt(document.getElementById('progAge').value);
       var remarks = formatInputText(document.getElementById('progRemarks').value);
@@ -1670,8 +1674,8 @@
       document.getElementById('progAge').value = '';
       document.getElementById('progRemarks').value = '';
       renderProgramList();
-    }
-    function renderProgramList() {
+    };
+    window.renderProgramList = function() {
       var list = (appState.programData && appState.programData[activeProgramCategory]) ? appState.programData[activeProgramCategory] : [];
       var container = document.getElementById('programList');
       container.innerHTML = '';
@@ -1699,8 +1703,8 @@
           '</div>';
         container.appendChild(card);
       });
-    }
-    function viewCandidateDetail(cat, index) {
+    };
+    window.viewCandidateDetail = function(cat, index) {
       var item = appState.programData[cat][index];
       var catName = cat === 'dance' ? '💃 নাচ' : (cat === 'song' ? '🎤 গান' : '📜 আবৃত্তি');
 
@@ -1711,20 +1715,21 @@
       document.getElementById('viewProgTime').innerText = item.dateTime;
 
       document.getElementById('candidateDetailModal').classList.remove('hidden');
-    }
-    function closeCandidateDetailModal() { document.getElementById('candidateDetailModal').classList.add('hidden'); }
-    function deleteProgramEntry(index) {
+    };
+    window.closeCandidateDetailModal = function() { document.getElementById('candidateDetailModal').classList.add('hidden'); };
+    window.deleteProgramEntry = function(index) {
       if (confirm("আপনি কি এই অংশগ্রহণকারীর নাম তালিকা থেকে মুছে ফেলতে চান?")) {
         appState.programData[activeProgramCategory].splice(index, 1);
         persistData();
         renderProgramList();
       }
-    }
-    function openProgramEdit(index) {
+    };
+    window.openProgramEdit = function(index) {
       var item = appState.programData[activeProgramCategory][index];
       setEditModal('program_entry', activeProgramCategory, index, 'প্রতিযোগী সম্পাদনা', 'অংশগ্রহণকারীর নাম', item.name, item.age, item.remarks, item.dateTime);
-    }
-    function generateProgramPdf() {
+    };
+
+    window.generateProgramPdf = function() {
       var progData = appState.programData || { dance: [], song: [], recitation: [] };
       var year = appState.pujaYear || '২০২৬';
 
@@ -1762,11 +1767,11 @@
       htmlContent += '</body></html>';
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-    }
+    };
 
     /* ৬. খেলার কর্মসূচি */
-    function openSportsScreen() { showScreen('sportsScreen'); renderSportsGames(); }
-    function createSportGame() {
+    window.openSportsScreen = function() { showScreen('sportsScreen'); renderSportsGames(); };
+    window.createSportGame = function() {
       var name = formatInputText(document.getElementById('newSportName').value);
       if (!name) { alert("খেলার নাম লিখুন!"); return; }
 
@@ -1775,8 +1780,8 @@
       persistData();
       document.getElementById('newSportName').value = '';
       renderSportsGames();
-    }
-    function renderSportsGames() {
+    };
+    window.renderSportsGames = function() {
       var games = appState.sportsData || [];
       var container = document.getElementById('sportsGameList');
       container.innerHTML = '';
@@ -1802,24 +1807,24 @@
           '</div>';
         container.appendChild(card);
       });
-    }
-    function openSportNameEdit(index) {
+    };
+    window.openSportNameEdit = function(index) {
       setEditModal('sport_name', index, null, 'খেলার নাম পরিবর্তন', 'খেলার নাম', appState.sportsData[index].gameName, null, '', '');
-    }
-    function deleteSportGame(index) {
+    };
+    window.deleteSportGame = function(index) {
       if (confirm('আপনি কি "' + appState.sportsData[index].gameName + '" খেলা ও এর ফলাফল মুছে ফেলতে চান?')) {
         appState.sportsData.splice(index, 1);
         persistData();
         renderSportsGames();
       }
-    }
-    function openSportsDetail(index) {
+    };
+    window.openSportsDetail = function(index) {
       activeSportIndex = index;
       document.getElementById('sportsDetailGameTitle').innerText = appState.sportsData[index].gameName;
       showScreen('sportsDetailScreen');
       renderSportsWinners();
-    }
-    function addSportWinner() {
+    };
+    window.addSportWinner = function() {
       var rank = document.getElementById('sportRankSelect').value;
       var winnerName = formatInputText(document.getElementById('sportWinnerName').value);
       var remarks = formatInputText(document.getElementById('sportWinnerRemarks').value);
@@ -1835,8 +1840,8 @@
       document.getElementById('sportWinnerName').value = '';
       document.getElementById('sportWinnerRemarks').value = '';
       renderSportsWinners();
-    }
-    function renderSportsWinners() {
+    };
+    window.renderSportsWinners = function() {
       var game = appState.sportsData[activeSportIndex];
       var container = document.getElementById('sportsWinnerList');
       container.innerHTML = '';
@@ -1863,21 +1868,21 @@
           '</div>';
         container.appendChild(card);
       });
-    }
-    function deleteSportWinner(wIndex) {
+    };
+    window.deleteSportWinner = function(wIndex) {
       if (confirm("এই ফলাফল মুছে ফেলতে চান?")) {
         appState.sportsData[activeSportIndex].winners.splice(wIndex, 1);
         persistData();
         renderSportsWinners();
       }
-    }
-    function openSportWinnerEdit(wIndex) {
+    };
+    window.openSportWinnerEdit = function(wIndex) {
       var w = appState.sportsData[activeSportIndex].winners[wIndex];
       setEditModal('sport_winner', activeSportIndex, wIndex, 'ফলাফল সম্পাদনা', 'বিজয়ীর নাম', w.winnerName, null, w.remarks, w.dateTime);
-    }
+    };
 
     /* ৭. পূজো শেষের হিসাব (Final Audit) */
-    function calculateAuditData() {
+    window.calculateAuditData = function() {
       var graminList = appState.graminChandaList || [];
       var members = appState.memberAccounts || [];
       var mainCategories = appState.mainExpenseCategories || [];
@@ -1960,11 +1965,11 @@
         totalMainExp: totalMainExp, totalGenExp: totalGenExp, totalExpense: totalExpense,
         netBalance: netBalance, memberCount: memberCount, finalMemberSummary: finalMemberSummary
       };
-    }
+    };
 
-    function openFinalAuditScreen() { showScreen('finalAuditScreen'); renderFinalAudit(); }
+    window.openFinalAuditScreen = function() { showScreen('finalAuditScreen'); renderFinalAudit(); };
 
-    function renderFinalAudit() {
+    window.renderFinalAudit = function() {
       var data = calculateAuditData();
 
       document.getElementById('auditGraminVal').innerText = "₹ " + data.totalGramin.toLocaleString('en-IN');
@@ -2020,9 +2025,9 @@
           '<div class="settlement-result" style="color: ' + resultColor + ';"><span>চূড়ান্ত হিসাব:</span><span>' + resultText + '</span></div>';
         listContainer.appendChild(card);
       });
-    }
+    };
 
-    function generateAuditPdf() {
+    window.generateAuditPdf = function() {
       var data = calculateAuditData();
       var year = appState.pujaYear || '২০২৬';
 
@@ -2064,12 +2069,12 @@
 
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-    }
+    };
 
     /* ৮. পাবলিক ভিউ */
-    function openPublicScreen() { showScreen('publicScreen'); renderPublicView(); }
+    window.openPublicScreen = function() { showScreen('publicScreen'); renderPublicView(); };
 
-    function renderPublicView() {
+    window.renderPublicView = function() {
       var graminList = appState.graminChandaList || [];
       var members = appState.memberAccounts || [];
       var mainCategories = appState.mainExpenseCategories || [];
@@ -2225,9 +2230,9 @@
       }
 
       container.innerHTML = html;
-    }
+    };
 
-    function generatePublicReportPdf() {
+    window.generatePublicReportPdf = function() {
       var year = appState.pujaYear || '২০২৬';
       var graminList = appState.graminChandaList || [];
       var members = appState.memberAccounts || [];
@@ -2251,10 +2256,4 @@
         '<style>body{font-family: Arial, sans-serif; padding: 25px; color: #111;} h2,h4{text-align: center; margin: 4px 0;} h2{color:#800020;}' +
         '.kpi-table{width: 100%; border-collapse: collapse; margin-top: 12px;} .kpi-table td, .kpi-table th{border: 1px solid #aaa; padding: 6px 10px; font-size: 13px;}' +
         '.kpi-table th{background: #f2f2f2;} .section-head{background: #f5f5f5; padding: 6px 10px; margin-top: 18px; font-weight: bold; border-left: 5px solid #800020;}' +
-        'table.data-table{width: 100%; border-collapse: collapse; margin-top: 6px;} table.data-table th, table.data-table td{border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; text-align: left;}' +
-        'table.data-table th{background: #fafafa;} @media print{.no-print{display:none;} body{padding:0;}}</style></head><body>' +
-        '<div class="no-print" style="margin-bottom:15px; text-align:right;"><button onclick="window.print()" style="padding:10px 18px; background:#800020; color:#fff; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button></div>' +
-        '<h2>নিউ ঝালাপাল্লা কমিটি (২০০২)</h2><h4>কালীপূজা ' + year + ' - সর্বসাধারণের জন্য হিসাব ও বিবরণী</h4>' +
-        '<p style="text-align:center; font-size:12px; color:#666;">তারিখ: ' + getCurrentDateTime() + '</p>' +
-        '<table class="kpi-table">' +
-          '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + totalMainExp.toLocale
+        'table.data-table{width: 100%; border-collapse: collapse; margin-top: 6px;} table.data-table th, table.data-table td{border: 1px solid #ccc; 
