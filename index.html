@@ -2704,6 +2704,48 @@ window.appState.contactInsta = instaLink;
         });
       }
 
+            /* অনুষ্ঠান কর্মসূচি */
+      html += '<div class="public-sec-header">🪔 অনুষ্ঠান কর্মসূচি</div>';
+      var catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
+      ['dance', 'song', 'recitation'].forEach(function(k) {
+        html += '<div style="font-size:0.88rem; font-weight:bold; color:var(--text-muted); margin:6px 0 2px 4px;">' + catTitles[k] + ':</div>';
+        var pList = progData[k] || [];
+        if (pList.length === 0) {
+          html += '<div style="color:#aaa; font-size:0.8rem; padding-left:8px; margin-bottom:4px;">কোনো নাম নথিভুক্ত নেই।</div>';
+        } else {
+          pList.forEach(function(p, idx) {
+            html += 
+              '<div class="list-card" style="padding:6px 10px; margin-bottom:4px;">' +
+                '<div class="list-info">' +
+                  '<div class="list-name" style="font-size:0.92rem;">' + (idx + 1) + '. ' + p.name + ' (' + p.age + ' বছর)</div>' +
+                  '<div class="list-subtext" style="font-size:0.75rem;">বিষয়: ' + p.remarks + '</div>' +
+                '</div>' +
+              '</div>';
+          });
+        }
+      });
+
+      /* খেলার কর্মসূচি ও ফলাফল */
+      html += '<div class="public-sec-header">🏆 খেলার কর্মসূচি ও ফলাফল</div>';
+      if (sportsData.length === 0) {
+        html += '<div style="color:#aaa; font-size:0.85rem; padding:4px 8px;">এখনও কোনো খেলা নেই।</div>';
+      } else {
+        sportsData.forEach(function(s, idx) {
+          var winHtml = '';
+          if (s.winners && s.winners.length > 0) {
+            s.winners.forEach(function(w) {
+              winHtml += '<div style="font-size:0.78rem; color:var(--gold-bright); padding-left:8px;">🏅 ' + w.rank + ': <strong>' + w.winnerName + '</strong> ' + (w.remarks ? '(' + w.remarks + ')' : '') + '</div>';
+            });
+          } else {
+            winHtml = '<div style="font-size:0.75rem; color:#aaa; padding-left:8px;">ফলাফল এখনও প্রকাশ হয়নি।</div>';
+          }
+          html += 
+            '<div class="list-card" style="flex-direction:column; align-items:flex-start; margin-bottom:6px;">' +
+              '<div class="list-name" style="color:#fff; margin-bottom:3px;">⚽ ' + (idx + 1) + '. ' + s.gameName + '</div>' +
+              winHtml +
+            '</div>';
+        });
+      }
       container.innerHTML = html;
     }
 
