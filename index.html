@@ -3176,36 +3176,35 @@ window.appState.contactInsta = instaLink;
     var matchedCards = [];
 var currentMatchIndex = -1;
 
-// আতসকাচ বাটন দেখানো বা লুকানো
-function showAdminFinderButton(show) {
-  var btn = document.getElementById('adminFinderTriggerBtn');
-  if (btn) {
-    btn.style.display = show ? 'flex' : 'none';
-  }
-}
-
-// আতসকাচে চাপ দিলে সার্চ বার ওপেন হওয়া
+// আতসকাচ বাটনে ক্লিক করলে সার্চ বার খোলা
 function openInAppFinder() {
   var bar = document.getElementById('inAppFinderBar');
-  if (!bar) return;
-  bar.style.display = 'flex';
-  var inp = document.getElementById('finderSearchText');
-  if (inp) {
-    inp.value = '';
-    inp.focus();
+  var btn = document.getElementById('adminFinderTriggerBtn');
+  
+  if (btn) btn.style.display = 'none'; // আতসকাচটি লুকাবে
+  if (bar) {
+    bar.style.display = 'flex'; // সার্চ বারটি স্ক্রিনে ফুটে উঠবে
+    var inp = document.getElementById('finderSearchText');
+    if (inp) {
+      inp.value = '';
+      inp.focus();
+    }
   }
   clearFindHighlights();
   document.getElementById('finderCountText').innerText = '০/০';
 }
 
-// ✖ বাটনে চাপ দিলে সার্চ বার বন্ধ হওয়া
+// ক্রস (✖) বাটনে ক্লিক করলে সার্চ বার বন্ধ হয়ে পুনরায় আতসকাচ ফিরে আসা
 function closeInAppFinder() {
   clearFindHighlights();
   var bar = document.getElementById('inAppFinderBar');
-  if (bar) bar.style.display = 'none';
+  var btn = document.getElementById('adminFinderTriggerBtn');
+  
+  if (bar) bar.style.display = 'none'; // বার বন্ধ হবে
+  if (btn) btn.style.display = 'flex'; // ছোট্ট গোল আতসকাচটি আবার ফিরে আসবে!
 }
 
-// টাইপ করলে শুধুমাত্র বর্তমানে দৃশ্যমান পেজে নাম খোঁজা
+// শুধুমাত্র বর্তমান দৃশ্যমান পেজের মধ্যে সার্চ করা
 function startInAppFind() {
   var query = (document.getElementById('finderSearchText')?.value || '').trim().toLowerCase();
   clearFindHighlights();
@@ -3217,11 +3216,11 @@ function startInAppFind() {
     return;
   }
 
-  // সব কার্ড সংগ্রহ করা
-  var allCards = document.querySelectorAll('.list-card, .table-row, .entry-card, tr');
+  // সব ধরনের কার্ড ও টেবিল রো সংগ্রহ
+  var allCards = document.querySelectorAll('.list-card, .table-row, .entry-card, tr, .member-row, .program-card');
 
   allCards.forEach(function(card) {
-    // offsetParent !== null এর মানে হলো কার্ডটি বর্তমানে চোখের সামনে খোলা আছে, অন্য কোনো লুকানো ট্যাবে নয়
+    // offsetParent !== null অর্থাৎ বর্তমানে স্ক্রিনে খোলা ও দৃশ্যমান আছে
     var isVisible = card.offsetParent !== null;
     if (isVisible && card.innerText.toLowerCase().includes(query)) {
       matchedCards.push(card);
@@ -3236,7 +3235,7 @@ function startInAppFind() {
   }
 }
 
-// ▲ বা ▼ চাপলে পরের বা আগের নামে স্ক্রোল করা
+// পরবর্তী বা পূর্ববর্তী রেজাল্টে যাওয়া
 function navigateFind(direction) {
   if (matchedCards.length === 0) return;
   currentMatchIndex += direction;
@@ -3245,28 +3244,49 @@ function navigateFind(direction) {
   updateMatchView();
 }
 
-// নির্দিষ্ট কার্ড স্ক্রিনে এনে সোনালী বর্ডারে হাইলাইট করা
+// সোনালী উজ্জ্বল আভা (Glow) ছড়ানো ও স্ক্রোল করা
 function updateMatchView() {
   matchedCards.forEach(function(card, idx) {
+    var cells = card.querySelectorAll('td, th');
+    
     if (idx === currentMatchIndex) {
+      // নির্বাচিত কার্ডে তীব্র সোনালী আভা
       card.style.outline = '3px solid #ffd700';
-      card.style.backgroundColor = 'rgba(255, 215, 0, 0.25)';
+      card.style.backgroundColor = 'rgba(255, 215, 0, 0.35)';
+      card.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.9)';
+      
+      // টেবিল রো (মেম্বার চাঁদা ইত্যাদির) ঘরগুলোর ব্যাকগ্রাউন্ড সোনালী করা
+      cells.forEach(function(td) {
+        td.style.backgroundColor = 'rgba(255, 215, 0, 0.35)';
+      });
+
       card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
+      // বাকি ম্যাচগুলোতে হালকা সোনালী দাগ
       card.style.outline = '1.5px dashed #ffd700';
-      card.style.backgroundColor = 'rgba(255, 215, 0, 0.08)';
+      card.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
+      card.style.boxShadow = 'none';
+
+      cells.forEach(function(td) {
+        td.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
+      });
     }
   });
 
   document.getElementById('finderCountText').innerText = (currentMatchIndex + 1) + '/' + matchedCards.length;
 }
 
-// হাইলাইট মুছে ফেলা
+// সব আভা ও বর্ডার মুছে ফেলা
 function clearFindHighlights() {
-  var allCards = document.querySelectorAll('.list-card, .table-row, .entry-card, tr');
+  var allCards = document.querySelectorAll('.list-card, .table-row, .entry-card, tr, .member-row, .program-card');
   allCards.forEach(function(card) {
     card.style.outline = '';
     card.style.backgroundColor = '';
+    card.style.boxShadow = 'none';
+    var cells = card.querySelectorAll('td, th');
+    cells.forEach(function(td) {
+      td.style.backgroundColor = '';
+    });
   });
 }
   </script>
@@ -3292,18 +3312,18 @@ function clearFindHighlights() {
       <div id="pdfModalContent" style="width: 100%; max-height: 65vh; overflow-y: scroll; -webkit-overflow-scrolling: touch; background: #ffffff; color: #111111; padding: 12px; border-radius: 8px; text-align: left; font-size: 13px; box-sizing: border-box;"></div>
     </div>
   </div>
-  <!-- ১. সার্বক্ষণিক ভাসমান আতসকাচ বাটন (শুধুমাত্র অ্যাডমিনের জন্য) -->
-<button id="adminFinderTriggerBtn" type="button" onclick="openInAppFinder()" title="পেজে খুঁজুন" style="display: none; position: fixed; bottom: 25px; right: 20px; z-index: 9999; background: #800020; color: #ffd700; border: 2px solid #ffd700; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; align-items: center; justify-content: center;">
+  <!-- ১. শুধুমাত্র ছোট্ট ভাসমান আতসকাচ বাটন -->
+<button id="adminFinderTriggerBtn" type="button" onclick="openInAppFinder()" title="পেজে খুঁজুন" style="position: fixed; bottom: 25px; right: 20px; z-index: 99999; background: #800020; color: #ffd700; border: 2px solid #ffd700; border-radius: 50%; width: 50px; height: 50px; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none;">
   🔍
 </button>
 
-<!-- ২. ব্রাউজার স্টাইল ফাইন্ডার বার -->
-<div id="inAppFinderBar" style="display: flex; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: #1f1f1f; border: 1.5px solid #ffd700; border-radius: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.85); z-index: 100000; padding: 6px 14px; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 8px;">
+<!-- ২. ব্রাউজার স্টাইল এক্সপ্যান্ডেবল সার্চ বার (প্রথমে সম্পূর্ণ বন্ধ থাকবে) -->
+<div id="inAppFinderBar" style="display: none; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: #1f1f1f; border: 1.5px solid #ffd700; border-radius: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.9); z-index: 100000; padding: 6px 14px; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 8px;">
   <input type="text" id="finderSearchText" placeholder="বর্তমান পেজে খুঁজুন..." oninput="startInAppFind()" style="flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 14px;">
   <span id="finderCountText" style="color: #ffd700; font-size: 12px; font-weight: bold; min-width: 35px; text-align: center;">০/০</span>
   <button type="button" onclick="navigateFind(-1)" style="background: #333; color: #fff; border: 1px solid #555; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">▲</button>
   <button type="button" onclick="navigateFind(1)" style="background: #333; color: #fff; border: 1px solid #555; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">▼</button>
-  <button type="button" onclick="closeInAppFinder()" style="background: transparent; color: #aaa; border: none; font-size: 16px; cursor: pointer; padding: 0 4px;">✖</button>
+  <button type="button" onclick="closeInAppFinder()" title="বন্ধ করুন" style="background: transparent; color: #ff6b6b; border: none; font-size: 18px; cursor: pointer; padding: 0 4px; font-weight: bold;">✖</button>
 </div>
 </body>
 </html>
