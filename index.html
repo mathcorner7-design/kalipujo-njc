@@ -1596,7 +1596,7 @@ window.appState.contactInsta = instaLink;
 
         <div class="menu-card menu-card-full" onclick="openFinalAuditScreen()">
           <div class="menu-icon">⚖️</div>
-          <div class="menu-label" style="font-size: 1.1rem; color: var(--gold-bright);">পূজো শেষের হিসাব (অডিট ও ভাগ-বাটোয়ারা)</div>
+          <div class="menu-label" style="font-size: 1.1rem; color: var(--gold-bright);">পূজো শেষে মেম্বার দের হিসাব </div>
         </div>
       </div>
 
@@ -1831,7 +1831,11 @@ window.appState.contactInsta = instaLink;
         <div class="section-title">পূজো শেষের হিসাব</div>
         <div style="width:36px;"></div>
       </div>
-      <button class="btn-pdf" onclick="generateAuditPdf()">📄 পূজো শেষের সম্পূর্ণ অডিট PDF ডাউনলোড</button>
+      <button class="btn-pdf" onclick="generateAuditPdf()">📄 মেম্বারদের হিসাব PDF ডাউনলোড</button>
+      <!-- সম্পূর্ণ বহুস্তরীয় মহাফেজখানা ও অডিট খতিয়ান বাটন -->
+      <button class="btn-pdf" onclick="generateComprehensiveMasterAuditPdf()" style="background: linear-gradient(135deg, #b31217, #800020); border: 1.5px solid var(--gold-bright); box-shadow: 0 4px 12px rgba(245, 176, 65, 0.4); margin-top: 4px;">
+        📑 পূজো শেষের সমগ্র হিসাব pdf 
+      </button>
       <div class="audit-grid">
         <div class="audit-box"><div class="audit-box-title">🪙 গ্রামীন চাঁদা:</div><div class="audit-box-val" id="auditGraminVal">₹ 0</div></div>
         <div class="audit-box"><div class="audit-box-title">👥 মেম্বার চাঁদা:</div><div class="audit-box-val" id="auditMemberVal">₹ 0</div></div>
@@ -2994,6 +2998,237 @@ window.appState.contactInsta = instaLink;
       html += '</tbody></table>';
 
       openPdfPreview('পূজো শেষের অডিট রিপোর্ট', html);
+    }
+    // ৪. পূজো শেষের সমগ্র বহুস্তরীয় অডিট খতিয়ান (Master Comprehensive Multi-Tier Audit PDF)
+    function generateComprehensiveMasterAuditPdf() {
+      var year = window.appState.pujaYear || '২০২৬';
+      var graminList = window.appState.graminChandaList || [];
+      var members = window.appState.memberAccounts || [];
+      var mainCategories = window.appState.mainExpenseCategories || [];
+      var genExpenses = window.appState.generalExpenses || [];
+      var progData = window.appState.programData || { dance: [], song: [], recitation: [] };
+      var sportsData = window.appState.sportsData || [];
+
+      var auditData = window.calculateAuditData();
+      var totalGramin = auditData.totalGramin;
+      var totalMember = auditData.totalMember;
+      var totalMainExp = auditData.totalMainExp;
+      var totalGenExp = auditData.totalGenExp;
+      var totalIncome = auditData.totalIncome;
+      var totalExpense = auditData.totalExpense;
+      var netBalance = auditData.netBalance;
+
+      var statusColor = netBalance >= 0 ? '#27ae60' : '#c0392b';
+      var statusText = netBalance >= 0 ? ('উদ্বৃত্ত স্থিতি: + ₹ ' + netBalance.toLocaleString('en-IN')) : ('ঘাটতি স্থিতি: - ₹ ' + Math.abs(netBalance).toLocaleString('en-IN'));
+
+      var html = '<h2 style="color:#800020; text-align:center; margin:0 0 4px 0; font-size:20px;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
+                 '<h3 style="text-align:center; margin:0 0 6px 0; color:#222; font-size:15px;">কালীপূজা ' + year + ' - পুজো শেষের সমগ্র অডিট ও পূর্ণাঙ্গ মহাফেজখানা খতিয়ান</h3>' +
+                 '<p style="text-align:center; font-size:11px; color:#555; margin-bottom:12px;">প্রতিবেদন তৈরির সময়: ' + window.getCurrentDateTime() + ' | প্রস্তুতকারক: হিসাব দপ্তর</p>' +
+
+                 // ১. সামগ্রিক আর্থিক ব্যালেন্স শিট
+                 '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:12px;">' +
+                 '<tr><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2; width:25%;">মোট গ্রামীন চাঁদা</th><td style="border:1px solid #aaa; padding:6px; width:25%;">₹ ' + totalGramin.toLocaleString('en-IN') + '</td><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2; width:25%;">মোট প্রধান খরচ</th><td style="border:1px solid #aaa; padding:6px; width:25%; color:#c0392b;">₹ ' + totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2;">মোট মেম্বার চাঁদা</th><td style="border:1px solid #aaa; padding:6px;">₹ ' + totalMember.toLocaleString('en-IN') + '</td><th style="border:1px solid #aaa; padding:6px; background:#f2f2f2;">মোট সাধারণ খরচ</th><td style="border:1px solid #aaa; padding:6px; color:#c0392b;">₹ ' + totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr style="font-weight:bold; background:#fafafa;"><th style="border:1px solid #aaa; padding:6px;">সর্বমোট সংগৃহীত আয়</th><td style="border:1px solid #aaa; padding:6px;">₹ ' + totalIncome.toLocaleString('en-IN') + '</td><th style="border:1px solid #aaa; padding:6px;">সর্বমোট ব্যয়</th><td style="border:1px solid #aaa; padding:6px; color:#c0392b;">₹ ' + totalExpense.toLocaleString('en-IN') + '</td></tr>' +
+                 '<tr style="font-weight:bold;"><th colspan="2" style="border:1px solid #aaa; padding:7px; text-align:right; font-size:13px;">পূজো শেষের চূড়ান্ত স্থিতি:</th><td colspan="2" style="border:1px solid #aaa; padding:7px; font-size:14px; background:' + (netBalance >= 0 ? '#eafaf1' : '#fdedec') + '; color:' + statusColor + ';">' + statusText + '</td></tr>' +
+                 '</table>' +
+
+                 // ২. মেম্বারদের চূড়ান্ত দেনা-পাওনা নিষ্পত্তি
+                 '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">⚖️ ১. মেম্বারভিত্তিক অডিট নিষ্পত্তি ও দেনা-পাওনা বিবরণী</div>' +
+                 '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:11px;"><thead><tr style="background:#eee;">' +
+                 '<th style="border:1px solid #ccc; padding:5px; width:6%; text-align:center;">ক্রম</th>' +
+                 '<th style="border:1px solid #ccc; padding:5px; width:26%;">মেম্বারের নাম</th>' +
+                 '<th style="border:1px solid #ccc; padding:5px; width:18%; text-align:right;">পূর্বে প্রদত্ত মোট চাঁদা</th>' +
+                 '<th style="border:1px solid #ccc; padding:5px; width:30%;">হিসাবের সূত্র / বিবরণ</th>' +
+                 '<th style="border:1px solid #ccc; padding:5px; width:20%; text-align:right;">চূড়ান্ত সিদ্ধান্ত</th></tr></thead><tbody>';
+
+      if (auditData.memberCount === 0) {
+        html += '<tr><td colspan="5" style="border:1px solid #ccc; padding:6px; text-align:center; color:#777;">কোনো মেম্বার নথিভুক্ত নেই।</td></tr>';
+      } else {
+        auditData.finalMemberSummary.forEach(function(m, idx) {
+          var decStyle = m.status === 'RECEIVE' ? 'color:#27ae60; font-weight:bold;' : (m.status === 'PAY' ? 'color:#c0392b; font-weight:bold;' : 'color:#555;');
+          var decText = m.status === 'RECEIVE' ? ('ফেরত পাবেন: + ₹' + m.finalAmount.toFixed(2)) : (m.status === 'PAY' ? ('দিতে হবে: - ₹' + m.finalAmount.toFixed(2)) : 'হিসাব সমান (₹0.00)');
+          html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center;">' + (idx + 1) + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:5px;"><strong>' + m.name + '</strong></td>' +
+                  '<td style="border:1px solid #ccc; padding:5px; text-align:right;">₹ ' + m.paid.toLocaleString('en-IN') + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:5px;">' + m.note + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:5px; text-align:right; ' + decStyle + '">' + decText + '</td></tr>';
+        });
+      }
+      html += '</tbody></table>';
+
+      // ৩. প্রধান খরচ (বহুস্তরীয় সাব-ভাউচার ব্রেকডাউন)
+      html += '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">🏛️ ২. প্রধান খরচের পুঙ্খানুপুঙ্খ বহুস্তরীয় খতিয়ান (সর্বমোট: ₹' + totalMainExp.toLocaleString('en-IN') + ')</div>';
+      if (mainCategories.length === 0) {
+        html += '<div style="border:1px solid #ccc; padding:6px; font-size:11px; color:#777; margin-bottom:12px;">কোনো প্রধান খরচ নেই।</div>';
+      } else {
+        html += '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:11px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:5px; width:6%; text-align:center;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:44%;">প্রধান খরচের খাত ও অন্তর্ভুক্ত সাব-ভাউচার তালিকা</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:30%;">তারিখ ও সময়</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:20%; text-align:right;">টাকার পরিমাণ</th></tr></thead><tbody>';
+
+        mainCategories.forEach(function(c, i) {
+          var cSum = 0;
+          if (c.payments) c.payments.forEach(function(p) { cSum += (p.amount || 0); });
+          html += '<tr style="background:#fcf3cf; font-weight:bold;">' +
+                  '<td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (i + 1) + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:6px; font-size:12px;">🏛️ ' + c.categoryName + ' <span style="font-weight:normal; font-size:10px;">(' + (c.payments ? c.payments.length : 0) + ' টি কিস্তি/ভাউচার)</span></td>' +
+                  '<td style="border:1px solid #ccc; padding:6px; font-size:10px; color:#666;">' + (c.createdAt || '-') + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:6px; text-align:right; font-size:12px; color:#900;">₹ ' + cSum.toLocaleString('en-IN') + '</td></tr>';
+
+          if (c.payments && c.payments.length > 0) {
+            c.payments.forEach(function(p, pIdx) {
+              html += '<tr style="background:#ffffff;">' +
+                      '<td style="border:1px solid #eee; padding:4px; text-align:right; color:#888; font-size:10px;">' + (i + 1) + '.' + (pIdx + 1) + '</td>' +
+                      '<td style="border:1px solid #eee; padding:4px 4px 4px 18px; color:#333;">↳ 🧾 ' + p.note + '</td>' +
+                      '<td style="border:1px solid #eee; padding:4px; color:#777; font-size:10px;">🕒 ' + (p.dateTime || '-') + '</td>' +
+                      '<td style="border:1px solid #eee; padding:4px; text-align:right; color:#333;">₹ ' + (p.amount || 0).toLocaleString('en-IN') + '</td></tr>';
+            });
+          } else {
+            html += '<tr><td></td><td colspan="3" style="border:1px solid #eee; padding:4px 4px 4px 18px; color:#888; font-style:italic;">কোনো সাব-ভাউচার এন্ট্রি নেই।</td></tr>';
+          }
+        });
+        html += '</tbody></table>';
+      }
+
+      // ৪. সাধারণ খরচ (বিবিধ খরচের তালিকা)
+      html += '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">📝 ৩. সাধারণ ও বিবিধ খুচরো খরচ তালিকা (সর্বমোট: ₹' + totalGenExp.toLocaleString('en-IN') + ')</div>';
+      if (genExpenses.length === 0) {
+        html += '<div style="border:1px solid #ccc; padding:6px; font-size:11px; color:#777; margin-bottom:12px;">কোনো সাধারণ খরচ নেই।</div>';
+      } else {
+        html += '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:11px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:5px; width:6%; text-align:center;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:44%;">খরচের বিবরণ / বিল</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:30%;">তারিখ ও সময়</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:20%; text-align:right;">টাকার পরিমাণ</th></tr></thead><tbody>';
+
+        genExpenses.forEach(function(e, i) {
+          html += '<tr><td style="border:1px solid #ccc; padding:5px; text-align:center;">' + (i + 1) + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:5px;">📝 ' + e.title + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:5px; font-size:10px; color:#666;">🕒 ' + (e.dateTime || '-') + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:5px; text-align:right; font-weight:bold; color:#c0392b;">₹ ' + e.amount.toLocaleString('en-IN') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      // ৫. মেম্বার চাঁদা (বহুস্তরীয় ব্যক্তিগত জমার বিবরণ)
+      html += '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">👥 ৪. মেম্বার চাঁদার পূর্ণাঙ্গ বহুস্তরীয় খতিয়ান (সর্বমোট: ₹' + totalMember.toLocaleString('en-IN') + ')</div>';
+      if (members.length === 0) {
+        html += '<div style="border:1px solid #ccc; padding:6px; font-size:11px; color:#777; margin-bottom:12px;">কোনো মেম্বার নথিভুক্ত নেই।</div>';
+      } else {
+        html += '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:11px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:5px; width:6%; text-align:center;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:44%;">মেম্বারের নাম ও পৃথক জমার খতিয়ান</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:30%;">তারিখ ও সময়</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:20%; text-align:right;">জমা (টাকা)</th></tr></thead><tbody>';
+
+        members.forEach(function(m, i) {
+          var mSum = 0;
+          if (m.transactions) m.transactions.forEach(function(t) { mSum += (t.amount || 0); });
+          html += '<tr style="background:#eaf2f8; font-weight:bold;">' +
+                  '<td style="border:1px solid #ccc; padding:6px; text-align:center;">' + (i + 1) + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:6px; font-size:12px;">👤 ' + m.name + ' <span style="font-weight:normal; font-size:10px;">(' + (m.transactions ? m.transactions.length : 0) + ' টি জমা)</span></td>' +
+                  '<td style="border:1px solid #ccc; padding:6px; font-size:10px; color:#666;">নিবন্ধন: ' + (m.createdAt || '-') + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:6px; text-align:right; font-size:12px; color:#1a5276;">₹ ' + mSum.toLocaleString('en-IN') + '</td></tr>';
+
+          if (m.transactions && m.transactions.length > 0) {
+            m.transactions.forEach(function(t, tIdx) {
+              html += '<tr style="background:#ffffff;">' +
+                      '<td style="border:1px solid #eee; padding:4px; text-align:right; color:#888; font-size:10px;">' + (i + 1) + '.' + (tIdx + 1) + '</td>' +
+                      '<td style="border:1px solid #eee; padding:4px 4px 4px 18px; color:#333;">↳ 📌 ' + t.remarks + '</td>' +
+                      '<td style="border:1px solid #eee; padding:4px; color:#777; font-size:10px;">🕒 ' + (t.dateTime || '-') + '</td>' +
+                      '<td style="border:1px solid #eee; padding:4px; text-align:right; color:#333;">₹ ' + (t.amount || 0).toLocaleString('en-IN') + '</td></tr>';
+            });
+          } else {
+            html += '<tr><td></td><td colspan="3" style="border:1px solid #eee; padding:4px 4px 4px 18px; color:#888; font-style:italic;">কোনো জমা এন্ট্রি নেই।</td></tr>';
+          }
+        });
+        html += '</tbody></table>';
+      }
+
+      // ৬. গ্রামীন চাঁদা (সকল দাতার খতিয়ান)
+      html += '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">🪙 ৫. গ্রামীন চাঁদা প্রাপ্তি খতিয়ান (সর্বমোট: ₹' + totalGramin.toLocaleString('en-IN') + ' | দাতা: ' + graminList.length + ' জন)</div>';
+      if (graminList.length === 0) {
+        html += '<div style="border:1px solid #ccc; padding:6px; font-size:11px; color:#777; margin-bottom:12px;">কোনো গ্রামীন চাঁদা নেই।</div>';
+      } else {
+        html += '<table style="width:100%; border-collapse:collapse; margin-bottom:12px; font-size:11px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:5px; width:8%; text-align:center;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:52%;">দাতার নাম</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:22%;">জমার সময়</th>' +
+                '<th style="border:1px solid #ccc; padding:5px; width:18%; text-align:right;">টাকা</th></tr></thead><tbody>';
+
+        graminList.forEach(function(g, i) {
+          html += '<tr><td style="border:1px solid #ccc; padding:4px; text-align:center;">' + (i + 1) + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:4px;"><strong>' + g.name + '</strong></td>' +
+                  '<td style="border:1px solid #ccc; padding:4px; font-size:10px; color:#666;">🕒 ' + (g.dateTime || '-') + '</td>' +
+                  '<td style="border:1px solid #ccc; padding:4px; text-align:right; font-weight:bold;">₹ ' + g.amount.toLocaleString('en-IN') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      // ৭. অনুষ্ঠান কর্মসূচি (প্রতিযোগীদের পূর্ণাঙ্গ তালিকা)
+      html += '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">🪔 ৬. সাংস্কৃতিক অনুষ্ঠান কর্মসূচি (অংশগ্রহণকারীদের বিস্তারিত তালিকা)</div>';
+      var catTitles = { dance: '💃 নাচ বিভাগ', song: '🎤 গান বিভাগ', recitation: '📜 আবৃত্তি বিভাগ' };
+      ['dance', 'song', 'recitation'].forEach(function(k) {
+        var pList = progData[k] || [];
+        html += '<div style="font-weight:bold; font-size:11px; color:#800020; margin:6px 0 2px 2px;">' + catTitles[k] + ' (মোট: ' + pList.length + ' জন):</div>' +
+                '<table style="width:100%; border-collapse:collapse; margin-bottom:8px; font-size:10px;"><thead><tr style="background:#eee;">' +
+                '<th style="border:1px solid #ccc; padding:4px; width:8%; text-align:center;">ক্রম</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; width:38%;">অংশগ্রহণকারীর নাম</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; width:14%; text-align:center;">বয়স</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; width:22%;">বিষয় / বিবরণ</th>' +
+                '<th style="border:1px solid #ccc; padding:4px; width:18%;">নিবন্ধন সময়</th></tr></thead><tbody>';
+
+        if (pList.length === 0) {
+          html += '<tr><td colspan="5" style="border:1px solid #ccc; padding:5px; text-align:center; color:#777;">এই বিভাগে কোনো নাম নথিভুক্ত নেই।</td></tr>';
+        } else {
+          pList.forEach(function(p, idx) {
+            html += '<tr><td style="border:1px solid #ccc; padding:4px; text-align:center;">' + (idx + 1) + '</td>' +
+                    '<td style="border:1px solid #ccc; padding:4px;"><strong>' + p.name + '</strong></td>' +
+                    '<td style="border:1px solid #ccc; padding:4px; text-align:center;">' + p.age + ' বছর</td>' +
+                    '<td style="border:1px solid #ccc; padding:4px;">' + (p.remarks || 'নির্দিষ্ট নেই') + '</td>' +
+                    '<td style="border:1px solid #ccc; padding:4px; color:#777;">' + (p.dateTime || '-') + '</td></tr>';
+          });
+        }
+        html += '</tbody></table>';
+      });
+
+      // ৮. খেলার কর্মসূচি ও ফলাফল (ইভেন্ট ও বিজয়ীদের পূর্ণাঙ্গ তালিকা)
+      html += '<div style="background:#800020; color:#fff; padding:5px 8px; font-weight:bold; font-size:12px; margin-top:14px;">🏆 ৭. ক্রীড়া প্রতিযোগিতা ও ফলাফল খতিয়ান</div>';
+      if (sportsData.length === 0) {
+        html += '<div style="border:1px solid #ccc; padding:6px; font-size:11px; color:#777; margin-bottom:12px;">কোনো খেলা যুক্ত করা হয়নি।</div>';
+      } else {
+        sportsData.forEach(function(s, idx) {
+          html += '<div style="font-weight:bold; font-size:11px; color:#222; margin:6px 0 2px 2px;">⚽ ' + (idx + 1) + '. ' + s.gameName + ' <span style="font-weight:normal; font-size:10px; color:#666;">(যুক্ত করার সময়: ' + (s.createdAt || '-') + ')</span></div>' +
+                  '<table style="width:100%; border-collapse:collapse; margin-bottom:8px; font-size:10px;"><thead><tr style="background:#eee;">' +
+                  '<th style="border:1px solid #ccc; padding:4px; width:22%;">স্থান / Rank</th>' +
+                  '<th style="border:1px solid #ccc; padding:4px; width:40%;">বিজয়ীর নাম</th>' +
+                  '<th style="border:1px solid #ccc; padding:4px; width:20%;">মন্তব্য</th>' +
+                  '<th style="border:1px solid #ccc; padding:4px; width:18%;">ঘোষণার সময়</th></tr></thead><tbody>';
+
+          if (!s.winners || s.winners.length === 0) {
+            html += '<tr><td colspan="4" style="border:1px solid #ccc; padding:5px; text-align:center; color:#777;">ফলাফল এখনও প্রকাশ করা হয়নি।</td></tr>';
+          } else {
+            s.winners.forEach(function(w) {
+              html += '<tr><td style="border:1px solid #ccc; padding:4px; font-weight:bold; color:#800020;">🏅 ' + w.rank + '</td>' +
+                      '<td style="border:1px solid #ccc; padding:4px;"><strong>' + w.winnerName + '</strong></td>' +
+                      '<td style="border:1px solid #ccc; padding:4px;">' + (w.remarks || '-') + '</td>' +
+                      '<td style="border:1px solid #ccc; padding:4px; color:#777;">' + (w.dateTime || '-') + '</td></tr>';
+            });
+          }
+          html += '</tbody></table>';
+        });
+      }
+
+      // স্বাক্ষর ও অনুমোদন সেকশন
+      html += '<div style="margin-top:35px; padding-top:15px; border-top:1px dashed #aaa; display:flex; justify-content:space-between; text-align:center; font-size:11px; color:#333;">' +
+              '<div>.........................................<br>কোষাধ্যক্ষ / হিসাবরক্ষক</div>' +
+              '<div>.........................................<br>নিরীক্ষক / অডিটর</div>' +
+              '<div>.........................................<br>সম্পাদক / সভাপতি</div>' +
+              '</div>';
+
+      openPdfPreview('পূজো শেষের সমগ্র অডিট খতিয়ান', html);
     }
 
     // ৩. সর্বসাধারণের রিপোর্ট PDF
