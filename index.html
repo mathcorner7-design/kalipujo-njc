@@ -4014,7 +4014,7 @@ updateCountdownDisplay();
       if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
       window.open(url, '_blank');
     }
-    /* Countdown Timer Calculation & Auto-Hide Logic */
+   /* Countdown Timer Calculation & Auto-Hide Logic */
     function updateCountdownDisplay() {
       var box = document.getElementById('countdownBox');
       var title = document.getElementById('countdownTitleText');
@@ -4035,17 +4035,19 @@ updateCountdownDisplay();
       var diffEnd = (targetDate + oneDayMs) - now;
 
       if (diff > 0) {
-        // ১. পূজোর আগের সময়: Countdown চলবে
+        // ১. পূজোর আগের সময়: Countdown চলবে
         box.style.display = 'block';
         var days = Math.floor(diff / (1000 * 60 * 60 * 24));
         var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         var mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        var secs = Math.floor((diff % (1000 * 60)) / 1000);
 
         if (title) title.innerText = "⏳ পূজোর আর বাকি মাত্র:";
         valBox.innerHTML = 
           '<span class="timer-unit">' + days + ' দিন</span> ' +
           '<span class="timer-unit">' + hours + ' ঘণ্টা</span> ' +
-          '<span class="timer-unit">' + mins + ' মিনিট</span>';
+          '<span class="timer-unit">' + mins + ' মিনিট</span> ' +
+          '<span class="timer-unit" style="color: #ff7675; min-width: 42px;">' + (secs < 10 ? '0' + secs : secs) + ' সেকেণ্ড</span>';
       } 
       else if (diff <= 0 && diffEnd > 0) {
         // ২. পূজোর দিন: শুভ কালীপূজার বার্তা ভেসে থাকবে
@@ -4054,13 +4056,14 @@ updateCountdownDisplay();
         valBox.innerHTML = '<span style="color:#ffd700; font-size:1rem; font-weight:bold; letter-spacing:0.5px;">🌸 মা কালীর কৃপায় সকলের মঙ্গল হোক 🌸</span>';
       } 
       else {
-        // ৩. পূজোর দিন পেরিয়ে গেলে বক্সটি স্বয়ংক্রিয়ভাবে গায়েব হয়ে যাবে
+        // ৩. পূজোর দিন পেরিয়ে গেলে বক্সটি স্বয়ংক্রিয়ভাবে গায়েব হয়ে যাবে
         box.style.display = 'none';
       }
     }
+    
 
     // প্রতি ১ মিনিট পর পর অটো চেক ও আপডেট হবে
-    setInterval(updateCountdownDisplay, 60000);
+    setInterval(updateCountdownDisplay, 1000);
     function updateKaliImageDisplay() {
       var img = document.getElementById('kaliPhoto');
       if (img && window.appState.kaliImageUrl) {
