@@ -2068,16 +2068,14 @@ updateCountdownDisplay();
           <!-- কর্মকর্তাদের তালিকা এখানে স্বয়ংক্রিয়ভাবে তৈরি হবে -->
         </div>
 
-        <!-- ৩. ফটো অ্যালবাম সেকশন (এক ক্লিকে অ্যালবাম দেখার ব্যবস্থা) -->
-        <div id="aboutSecGallery" class="hidden" style="text-align: center; padding: 15px 5px;">
-          <div style="font-size: 2.2rem; margin-bottom: 8px;">📸</div>
-          <div style="font-weight: bold; color: var(--gold-bright); font-size: 1.05rem; margin-bottom: 6px;">বিগত বছরের পুজো ও স্মৃতির মহাফেজখানা</div>
-          <p style="font-size: 0.82rem; color: #bbb; margin-bottom: 16px; line-height: 1.5;">আমাদের বিগত বছরগুলোর প্রতিমা, মণ্ডপ সজ্জা এবং সাংস্কৃতিক সন্ধ্যার সমস্ত রঙিন মুহূর্তের ছবি দেখতে নিচের বোতামে চাপুন।</p>
-          
-          <button id="btnOpenPhotoAlbum" onclick="openExternalAlbum()" class="btn" style="background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: bold; font-size: 0.95rem; border: none; box-shadow: 0 4px 15px rgba(245, 176, 65, 0.4); justify-content: center;">
-            <span>🖼️</span> <span>সম্পূর্ণ ফটো অ্যালবাম দেখুন</span>
-          </button>
-          <div id="noAlbumNotice" style="color: #ff7675; font-size: 0.8rem; margin-top: 10px; display: none;">অ্যাডমিন সেটিংস থেকে এখনও কোনো অ্যালবাম লিঙ্ক যুক্ত করা হয়নি।</div>
+        <!-- ৩. ফটো অ্যালবাম সেকশন (স্ক্রোলযোগ্য ছবির গ্রিড) -->
+        <div id="aboutSecGallery" class="hidden">
+          <div id="galleryGridContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 52vh; overflow-y: auto; padding-right: 2px;">
+            <!-- জাভাস্ক্রিপ্ট দিয়ে সব ছবি এখানে বসবে -->
+          </div>
+          <div id="noAlbumNotice" style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 30px 10px; display: none;">
+            গ্যালারিতে এখনও কোনো ছবি যুক্ত করা হয়নি।<br><span style="font-size:0.75rem; color:var(--gold-primary);">(অ্যাডমিন সেটিংস ⚙️ থেকে ছবির লিঙ্ক যুক্ত করুন)</span>
+          </div>
         </div>
 
       </div>
@@ -2180,7 +2178,9 @@ updateCountdownDisplay();
           <textarea id="settingExecutiveMembers" class="input-field" rows="3" placeholder="অংশুমান বেরা - সভাপতি&#10;রাহুল দাস - সম্পাদক&#10;সুবীর জানা - কোষাধ্যক্ষ" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
 
           <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 সম্পূর্ণ ফটো অ্যালবামের লিঙ্ক (ImgBB / Drive Album Link):</div>
-          <input type="text" id="settingPhotoAlbumUrl" class="input-field" placeholder="https://ibb.co/album/... বা ড্রাইভ অ্যালবাম লিঙ্ক">
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 ফটো গ্যালারির ছবি লিঙ্কসমূহ (প্রতি লাইনে ১টি ImgBB Direct Link দিন):</div>
+          <textarea id="settingPhotoAlbumUrl" class="input-field" rows="4" placeholder="https://i.ibb.co/.../pic1.jpg&#10;https://i.ibb.co/.../pic2.jpg&#10;https://i.ibb.co/.../pic3.jpg" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
+          <div style="font-size:0.7rem; color:#888;">যত খুশি ছবির লিঙ্ক দিতে পারেন, প্রতি লাইনে একটি করে লিঙ্ক (Enter চেপে) লিখবেন।</div>
         </div>
         <!-- সেকশন ৪: যোগাযোগ ও সোশ্যাল মিডিয়া লিঙ্ক -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
@@ -2241,6 +2241,13 @@ updateCountdownDisplay();
     </div>
   </div>
 
+  <!-- বড় আকারে একক ছবি দেখার লাইটবক্স পপআপ -->
+  <div id="photoLightboxModal" class="modal-overlay hidden" style="z-index: 9999999 !important; background: rgba(0,0,0,0.95);" onclick="closePhotoLightbox()">
+    <div style="position: relative; max-width: 90vw; max-height: 85vh; display: flex; justify-content: center; align-items: center;" onclick="event.stopPropagation()">
+      <button onclick="closePhotoLightbox()" style="position: absolute; top: -35px; right: 0; background: transparent; border: none; color: #ff7675; font-size: 1.8rem; cursor: pointer; line-height: 1;">&times;</button>
+      <img id="lightboxImgDisplay" src="" alt="বড় ছবি" style="max-width: 100%; max-height: 80vh; border-radius: 10px; border: 2px solid var(--gold-bright); box-shadow: 0 0 25px rgba(245, 176, 65, 0.5); object-fit: contain;">
+    </div>
+  </div>
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal-box">
       <h3 id="editModalTitle">এন্ট্রি সম্পাদনা</h3>
@@ -3873,6 +3880,24 @@ updateCountdownDisplay();
     function closeAboutCommitteeModal() {
       document.getElementById('aboutCommitteeModal').classList.add('hidden');
     }
+    /* বড় ছবি দেখার লাইটবক্স ফাংশন */
+    function openPhotoLightbox(imgUrl) {
+      var modal = document.getElementById('photoLightboxModal');
+      var img = document.getElementById('lightboxImgDisplay');
+      if (modal && img) {
+        img.src = imgUrl;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closePhotoLightbox() {
+      var modal = document.getElementById('photoLightboxModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        var img = document.getElementById('lightboxImgDisplay');
+        if (img) img.src = '';
+      }
+    }
 
     function switchAboutTab(tab) {
       var tHist = document.getElementById('tabBtnHistory');
@@ -3940,8 +3965,7 @@ updateCountdownDisplay();
                   '<div style="font-weight:bold; font-size:0.95rem; color:#fff;">' + name + '</div>' +
                   '<div style="font-size:0.78rem; color:var(--gold-bright); margin-top:2px;">' + role + '</div>' +
                 '</div>' +
-              '</div>' +
-              '<span style="font-size:0.75rem; color:#888;">#' + (idx + 1) + '</span>';
+              '</div>';
             sMem.appendChild(card);
           });
         }
@@ -3949,14 +3973,32 @@ updateCountdownDisplay();
       else if (tab === 'gallery') {
         tGal.classList.add('active');
         sGal.classList.remove('hidden');
+        var container = document.getElementById('galleryGridContainer');
         var notice = document.getElementById('noAlbumNotice');
-        var btn = document.getElementById('btnOpenPhotoAlbum');
-        if (window.appState.photoAlbumUrl) {
-          if (btn) btn.style.display = 'inline-flex';
-          if (notice) notice.style.display = 'none';
-        } else {
-          if (btn) btn.style.display = 'none';
+        if (!container) return;
+        container.innerHTML = '';
+
+        var rawUrls = window.appState.photoAlbumUrl || '';
+        var photoList = rawUrls.split('\n').map(function(u) { return u.trim(); }).filter(Boolean);
+
+        if (photoList.length === 0) {
+          container.style.display = 'none';
           if (notice) notice.style.display = 'block';
+        } else {
+          container.style.display = 'grid';
+          if (notice) notice.style.display = 'none';
+
+          photoList.forEach(function(url) {
+            var thumb = document.createElement('div');
+            thumb.style = 'height: 110px; border-radius: 8px; overflow: hidden; border: 1.5px solid rgba(245, 176, 65, 0.4); background: #000; cursor: pointer;';
+            thumb.innerHTML = '<img src="' + url + '" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.parentElement.style.display=\'none\';">';
+            
+            // ছবিতে ক্লিক করলেই বড় ছবি পপআপে খুলে যাবে
+            thumb.onclick = function() {
+              openPhotoLightbox(url);
+            };
+            container.appendChild(thumb);
+          });
         }
       }
     }
