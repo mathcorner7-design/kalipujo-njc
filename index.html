@@ -133,33 +133,32 @@
       overflow: hidden;
       border-radius: 22px;
       pointer-events: none;
-      z-index: 1;
+      z-index: 99; /* সমস্ত কার্ড ও বাটনের উপর আলো ভাসবে */
+      mix-blend-mode: screen; /* লেখার ক্ষতি না করে সোনালী আভা ছড়াবে */
     }
 
-    /* ধীর গতির সোনালী আলো ১ */
     .glow-orb-1 {
       position: absolute;
-      width: 260px;
-      height: 260px;
-      top: -40px;
-      left: 10%;
-      background: radial-gradient(circle, rgba(255, 215, 0, 0.45) 0%, rgba(245, 176, 65, 0.08) 45%, transparent 70%);
-      filter: blur(35px);
+      width: 220px;
+      height: 220px;
+      top: 10%;
+      left: -20px;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, rgba(243, 156, 18, 0.3) 50%, transparent 75%);
+      filter: blur(25px);
       border-radius: 50%;
-      animation: ambientFloat1 14s ease-in-out infinite alternate;
+      animation: ambientFloat1 7s ease-in-out infinite alternate;
     }
 
-    /* ধীর গতির রক্তিম-সোনালী আলো ২ */
     .glow-orb-2 {
       position: absolute;
       width: 240px;
       height: 240px;
-      bottom: 10%;
-      right: 5%;
-      background: radial-gradient(circle, rgba(128, 0, 32, 0.45) 0%, rgba(245, 176, 65, 0.12) 40%, transparent 70%);
-      filter: blur(40px);
+      bottom: 15%;
+      right: -20px;
+      background: radial-gradient(circle, rgba(255, 120, 0, 0.55) 0%, rgba(231, 76, 60, 0.25) 50%, transparent 75%);
+      filter: blur(25px);
       border-radius: 50%;
-      animation: ambientFloat2 16s ease-in-out infinite alternate;
+      animation: ambientFloat2 9s ease-in-out infinite alternate;
     }
 
     @keyframes ambientFloat1 {
@@ -1575,7 +1574,7 @@ window.appState.contactInsta = instaLink;
 
         <button type="button" class="btn btn-public" onclick="openPublicScreen()">
           <span>👥</span>
-          <span>সবার জন্য (হিসাব দেখুন)</span>
+          <span>পূজোর সামগ্রিক বিবরণী</span>
         </button>
         <!-- সময়সূচি ব্যানার দেখার বাটন -->
         <button type="button" class="btn" onclick="openScheduleModal()" style="background: linear-gradient(135deg, #16a085 0%, #0e6655 100%); color: #ffffff; border: 1.5px solid #a3e4d7; box-shadow: 0 4px 15px rgba(22, 160, 133, 0.4);">
@@ -1666,7 +1665,7 @@ window.appState.contactInsta = instaLink;
         </div>
         <div class="menu-card menu-card-full" onclick="openFinalAuditScreen()">
           <div class="menu-icon">⚖️</div>
-          <div class="menu-label" style="font-size: 1.1rem; color: var(--gold-bright);">পূজো শেষে মেম্বার দের হিসাব </div>
+          <div class="menu-label" style="font-size: 1.1rem; color: var(--gold-bright);">পূজোর শেষে মেম্বারদের হিসাব </div>
         </div>
       </div>
 
