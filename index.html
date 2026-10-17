@@ -3173,6 +3173,102 @@ window.appState.contactInsta = instaLink;
         console.warn("Cloud connection notice:", e);
       }
     });
+    var matchedCards = [];
+var currentMatchIndex = -1;
+
+// আতসকাচ বাটন দেখানো বা লুকানো
+function showAdminFinderButton(show) {
+  var btn = document.getElementById('adminFinderTriggerBtn');
+  if (btn) {
+    btn.style.display = show ? 'flex' : 'none';
+  }
+}
+
+// আতসকাচে চাপ দিলে সার্চ বার ওপেন হওয়া
+function openInAppFinder() {
+  var bar = document.getElementById('inAppFinderBar');
+  if (!bar) return;
+  bar.style.display = 'flex';
+  var inp = document.getElementById('finderSearchText');
+  if (inp) {
+    inp.value = '';
+    inp.focus();
+  }
+  clearFindHighlights();
+  document.getElementById('finderCountText').innerText = '০/০';
+}
+
+// ✖ বাটনে চাপ দিলে সার্চ বার বন্ধ হওয়া
+function closeInAppFinder() {
+  clearFindHighlights();
+  var bar = document.getElementById('inAppFinderBar');
+  if (bar) bar.style.display = 'none';
+}
+
+// টাইপ করলে শুধুমাত্র বর্তমানে দৃশ্যমান পেজে নাম খোঁজা
+function startInAppFind() {
+  var query = (document.getElementById('finderSearchText')?.value || '').trim().toLowerCase();
+  clearFindHighlights();
+  matchedCards = [];
+  currentMatchIndex = -1;
+
+  if (!query) {
+    document.getElementById('finderCountText').innerText = '০/০';
+    return;
+  }
+
+  // সব কার্ড সংগ্রহ করা
+  var allCards = document.querySelectorAll('.list-card, .table-row, .entry-card, tr');
+
+  allCards.forEach(function(card) {
+    // offsetParent !== null এর মানে হলো কার্ডটি বর্তমানে চোখের সামনে খোলা আছে, অন্য কোনো লুকানো ট্যাবে নয়
+    var isVisible = card.offsetParent !== null;
+    if (isVisible && card.innerText.toLowerCase().includes(query)) {
+      matchedCards.push(card);
+    }
+  });
+
+  if (matchedCards.length > 0) {
+    currentMatchIndex = 0;
+    updateMatchView();
+  } else {
+    document.getElementById('finderCountText').innerText = '০/০';
+  }
+}
+
+// ▲ বা ▼ চাপলে পরের বা আগের নামে স্ক্রোল করা
+function navigateFind(direction) {
+  if (matchedCards.length === 0) return;
+  currentMatchIndex += direction;
+  if (currentMatchIndex >= matchedCards.length) currentMatchIndex = 0;
+  if (currentMatchIndex < 0) currentMatchIndex = matchedCards.length - 1;
+  updateMatchView();
+}
+
+// নির্দিষ্ট কার্ড স্ক্রিনে এনে সোনালী বর্ডারে হাইলাইট করা
+function updateMatchView() {
+  matchedCards.forEach(function(card, idx) {
+    if (idx === currentMatchIndex) {
+      card.style.outline = '3px solid #ffd700';
+      card.style.backgroundColor = 'rgba(255, 215, 0, 0.25)';
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      card.style.outline = '1.5px dashed #ffd700';
+      card.style.backgroundColor = 'rgba(255, 215, 0, 0.08)';
+    }
+  });
+
+  document.getElementById('finderCountText').innerText = (currentMatchIndex + 1) + '/' + matchedCards.length;
+}
+
+// হাইলাইট মুছে ফেলা
+function clearFindHighlights() {
+  var allCards = document.querySelectorAll('.list-card, .table-row, .entry-card, tr');
+  allCards.forEach(function(card) {
+    card.style.outline = '';
+    card.style.backgroundColor = '';
+  });
+}
   </script>
     <!-- সার্বজনীন প্রিন্ট / PDF প্রিভিউ মডেল -->
   <div id="universalPdfModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
@@ -3196,5 +3292,18 @@ window.appState.contactInsta = instaLink;
       <div id="pdfModalContent" style="width: 100%; max-height: 65vh; overflow-y: scroll; -webkit-overflow-scrolling: touch; background: #ffffff; color: #111111; padding: 12px; border-radius: 8px; text-align: left; font-size: 13px; box-sizing: border-box;"></div>
     </div>
   </div>
+  <!-- ১. সার্বক্ষণিক ভাসমান আতসকাচ বাটন (শুধুমাত্র অ্যাডমিনের জন্য) -->
+<button id="adminFinderTriggerBtn" type="button" onclick="openInAppFinder()" title="পেজে খুঁজুন" style="display: none; position: fixed; bottom: 25px; right: 20px; z-index: 9999; background: #800020; color: #ffd700; border: 2px solid #ffd700; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; align-items: center; justify-content: center;">
+  🔍
+</button>
+
+<!-- ২. ব্রাউজার স্টাইল ফাইন্ডার বার -->
+<div id="inAppFinderBar" style="display: flex; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: #1f1f1f; border: 1.5px solid #ffd700; border-radius: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.85); z-index: 100000; padding: 6px 14px; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 8px;">
+  <input type="text" id="finderSearchText" placeholder="বর্তমান পেজে খুঁজুন..." oninput="startInAppFind()" style="flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 14px;">
+  <span id="finderCountText" style="color: #ffd700; font-size: 12px; font-weight: bold; min-width: 35px; text-align: center;">০/০</span>
+  <button type="button" onclick="navigateFind(-1)" style="background: #333; color: #fff; border: 1px solid #555; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">▲</button>
+  <button type="button" onclick="navigateFind(1)" style="background: #333; color: #fff; border: 1px solid #555; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">▼</button>
+  <button type="button" onclick="closeInAppFinder()" style="background: transparent; color: #aaa; border: none; font-size: 16px; cursor: pointer; padding: 0 4px;">✖</button>
+</div>
 </body>
 </html>
