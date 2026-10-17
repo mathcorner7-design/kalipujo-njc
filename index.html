@@ -221,6 +221,9 @@
       contactInsta: '',
       scheduleBannerUrl: '',
       pujaDate: '',
+      committeeHistory: '',
+      executiveMembersText: '',
+      photoAlbumUrl: '',
       kaliImageUrl: '',
       graminChandaList: [],
       memberAccounts: [],
@@ -1327,6 +1330,14 @@ dharBakiList: []
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
       var dateInp = document.getElementById('settingPujaDate');
 if (dateInp) dateInp.value = window.appState.pujaDate || '';
+      var histInp = document.getElementById('settingCommitteeHistory');
+      if (histInp) histInp.value = window.appState.committeeHistory || '';
+
+      var memInp = document.getElementById('settingExecutiveMembers');
+      if (memInp) memInp.value = window.appState.executiveMembersText || '';
+
+      var albInp = document.getElementById('settingPhotoAlbumUrl');
+      if (albInp) albInp.value = window.appState.photoAlbumUrl || '';
       var kaliInp = document.getElementById('settingKaliImgLink');
       if (kaliInp) kaliInp.value = window.appState.kaliImageUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
@@ -1350,6 +1361,9 @@ window.appState.contactInsta = instaLink;
       window.appState.scheduleBannerUrl = schedLink;
       var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
 window.appState.pujaDate = pDate;
+      window.appState.committeeHistory = document.getElementById('settingCommitteeHistory') ? document.getElementById('settingCommitteeHistory').value.trim() : '';
+      window.appState.executiveMembersText = document.getElementById('settingExecutiveMembers') ? document.getElementById('settingExecutiveMembers').value.trim() : '';
+      window.appState.photoAlbumUrl = document.getElementById('settingPhotoAlbumUrl') ? document.getElementById('settingPhotoAlbumUrl').value.trim() : '';
 updateCountdownDisplay();
       var kaliLink = document.getElementById('settingKaliImgLink') ? document.getElementById('settingKaliImgLink').value.trim() : '';
       window.appState.kaliImageUrl = kaliLink;
@@ -1638,6 +1652,11 @@ updateCountdownDisplay();
         <button type="button" class="btn" onclick="openScheduleModal()" style="background: linear-gradient(135deg, #16a085 0%, #0e6655 100%); color: #ffffff; border: 1.5px solid #a3e4d7; box-shadow: 0 4px 15px rgba(22, 160, 133, 0.4);">
           <span>📅</span>
           <span>এ বছরের সময়সূচি ও নির্ঘণ্ট</span>
+        </button>
+        <!-- কমিটি পরিচিতি ও মহাফেজখানা বাটন -->
+        <button type="button" class="btn" onclick="openAboutCommitteeModal()" style="background: linear-gradient(135deg, rgba(128, 0, 32, 0.95), rgba(40, 2, 8, 0.95)); color: var(--gold-bright); border: 1.2px solid var(--gold-primary); font-size: 0.95rem; padding: 11px 14px; margin-top: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+          <span>🏛️</span>
+          <span>কমিটির ইতিহাস ও গ্যালারি</span>
         </button>
       </div>
 
@@ -2017,6 +2036,57 @@ updateCountdownDisplay();
   </div> <!-- /app-container -->
 
   <!-- MODALS -->
+  <!-- 🏛️ কমিটি পরিচিতি ও মহাফেজখানা মডাল -->
+  <div id="aboutCommitteeModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
+    <div class="modal-box" style="max-width: 440px; width: 95%; max-height: 88vh; display: flex; flex-direction: column; padding: 14px;">
+      
+      <!-- মডাল হেডার -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--gold-primary); padding-bottom: 8px; margin-bottom: 10px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: var(--gold-bright); display: flex; align-items: center; gap: 6px;">
+          <span>🏛️</span> <span>আমাদের ঐতিহ্য ও পরিচিতি</span>
+        </h3>
+        <button onclick="closeAboutCommitteeModal()" style="background: transparent; border: none; color: #ff7675; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
+
+      <!-- ৩টি প্রধান সাব-ট্যাব বাটন -->
+      <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+        <button id="tabBtnHistory" onclick="switchAboutTab('history')" class="tab-btn active" style="font-size: 0.85rem; padding: 6px 2px;">📜 ইতিহাস</button>
+        <button id="tabBtnMembers" onclick="switchAboutTab('members')" class="tab-btn" style="font-size: 0.85rem; padding: 6px 2px;">👥 কর্মকর্তা</button>
+        <button id="tabBtnGallery" onclick="switchAboutTab('gallery')" class="tab-btn" style="font-size: 0.85rem; padding: 6px 2px;">📸 ফটো অ্যালবাম</button>
+      </div>
+
+      <!-- কন্টেন্ট এরিয়া (স্ক্রোলযোগ্য) -->
+      <div style="flex-grow: 1; overflow-y: auto; text-align: left; padding-right: 4px;">
+        
+        <!-- ১. ইতিহাস সেকশন -->
+        <div id="aboutSecHistory" style="line-height: 1.7; font-size: 0.92rem; color: #f5e6d3; white-space: pre-line; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; border: 1px solid rgba(245, 176, 65, 0.25);">
+          <!-- ইতিহাস লেখা এখানে স্বয়ংক্রিয়ভাবে বসবে -->
+        </div>
+
+        <!-- ২. কর্মকর্তা পরিষদ তালিকা -->
+        <div id="aboutSecMembers" class="hidden" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- কর্মকর্তাদের তালিকা এখানে স্বয়ংক্রিয়ভাবে তৈরি হবে -->
+        </div>
+
+        <!-- ৩. ফটো অ্যালবাম সেকশন (এক ক্লিকে অ্যালবাম দেখার ব্যবস্থা) -->
+        <div id="aboutSecGallery" class="hidden" style="text-align: center; padding: 15px 5px;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">📸</div>
+          <div style="font-weight: bold; color: var(--gold-bright); font-size: 1.05rem; margin-bottom: 6px;">বিগত বছরের পুজো ও স্মৃতির মহাফেজখানা</div>
+          <p style="font-size: 0.82rem; color: #bbb; margin-bottom: 16px; line-height: 1.5;">আমাদের বিগত বছরগুলোর প্রতিমা, মণ্ডপ সজ্জা এবং সাংস্কৃতিক সন্ধ্যার সমস্ত রঙিন মুহূর্তের ছবি দেখতে নিচের বোতামে চাপুন।</p>
+          
+          <button id="btnOpenPhotoAlbum" onclick="openExternalAlbum()" class="btn" style="background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: bold; font-size: 0.95rem; border: none; box-shadow: 0 4px 15px rgba(245, 176, 65, 0.4); justify-content: center;">
+            <span>🖼️</span> <span>সম্পূর্ণ ফটো অ্যালবাম দেখুন</span>
+          </button>
+          <div id="noAlbumNotice" style="color: #ff7675; font-size: 0.8rem; margin-top: 10px; display: none;">অ্যাডমিন সেটিংস থেকে এখনও কোনো অ্যালবাম লিঙ্ক যুক্ত করা হয়নি।</div>
+        </div>
+
+      </div>
+
+      <div class="modal-actions" style="margin-top: 10px;">
+        <button class="btn-cancel" onclick="closeAboutCommitteeModal()" style="width: 100%;">বন্ধ করুন</button>
+      </div>
+    </div>
+  </div>
   <!-- সময়সূচি ব্যানার ভিউয়ার পপআপ -->
   <div id="scheduleModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
     <div class="modal-box" style="max-width: 420px; width: 95%; max-height: 90vh; padding: 12px; display: flex; flex-direction: column;">
@@ -2097,6 +2167,21 @@ updateCountdownDisplay();
           <input type="date" id="settingPujaDate" class="input-field" style="color-scheme: dark;">
         </div>
 
+        <!-- সেকশন: কমিটি পরিচিতি ও ফটো অ্যালবাম কনফিগারেশন -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
+          <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🏛️</span> <span>কমিটির ইতিহাস ও অ্যালবাম সেটিংস</span>
+          </div>
+
+          <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">📜 কমিটির সংক্ষিপ্ত ইতিহাস (History):</div>
+          <textarea id="settingCommitteeHistory" class="input-field" rows="4" placeholder="২০০২ সাল থেকে আমাদের ক্লাবের গৌরবময় পথচলা..." style="resize: vertical; font-size:0.85rem; line-height:1.4;"></textarea>
+
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">👥 কর্মকর্তা পরিষদ (প্রতি লাইনে: নাম - পদবী):</div>
+          <textarea id="settingExecutiveMembers" class="input-field" rows="3" placeholder="অংশুমান বেরা - সভাপতি&#10;রাহুল দাস - সম্পাদক&#10;সুবীর জানা - কোষাধ্যক্ষ" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
+
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 সম্পূর্ণ ফটো অ্যালবামের লিঙ্ক (ImgBB / Drive Album Link):</div>
+          <input type="text" id="settingPhotoAlbumUrl" class="input-field" placeholder="https://ibb.co/album/... বা ড্রাইভ অ্যালবাম লিঙ্ক">
+        </div>
         <!-- সেকশন ৪: যোগাযোগ ও সোশ্যাল মিডিয়া লিঙ্ক -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
           <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
@@ -2187,6 +2272,9 @@ updateCountdownDisplay();
       contactInsta: '',
       scheduleBannerUrl: '',
       pujaDate: '',
+      committeeHistory: '',
+      executiveMembersText: '',
+      photoAlbumUrl: '',
       kaliImageUrl: '',
       graminChandaList: [],
       memberAccounts: [],
@@ -3075,6 +3163,14 @@ else if (type === 'dhar_baki') {
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
       var dateInp = document.getElementById('settingPujaDate');
 if (dateInp) dateInp.value = window.appState.pujaDate || '';
+      var histInp = document.getElementById('settingCommitteeHistory');
+      if (histInp) histInp.value = window.appState.committeeHistory || '';
+
+      var memInp = document.getElementById('settingExecutiveMembers');
+      if (memInp) memInp.value = window.appState.executiveMembersText || '';
+
+      var albInp = document.getElementById('settingPhotoAlbumUrl');
+      if (albInp) albInp.value = window.appState.photoAlbumUrl || '';
       var kaliInp = document.getElementById('settingKaliImgLink');
       if (kaliInp) kaliInp.value = window.appState.kaliImageUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
@@ -3099,6 +3195,9 @@ window.appState.contactInsta = instaLink;
       window.appState.scheduleBannerUrl = schedLink;
       var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
 window.appState.pujaDate = pDate;
+      window.appState.committeeHistory = document.getElementById('settingCommitteeHistory') ? document.getElementById('settingCommitteeHistory').value.trim() : '';
+      window.appState.executiveMembersText = document.getElementById('settingExecutiveMembers') ? document.getElementById('settingExecutiveMembers').value.trim() : '';
+      window.appState.photoAlbumUrl = document.getElementById('settingPhotoAlbumUrl') ? document.getElementById('settingPhotoAlbumUrl').value.trim() : '';
 updateCountdownDisplay();
       var kaliLink = document.getElementById('settingKaliImgLink') ? document.getElementById('settingKaliImgLink').value.trim() : '';
       window.appState.kaliImageUrl = kaliLink;
@@ -3764,6 +3863,86 @@ updateCountdownDisplay();
     function closeScheduleModal() {
       var modal = document.getElementById('scheduleModal');
       if (modal) modal.classList.add('hidden');
+    }
+    /* 🏛️ কমিটি পরিচিতি ও ফটো অ্যালবাম লজিক */
+    function openAboutCommitteeModal() {
+      document.getElementById('aboutCommitteeModal').classList.remove('hidden');
+      switchAboutTab('history');
+    }
+
+    function closeAboutCommitteeModal() {
+      document.getElementById('aboutCommitteeModal').classList.add('hidden');
+    }
+
+    function switchAboutTab(tab) {
+      var tHist = document.getElementById('tabBtnHistory');
+      var tMem = document.getElementById('tabBtnMembers');
+      var tGal = document.getElementById('tabBtnGallery');
+      var sHist = document.getElementById('aboutSecHistory');
+      var sMem = document.getElementById('aboutSecMembers');
+      var sGal = document.getElementById('aboutSecGallery');
+
+      [tHist, tMem, tGal].forEach(function(b) { if(b) b.classList.remove('active'); });
+      [sHist, sMem, sGal].forEach(function(s) { if(s) s.classList.add('hidden'); });
+
+      if (tab === 'history') {
+        tHist.classList.add('active');
+        sHist.classList.remove('hidden');
+        sHist.innerText = window.appState.committeeHistory || 'কমিটির ইতিহাস ও সূচনা এখনও লিপিবদ্ধ করা হয়নি।\n(অ্যাডমিন সেটিংস ⚙️ থেকে ইতিহাস লিখে সেভ করুন)';
+      } 
+      else if (tab === 'members') {
+        tMem.classList.add('active');
+        sMem.classList.remove('hidden');
+        sMem.innerHTML = '';
+        var rawText = window.appState.executiveMembersText || '';
+        var lines = rawText.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+
+        if (lines.length === 0) {
+          sMem.innerHTML = '<div style="color:#aaa; font-size:0.85rem; text-align:center; padding:20px;">কোনো কর্মকর্তা তালিকা নথিভুক্ত নেই।<br>(অ্যাডমিন সেটিংস ⚙️ থেকে যুক্ত করুন)</div>';
+        } else {
+          lines.forEach(function(line, idx) {
+            var parts = line.split('-').map(function(p) { return p.trim(); });
+            var name = parts[0] || 'নাম উল্লেখ নেই';
+            var role = parts[1] || 'কার্যনির্বাহী সদস্য';
+
+            var card = document.createElement('div');
+            card.style = 'background: rgba(30, 2, 7, 0.9); border: 1px solid rgba(245, 176, 65, 0.3); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;';
+            card.innerHTML = 
+              '<div style="display:flex; align-items:center; gap:10px;">' +
+                '<span style="font-size:1.4rem;">👤</span>' +
+                '<div>' +
+                  '<div style="font-weight:bold; font-size:0.95rem; color:#fff;">' + name + '</div>' +
+                  '<div style="font-size:0.78rem; color:var(--gold-bright); margin-top:2px;">' + role + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<span style="font-size:0.75rem; color:#888;">#' + (idx + 1) + '</span>';
+            sMem.appendChild(card);
+          });
+        }
+      } 
+      else if (tab === 'gallery') {
+        tGal.classList.add('active');
+        sGal.classList.remove('hidden');
+        var notice = document.getElementById('noAlbumNotice');
+        var btn = document.getElementById('btnOpenPhotoAlbum');
+        if (window.appState.photoAlbumUrl) {
+          if (btn) btn.style.display = 'inline-flex';
+          if (notice) notice.style.display = 'none';
+        } else {
+          if (btn) btn.style.display = 'none';
+          if (notice) notice.style.display = 'block';
+        }
+      }
+    }
+
+    function openExternalAlbum() {
+      var url = window.appState.photoAlbumUrl;
+      if (!url) {
+        alert("কমিটি এখনও ফটো অ্যালবামের লিঙ্ক দেয়নি।");
+        return;
+      }
+      if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+      window.open(url, '_blank');
     }
     /* Countdown Timer Calculation & Auto-Hide Logic */
     function updateCountdownDisplay() {
