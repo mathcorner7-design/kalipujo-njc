@@ -185,6 +185,7 @@
       contactWp: '',
       contactInsta: '',
       scheduleBannerUrl: '',
+      kaliImageUrl: '',
       graminChandaList: [],
       memberAccounts: [],
       mainExpenseCategories: [],
@@ -1288,6 +1289,8 @@ dharBakiList: []
       document.getElementById('settingInstaLink').value = window.appState.contactInsta || '';
       var schedInp = document.getElementById('settingScheduleLink');
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
+      var kaliInp = document.getElementById('settingKaliImgLink');
+      if (kaliInp) kaliInp.value = window.appState.kaliImageUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
     };
     window.closeAdminSettingsModal = function() { document.getElementById('adminSettingsModal').classList.add('hidden'); };
@@ -1307,6 +1310,9 @@ window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
+      var kaliLink = document.getElementById('settingKaliImgLink') ? document.getElementById('settingKaliImgLink').value.trim() : '';
+      window.appState.kaliImageUrl = kaliLink;
+      updateKaliImageDisplay();
 
       if (newPin) {
         if (currPin !== (window.appState.adminPin || '1234')) {
@@ -1990,40 +1996,84 @@ window.appState.contactInsta = instaLink;
     </div>
   </div>
 
-  <div id="adminSettingsModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <h3>অ্যাডমিন সেটিংস</h3>
-      <div style="text-align: left; font-size:0.85rem; color:var(--gold-primary); margin-bottom:4px;">পূজার সাল পরিবর্তন:</div>
-      <input type="text" id="settingYear" class="input-field" placeholder="যেমন: ২০২৬ বা 2026">
+  <!-- গোছানো প্রিমিয়াম অ্যাডমিন সেটিংস মডাল -->
+  <div id="adminSettingsModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
+    <div class="modal-box" style="max-width: 440px; width: 95%; max-height: 88vh; display: flex; flex-direction: column; padding: 14px;">
       
-      <div style="text-align: left; font-size:0.85rem; color:var(--gold-primary); margin-top:8px; margin-bottom:4px;">পিন পরিবর্তন:</div>
-      <input type="password" id="currentPin" class="input-field" placeholder="বর্তমান পিন" maxlength="6" inputmode="numeric">
-      <input type="password" id="newPin" class="input-field" style="margin-top:6px;" placeholder="নতুন পিন" maxlength="6" inputmode="numeric">
-
-      <div style="border-top: 1px solid rgba(245, 176, 65, 0.4); margin: 12px 0 8px 0; padding-top: 8px; text-align: left;">
-        <div style="font-size:0.9rem; font-weight:bold; color:var(--gold-bright); margin-bottom:6px;">যোগাযোগের লিংক সেটিংস:</div>
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-bottom:2px;">YouTube Link:</div>
-        <input type="text" id="settingYtLink" class="input-field" placeholder="https://youtube.com/...">
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">Facebook Link:</div>
-        <input type="text" id="settingFbLink" class="input-field" placeholder="https://facebook.com/...">
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">WhatsApp Link বা নম্বর:</div>
-        <input type="text" id="settingWpLink" class="input-field" placeholder="যেমন: 919876543210 বা চ্যাট লিংক">
-       <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">Instagram Link:</div>
-<input type="text" id="settingInstaLink" class="input-field" placeholder="https://instagram.com/...">
-        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:8px; margin-bottom:2px;">📅 সময়সূচি ব্যানার ইমেজ লিঙ্ক (ImgBB Direct Link):</div>
-        <input type="text" id="settingScheduleLink" class="input-field" placeholder="https://i.ibb.co/.../banner.jpg">
+      <!-- হেডার -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--gold-primary); padding-bottom: 8px; margin-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: var(--gold-bright); display: flex; align-items: center; gap: 6px;">
+          <span>⚙️</span> <span>অ্যাডমিন সেটিংস</span>
+        </h3>
+        <button onclick="closeAdminSettingsModal()" style="background: transparent; border: none; color: #ff7675; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
       </div>
 
-      <button class="btn-reset" onclick="openResetConfirmation()">⚠️ Reset The App (সমস্ত হিসাব মুছুন)</button>
+      <!-- স্ক্রোলযোগ্য সেটিংস কনটেন্ট -->
+      <div style="flex-grow: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px;">
 
-      <div class="modal-actions" style="margin-top:12px;">
-        <button class="btn-cancel" onclick="closeAdminSettingsModal()">বাতিল</button>
-        <button class="btn-submit" onclick="saveAdminSettings()">সংরক্ষণ</button>
+        <!-- সেকশন ১: সুরক্ষা ও অ্যাক্সেস -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
+          <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🔐</span> <span>সুরক্ষা ও পিন পরিবর্তন (Security)</span>
+          </div>
+          <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">বর্তমান পিন নম্বর:</div>
+          <input type="password" id="currentPin" class="input-field" placeholder="বর্তমান পিন" maxlength="6" inputmode="numeric">
+          <div style="font-size:0.75rem; color:#bbb; margin-top:6px; margin-bottom:4px;">নতুন পিন নম্বর (কমপক্ষে ৪ সংখ্যা):</div>
+          <input type="password" id="newPin" class="input-field" placeholder="নতুন পিন" maxlength="6" inputmode="numeric">
+        </div>
+
+        <!-- সেকশন ২: ব্যানার ও ছবি লিঙ্ক -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
+          <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🎨</span> <span>ব্যানার ও ছবি লিঙ্ক (ImgBB Media)</span>
+          </div>
+          <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">🌺 মা কালীর প্রতিমা ছবি (Direct Link):</div>
+          <input type="text" id="settingKaliImgLink" class="input-field" placeholder="https://i.ibb.co/.../kali.jpg">
+
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📅 সময়সূচি ব্যানার ইমেজ (Direct Link):</div>
+          <input type="text" id="settingScheduleLink" class="input-field" placeholder="https://i.ibb.co/.../banner.jpg">
+        </div>
+
+        <!-- সেকশন ৩: সাধারণ তথ্য ও সাল -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
+          <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>📢</span> <span>সাধারণ তথ্য ও সাল</span>
+          </div>
+          <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">পূজার সাল (Year):</div>
+          <input type="text" id="settingYear" class="input-field" placeholder="যেমন: ২০২৬ বা 2026">
+        </div>
+
+        <!-- সেকশন ৪: যোগাযোগ ও সোশ্যাল মিডিয়া লিঙ্ক -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
+          <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>📞</span> <span>যোগাযোগ ও সোশ্যাল লিঙ্ক (Social Links)</span>
+          </div>
+          <div style="font-size:0.75rem; color:#bbb; margin-bottom:2px;">YouTube Link:</div>
+          <input type="text" id="settingYtLink" class="input-field" placeholder="https://youtube.com/...">
+
+          <div style="font-size:0.75rem; color:#bbb; margin-top:6px; margin-bottom:2px;">Facebook Link:</div>
+          <input type="text" id="settingFbLink" class="input-field" placeholder="https://facebook.com/...">
+
+          <div style="font-size:0.75rem; color:#bbb; margin-top:6px; margin-bottom:2px;">WhatsApp Link বা নম্বর:</div>
+          <input type="text" id="settingWpLink" class="input-field" placeholder="যেমন: 919876543210 বা চ্যাট লিঙ্ক">
+
+          <div style="font-size:0.75rem; color:#bbb; margin-top:6px; margin-bottom:2px;">Instagram Link:</div>
+          <input type="text" id="settingInstaLink" class="input-field" placeholder="https://instagram.com/...">
+        </div>
+
+        <!-- বিপজ্জনক অঞ্চল: রিসেট বাটন -->
+        <button class="btn-reset" onclick="openResetConfirmation()" style="margin-top: 4px;">⚠️ Reset The App (সমস্ত হিসাব মুছুন)</button>
+
       </div>
+
+      <!-- অ্যাকশন বাটন -->
+      <div class="modal-actions" style="margin-top: 12px; display: flex; gap: 8px;">
+        <button class="btn-cancel" onclick="closeAdminSettingsModal()" style="flex: 1;">বাতিল</button>
+        <button class="btn-submit" onclick="saveAdminSettings()" style="flex: 1.4; background: linear-gradient(135deg, #f5b041, #d4ac0d); color: #1a0408; font-weight: bold;">💾 সংরক্ষণ করুন</button>
+      </div>
+
     </div>
   </div>
-
-  <div id="resetPinModal" class="modal-overlay hidden">
     <div class="modal-box">
       <h3 style="color:#ff7675;">রিসেট যাচাইকরণ</h3>
       <p style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">অ্যাপের সমস্ত তথ্য ও হিসাব মুছে ফেলতে অ্যাডমিন পিন দিন:</p>
@@ -2081,6 +2131,7 @@ window.appState.contactInsta = instaLink;
       contactWp: '',
       contactInsta: '',
       scheduleBannerUrl: '',
+      kaliImageUrl: '',
       graminChandaList: [],
       memberAccounts: [],
       mainExpenseCategories: [],
@@ -2196,6 +2247,7 @@ dharBakiList: []
 
     function refreshUI() {
       refreshYearDisplay();
+      updateKaliImageDisplay();
       if (currentScreenId === 'graminScreen') renderGraminChanda();
       else if (currentScreenId === 'memberScreen') renderMemberList();
       else if (currentScreenId === 'memberLedgerScreen') renderMemberLedger();
@@ -2964,6 +3016,8 @@ else if (type === 'dhar_baki') {
       document.getElementById('settingInstaLink').value = window.appState.contactInsta || '';
       var schedInp = document.getElementById('settingScheduleLink');
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
+      var kaliInp = document.getElementById('settingKaliImgLink');
+      if (kaliInp) kaliInp.value = window.appState.kaliImageUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
     }
     function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').classList.add('hidden'); }
@@ -2984,6 +3038,9 @@ window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
+      var kaliLink = document.getElementById('settingKaliImgLink') ? document.getElementById('settingKaliImgLink').value.trim() : '';
+      window.appState.kaliImageUrl = kaliLink;
+      updateKaliImageDisplay();
 
       if (newPin) {
         if (currPin !== (window.appState.adminPin || '1234')) {
@@ -3644,6 +3701,12 @@ window.appState.contactInsta = instaLink;
     function closeScheduleModal() {
       var modal = document.getElementById('scheduleModal');
       if (modal) modal.classList.add('hidden');
+    }
+    function updateKaliImageDisplay() {
+      var img = document.getElementById('kaliPhoto');
+      if (img && window.appState.kaliImageUrl) {
+        img.src = window.appState.kaliImageUrl;
+      }
     }
     var matchedCards = [];
 var currentMatchIndex = -1;
