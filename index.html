@@ -3289,6 +3289,96 @@ function clearFindHighlights() {
     });
   });
 }
+  // ভাসমান আতসকাচ বাটন ড্র্যাগ ও ক্লিক হ্যান্ডলার
+(function makeFinderDraggable() {
+  var btn = document.getElementById('adminFinderTriggerBtn');
+  if (!btn) return;
+
+  var isDragging = false;
+  var hasMoved = false;
+  var startX, startY;
+  var initialLeft, initialTop;
+
+  // ড্র্যাগ শুরু (মাউস বা আঙুল ছোঁয়ালে)
+  function onPointerDown(e) {
+    // শুধুমাত্র লেফট ক্লিক (button === 0) অথবা মোবাইল টাচ গ্রাহ্য হবে
+    if (e.type === 'mousedown' && e.button !== 0) return;
+
+    isDragging = true;
+    hasMoved = false;
+
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    startX = clientX;
+    startY = clientY;
+
+    var rect = btn.getBoundingClientRect();
+    initialLeft = rect.left;
+    initialTop = rect.top;
+
+    btn.style.transition = 'none';
+
+    document.addEventListener('mousemove', onPointerMove, { passive: false });
+    document.addEventListener('mouseup', onPointerUp);
+    document.addEventListener('touchmove', onPointerMove, { passive: false });
+    document.addEventListener('touchend', onPointerUp);
+  }
+
+  // ড্র্যাগ চলাকালীন (টেনে সরানোর সময়)
+  function onPointerMove(e) {
+    if (!isDragging) return;
+
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    var deltaX = clientX - startX;
+    var deltaY = clientY - startY;
+
+    // সামান্য হাত নড়লে যাতে ক্লিক ক্যান্সেল না হয় (কমপক্ষে ৫ পিক্সেল সরলে ড্র্যাগ ধরবে)
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      hasMoved = true;
+    }
+
+    if (hasMoved) {
+      e.preventDefault(); // স্ক্রিন স্ক্রোল হওয়া আটকাবে
+
+      var newLeft = initialLeft + deltaX;
+      var newTop = initialTop + deltaY;
+
+      // স্ক্রিনের সীমানা যাতে পার না হয়ে যায় (Bounds Check)
+      var maxLeft = window.innerWidth - btn.offsetWidth - 5;
+      var maxTop = window.innerHeight - btn.offsetHeight - 5;
+
+      newLeft = Math.max(5, Math.min(newLeft, maxLeft));
+      newTop = Math.max(5, Math.min(newTop, maxTop));
+
+      btn.style.left = newLeft + 'px';
+      btn.style.top = newTop + 'px';
+      btn.style.right = 'auto';
+      btn.style.bottom = 'auto';
+    }
+  }
+
+  // ড্র্যাগ শেষ (আঙুল বা মাউস ছাড়লে)
+  function onPointerUp() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    document.removeEventListener('mousemove', onPointerMove);
+    document.removeEventListener('mouseup', onPointerUp);
+    document.removeEventListener('touchmove', onPointerMove);
+    document.removeEventListener('touchend', onPointerUp);
+
+    // যদি ব্যবহারকারী টেনে না সরান (শুধুমাত্র স্বাভাবিক ক্লিক/ট্যাপ করেন)
+    if (!hasMoved) {
+      openInAppFinder();
+    }
+  }
+
+  btn.addEventListener('mousedown', onPointerDown);
+  btn.addEventListener('touchstart', onPointerDown, { passive: true });
+})();  
   </script>
     <!-- সার্বজনীন প্রিন্ট / PDF প্রিভিউ মডেল -->
   <div id="universalPdfModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
@@ -3313,7 +3403,7 @@ function clearFindHighlights() {
     </div>
   </div>
  <!-- স্লিম, মার্জিত ও নিখুঁত ফ্লোটিং আতসকাচ বাটন -->
-<button id="adminFinderTriggerBtn" type="button" onclick="openInAppFinder()" title="পেজে খুঁজুন" style="position: fixed !important; bottom: 20px !important; right: 16px !important; z-index: 2147483647 !important; background: #800020 !important; color: #ffd700 !important; border: 1.5px solid #ffd700 !important; border-radius: 50% !important; width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; font-size: 16px !important; box-shadow: 0 3px 10px rgba(0,0,0,0.5) !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; outline: none !important; -webkit-transform: translateZ(0); transform: translateZ(0); padding: 0 !important; margin: 0 !important;">
+<button id="adminFinderTriggerBtn" type="button" title="openInAppFinder()" title="পেজে খুঁজুন" style="position: fixed !important; bottom: 20px !important; right: 16px !important; z-index: 2147483647 !important; background: #800020 !important; color: #ffd700 !important; border: 1.5px solid #ffd700 !important; border-radius: 50% !important; width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; font-size: 16px !important; box-shadow: 0 3px 10px rgba(0,0,0,0.5) !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; outline: none !important; -webkit-transform: translateZ(0); transform: translateZ(0); padding: 0 !important; margin: 0 !important;">
   🔍
 </button>
 
