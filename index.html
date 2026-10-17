@@ -140,7 +140,8 @@
       mainExpenseCategories: [],
       generalExpenses: [],
       programData: { dance: [], song: [], recitation: [] },
-      sportsData: []
+      sportsData: [],
+dharBakiList: []
     };
 
     window.activeMemberIndex = null;
@@ -163,7 +164,7 @@
         'mainExpenseScreen', 'mainExpenseDetailScreen',
         'generalExpenseScreen', 'programScreen',
         'sportsScreen', 'sportsDetailScreen',
-        'finalAuditScreen', 'publicScreen'
+        'finalAuditScreen', 'publicScreen', 'dharBakiScreen'
       ];
       screens.forEach(function(id) {
         var el = document.getElementById(id);
@@ -1294,6 +1295,7 @@ window.appState.contactInsta = instaLink;
         window.appState.generalExpenses = [];
         window.appState.programData = { dance: [], song: [], recitation: [] };
         window.appState.sportsData = [];
+        window.appState.dharBakiList = [];
 
         window.persistData();
         window.closeResetPinModal();
@@ -1594,6 +1596,11 @@ window.appState.contactInsta = instaLink;
           <div class="menu-label">খেলার কর্মসূচি</div>
         </div>
 
+        <!-- ধার-বাকি খাতা মেনু কার্ড -->
+        <div class="menu-card" onclick="openDharBakiScreen()" style="border-color: #e67e22;">
+          <div class="menu-icon">📋</div>
+          <div class="menu-label" style="color: #f39c12;">ধার-বাকি খাতা</div>
+        </div>
         <div class="menu-card menu-card-full" onclick="openFinalAuditScreen()">
           <div class="menu-icon">⚖️</div>
           <div class="menu-label" style="font-size: 1.1rem; color: var(--gold-bright);">পূজো শেষে মেম্বার দের হিসাব </div>
@@ -1824,6 +1831,35 @@ window.appState.contactInsta = instaLink;
       <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
     </div>
 
+    <!-- ধার-বাকি খাতা স্ক্রিন (সম্পূর্ণ স্বাধীন ও মূল হিসাবের বাইরে) -->
+    <div id="dharBakiScreen" class="screen hidden">
+      <div class="nav-bar">
+        <button class="btn-back" onclick="showScreen('officialScreen')">← ব্যাক</button>
+        <div class="section-title" style="color: #f39c12;">ধার-বাকি খাতা</div>
+        <div style="width:36px;"></div>
+      </div>
+
+      <!-- মোট বকেয়া টাকার ক্যালকুলেটর কার্ড -->
+      <div class="total-card" style="border-color: #e67e22; background: linear-gradient(135deg, rgba(120, 40, 10, 0.85), rgba(30, 2, 7, 0.95));">
+        <span class="total-title" style="color: #f8c471;">বর্তমানে মোট বাকি:</span>
+        <span class="total-amount" id="dharBakiTotalText" style="color: #f39c12;">₹ 0</span>
+      </div>
+
+      <!-- নতুন ধার এন্ট্রি ফর্ম -->
+      <div class="form-box" style="border-color: rgba(230, 126, 34, 0.4);">
+        <input type="text" id="dBakiPerson" class="input-field" placeholder="কার কাছে বাকি? (দোকান বা ব্যক্তির নাম)">
+        <input type="text" id="dBakiReason" class="input-field" placeholder="কী কারণে বাকি? (যেমন: মিষ্টি, ফল বা ডেকোরেটর)">
+        <input type="number" id="dBakiAmount" class="input-field" placeholder="বাকি টাকার পরিমাণ (₹)" inputmode="numeric">
+        <button class="btn-add" onclick="addDharBakiEntry()" style="background: linear-gradient(135deg, #e67e22, #d35400); color: #fff;">+ ধার-বাকি তালিকায় যোগ করুন</button>
+      </div>
+
+      <div style="font-size: 0.78rem; color: #f8c471; margin-bottom: 4px; text-align: left; width: 100%;">
+        💡 দ্রষ্টব্য: এটি শুধুমাত্র স্মারক খাতা। টাকা শোধ হলে ডিলিট করে মূল খরচে এন্ট্রি করবেন।
+      </div>
+
+      <div class="list-container" id="dharBakiList"></div>
+      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+    </div>
     <!-- 12. FINAL AUDIT SCREEN -->
     <div id="finalAuditScreen" class="screen hidden">
       <div class="nav-bar">
@@ -1831,7 +1867,6 @@ window.appState.contactInsta = instaLink;
         <div class="section-title">পূজো শেষের হিসাব</div>
         <div style="width:36px;"></div>
       </div>
-      <button class="btn-pdf" onclick="generateAuditPdf()">📄 মেম্বারদের হিসাব PDF ডাউনলোড</button>
       <!-- সম্পূর্ণ বহুস্তরীয় মহাফেজখানা ও অডিট খতিয়ান বাটন -->
       <button class="btn-pdf" onclick="generateComprehensiveMasterAuditPdf()" style="background: linear-gradient(135deg, #b31217, #800020); border: 1.5px solid var(--gold-bright); box-shadow: 0 4px 12px rgba(245, 176, 65, 0.4); margin-top: 4px;">
         📑 পূজো শেষের সমগ্র হিসাব pdf 
@@ -1966,7 +2001,8 @@ window.appState.contactInsta = instaLink;
       mainExpenseCategories: [],
       generalExpenses: [],
       programData: { dance: [], song: [], recitation: [] },
-      sportsData: []
+      sportsData: [],
+dharBakiList: []
     };
 
     var activeMemberIndex = null;
@@ -1989,7 +2025,7 @@ window.appState.contactInsta = instaLink;
         'mainExpenseScreen', 'mainExpenseDetailScreen',
         'generalExpenseScreen', 'programScreen',
         'sportsScreen', 'sportsDetailScreen',
-        'finalAuditScreen', 'publicScreen'
+        'finalAuditScreen', 'publicScreen', 'dharBakiScreen'
       ];
       screens.forEach(function(id) {
         var el = document.getElementById(id);
@@ -2821,7 +2857,14 @@ window.appState.contactInsta = instaLink;
         window.appState.generalExpenses[pIdx].amount = numVal;
         renderGeneralExpenses();
       }
-
+else if (type === 'dhar_baki') {
+        if (isNaN(numVal) || numVal <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+        window.appState.dharBakiList[pIdx].person = mainVal;
+        window.appState.dharBakiList[pIdx].amount = numVal;
+        window.appState.dharBakiList[pIdx].reason = extraVal || 'নির্দিষ্ট নেই';
+        renderDharBaki();
+      }
+      
       persistData();
       closeEditModal();
     }
@@ -3408,6 +3451,89 @@ window.appState.contactInsta = instaLink;
         console.warn("Cloud connection notice:", e);
       }
     });
+
+    /* ধার-বাকি খাতা লজিক (মূল হিসাবের সাথে সম্পূর্ণ সম্পর্কহীন) */
+    function openDharBakiScreen() {
+      showScreen('dharBakiScreen');
+      renderDharBaki();
+    }
+
+    function addDharBakiEntry() {
+      var person = formatInputText(document.getElementById('dBakiPerson').value);
+      var reason = formatInputText(document.getElementById('dBakiReason').value);
+      var amount = parseFloat(document.getElementById('dBakiAmount').value);
+
+      if (!person) { alert("কার কাছে বাকি আছে লিখুন!"); return; }
+      if (!reason) { alert("কী কারণে বাকি লিখুন!"); return; }
+      if (isNaN(amount) || amount <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
+
+      if (!window.appState.dharBakiList) window.appState.dharBakiList = [];
+
+      window.appState.dharBakiList.unshift({
+        person: person,
+        reason: reason,
+        amount: amount,
+        dateTime: getCurrentDateTime()
+      });
+
+      persistData();
+
+      document.getElementById('dBakiPerson').value = '';
+      document.getElementById('dBakiReason').value = '';
+      document.getElementById('dBakiAmount').value = '';
+
+      renderDharBaki();
+    }
+
+    function renderDharBaki() {
+      var list = window.appState.dharBakiList || [];
+      var container = document.getElementById('dharBakiList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var total = 0;
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="color:#aaa; font-size:0.9rem; margin-top:20px;">বর্তমানে কোনো ধার-বাকি নেই।</div>';
+      } else {
+        list.forEach(function(item, index) {
+          total += (item.amount || 0);
+          var card = document.createElement('div');
+          card.className = 'list-card';
+          card.style.borderColor = 'rgba(230, 126, 34, 0.4)';
+          card.innerHTML = 
+            '<div class="list-info">' +
+              '<div class="list-name" style="color:#f39c12;">🏬 ' + (index + 1) + '. ' + item.person + '</div>' +
+              '<div class="list-subtext" style="color:#eee;">বিষয়: ' + item.reason + '</div>' +
+              '<div class="list-time">🕒 ' + item.dateTime + '</div>' +
+            '</div>' +
+            '<div class="list-amount-actions">' +
+              '<div class="list-amount" style="color:#f39c12;">₹ ' + item.amount.toLocaleString('en-IN') + '</div>' +
+              '<div class="action-icons">' +
+                '<button class="btn-icon btn-edit" title="সম্পাদনা করুন" onclick="openDharBakiEdit(' + index + ')">✏️</button>' +
+                '<button class="btn-icon btn-del" title="মুছে ফেলুন" onclick="deleteDharBaki(' + index + ')">🗑️</button>' +
+              '</div>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      }
+
+      var totEl = document.getElementById('dharBakiTotalText');
+      if (totEl) totEl.innerText = "₹ " + total.toLocaleString('en-IN');
+    }
+
+    function openDharBakiEdit(index) {
+      var item = window.appState.dharBakiList[index];
+      setEditModal('dhar_baki', index, null, 'ধার-বাকি সম্পাদনা', 'দোকান বা ব্যক্তির নাম', item.person, item.amount, item.reason, item.dateTime);
+    }
+
+    function deleteDharBaki(index) {
+      if (confirm("এই বকেয়াটি কি শোধ হয়ে গেছে বা মুছে ফেলতে চান?")) {
+        window.appState.dharBakiList.splice(index, 1);
+        persistData();
+        renderDharBaki();
+      }
+    }
     var matchedCards = [];
 var currentMatchIndex = -1;
 
