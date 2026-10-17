@@ -3901,19 +3901,37 @@ updateCountdownDisplay();
           sMem.innerHTML = '<div style="color:#aaa; font-size:0.85rem; text-align:center; padding:20px;">কোনো কর্মকর্তা তালিকা নথিভুক্ত নেই।<br>(অ্যাডমিন সেটিংস ⚙️ থেকে যুক্ত করুন)</div>';
         } else {
           lines.forEach(function(line, idx) {
-            // হাইফেন (-) দিয়ে নাম, পদবী ও ছবির লিঙ্ক আলাদা করা হচ্ছে
-            var parts = line.split('-').map(function(p) { return p.trim(); });
-            var name = parts[0] || 'নাম উল্লেখ নেই';
-            var role = parts[1] || 'কার্যনির্বাহী সদস্য';
-            var photo = parts[2] || ''; // ৩ নম্বর অংশে ছবির লিঙ্ক থাকবে
+            // শুধুমাত্র প্রথম দুটি হাইফেন আলাদা করা হবে, যাতে লিঙ্কের ভেতরের হাইফেন অক্ষত থাকে
+            var firstDash = line.indexOf('-');
+            var name = 'নাম উল্লেখ নেই';
+            var role = 'কার্যনির্বাহী সদস্য';
+            var photo = '';
 
+            if (firstDash !== -1) {
+              name = line.substring(0, firstDash).trim();
+              var rest = line.substring(firstDash + 1).trim();
+              var secondDash = rest.indexOf('-');
+              if (secondDash !== -1) {
+                role = rest.substring(0, secondDash).trim();
+                photo = rest.substring(secondDash + 1).trim();
+              } else {
+                role = rest.trim();
+              }
+            } else {
+              name = line.trim();
+            }
+
+            // যদি কেউ ভুল করে ibb.co/xxx দিয়ে ফেলে, তবে সতর্কতামূলক পরিচ্ছন্নতা
             var card = document.createElement('div');
             card.style = 'background: rgba(30, 2, 7, 0.9); border: 1px solid rgba(245, 176, 65, 0.3); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;';
             
-            // ছবি থাকলে গোল ফটো দেখাবে, না থাকলে ডিফল্ট মানুষের আইকন দেখাবে
-            var avatarHtml = photo 
-              ? '<img src="' + photo + '" style="width:44px; height:44px; min-width:44px; border-radius:50%; object-fit:cover; border:1.5px solid var(--gold-bright);">' 
-              : '<div style="width:44px; height:44px; min-width:44px; border-radius:50%; background:#2a040a; border:1px solid var(--gold-primary); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">👤</div>';
+            var avatarHtml = '';
+            if (photo && (photo.startsWith('http://') || photo.startsWith('https://'))) {
+              avatarHtml = '<img src="' + photo + '" style="width:44px; height:44px; min-width:44px; border-radius:50%; object-fit:cover; border:1.5px solid var(--gold-bright);" onerror="this.onerror=null; this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                           '<div style="width:44px; height:44px; min-width:44px; border-radius:50%; background:#2a040a; border:1px solid var(--gold-primary); display:none; align-items:center; justify-content:center; font-size:1.2rem;">👤</div>';
+            } else {
+              avatarHtml = '<div style="width:44px; height:44px; min-width:44px; border-radius:50%; background:#2a040a; border:1px solid var(--gold-primary); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">👤</div>';
+            }
 
             card.innerHTML = 
               '<div style="display:flex; align-items:center; gap:12px;">' +
