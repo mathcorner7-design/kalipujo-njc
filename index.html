@@ -123,6 +123,56 @@
     .btn-cancel { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #777; background: transparent; color: #ccc; cursor: pointer; }
     .footer-text { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-top: 4px; }
     .sync-badge { font-size: 0.72rem; color: var(--gold-primary); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    /* মৃদু আলোর আভার ব্যাকগ্রাউন্ড কন্টেইনার */
+    .ambient-glow-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 22px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ধীর গতির সোনালী আলো ১ */
+    .glow-orb-1 {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      top: -40px;
+      left: 10%;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.18) 0%, rgba(245, 176, 65, 0.08) 45%, transparent 70%);
+      filter: blur(35px);
+      border-radius: 50%;
+      animation: ambientFloat1 14s ease-in-out infinite alternate;
+    }
+
+    /* ধীর গতির রক্তিম-সোনালী আলো ২ */
+    .glow-orb-2 {
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      bottom: 10%;
+      right: 5%;
+      background: radial-gradient(circle, rgba(128, 0, 32, 0.28) 0%, rgba(245, 176, 65, 0.12) 40%, transparent 70%);
+      filter: blur(40px);
+      border-radius: 50%;
+      animation: ambientFloat2 16s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientFloat1 {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+      50% { transform: translate(25px, 35px) scale(1.15); opacity: 0.9; }
+      100% { transform: translate(-15px, 15px) scale(0.95); opacity: 0.6; }
+    }
+
+    @keyframes ambientFloat2 {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+      50% { transform: translate(-30px, -25px) scale(1.2); opacity: 0.95; }
+      100% { transform: translate(15px, -10px) scale(0.9); opacity: 0.7; }
+    }
     @keyframes pulseGlow { 0% { transform: scale(0.95); opacity: 0.4; } 100% { transform: scale(1.15); opacity: 0.85; } }
   </style>
 
@@ -135,6 +185,7 @@
       contactFb: '',
       contactWp: '',
       contactInsta: '',
+      scheduleBannerUrl: '',
       graminChandaList: [],
       memberAccounts: [],
       mainExpenseCategories: [],
@@ -1236,6 +1287,8 @@ dharBakiList: []
       document.getElementById('settingFbLink').value = window.appState.contactFb || '';
       document.getElementById('settingWpLink').value = window.appState.contactWp || '';
       document.getElementById('settingInstaLink').value = window.appState.contactInsta || '';
+      var schedInp = document.getElementById('settingScheduleLink');
+      if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
     };
     window.closeAdminSettingsModal = function() { document.getElementById('adminSettingsModal').classList.add('hidden'); };
@@ -1253,6 +1306,8 @@ var instaLink = document.getElementById('settingInstaLink').value.trim();
 window.appState.contactFb = fbLink;
 window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
+      var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
+      window.appState.scheduleBannerUrl = schedLink;
 
       if (newPin) {
         if (currPin !== (window.appState.adminPin || '1234')) {
@@ -1489,13 +1544,16 @@ window.appState.contactInsta = instaLink;
 <body>
 
   <div class="app-container">
-    <div class="corner top-left"></div>
-    <div class="corner top-right"></div>
-    <div class="corner bottom-left"></div>
-    <div class="corner bottom-right"></div>
+   
 
     <!-- 1. HOME SCREEN -->
     <div id="homeScreen" class="screen">
+
+      <!-- মৃদু ভাসমান সোনালী আলোর ব্যাকগ্রাউন্ড -->
+      <div class="ambient-glow-wrapper">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+      </div>
       <div class="header-box">
         <div class="sync-badge" id="syncStatus">🙏 জয় মা কালী🙏</div>
         <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
@@ -1518,6 +1576,11 @@ window.appState.contactInsta = instaLink;
         <button type="button" class="btn btn-public" onclick="openPublicScreen()">
           <span>👥</span>
           <span>সবার জন্য (হিসাব দেখুন)</span>
+        </button>
+        <!-- সময়সূচি ব্যানার দেখার বাটন -->
+        <button type="button" class="btn" onclick="openScheduleModal()" style="background: linear-gradient(135deg, #16a085 0%, #0e6655 100%); color: #ffffff; border: 1.5px solid #a3e4d7; box-shadow: 0 4px 15px rgba(22, 160, 133, 0.4);">
+          <span>📅</span>
+          <span>এ বছরের সময়সূচি ও নির্ঘণ্ট</span>
         </button>
       </div>
 
@@ -1897,6 +1960,26 @@ window.appState.contactInsta = instaLink;
   </div> <!-- /app-container -->
 
   <!-- MODALS -->
+  <!-- সময়সূচি ব্যানার ভিউয়ার পপআপ -->
+  <div id="scheduleModal" class="modal-overlay hidden" style="z-index: 999999 !important;">
+    <div class="modal-box" style="max-width: 420px; width: 95%; max-height: 90vh; padding: 12px; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gold-primary); padding-bottom: 6px; margin-bottom: 8px;">
+        <h3 style="margin: 0; font-size: 1.1rem; color: var(--gold-bright);">📅 পূজো ও অনুষ্ঠানের নির্ঘণ্ট</h3>
+        <button onclick="closeScheduleModal()" style="background: transparent; border: none; color: #ff7675; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
+
+      <div style="flex-grow: 1; overflow-y: auto; text-align: center; border-radius: 8px; background: #000; padding: 4px;">
+        <img id="scheduleBannerImg" src="" alt="অনুষ্ঠানের সময়সূচি" style="width: 100%; height: auto; border-radius: 6px; display: none;">
+        <div id="noScheduleNotice" style="color: #aaa; font-size: 0.9rem; padding: 40px 10px;">
+          কমিটি এখনও সময়সূচির ব্যানার যুক্ত করেনি।<br><span style="font-size:0.75rem; color:var(--gold-primary);">(অ্যাডমিন সেটিংস থেকে ImgBB লিঙ্ক সেট করুন)</span>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 10px;">
+        <button class="btn-cancel" onclick="closeScheduleModal()" style="width: 100%;">বন্ধ করুন</button>
+      </div>
+    </div>
+  </div>
   <div id="pinModal" class="modal-overlay hidden">
     <div class="modal-box">
       <h3>পিন নম্বর দিন</h3>
@@ -1927,7 +2010,9 @@ window.appState.contactInsta = instaLink;
         <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">WhatsApp Link বা নম্বর:</div>
         <input type="text" id="settingWpLink" class="input-field" placeholder="যেমন: 919876543210 বা চ্যাট লিংক">
        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:6px; margin-bottom:2px;">Instagram Link:</div>
-<input type="text" id="settingInstaLink" class="input-field" placeholder="https://instagram.com/..."> 
+<input type="text" id="settingInstaLink" class="input-field" placeholder="https://instagram.com/...">
+        <div style="font-size:0.8rem; color:var(--gold-primary); margin-top:8px; margin-bottom:2px;">📅 সময়সূচি ব্যানার ইমেজ লিঙ্ক (ImgBB Direct Link):</div>
+        <input type="text" id="settingScheduleLink" class="input-field" placeholder="https://i.ibb.co/.../banner.jpg">
       </div>
 
       <button class="btn-reset" onclick="openResetConfirmation()">⚠️ Reset The App (সমস্ত হিসাব মুছুন)</button>
@@ -1996,6 +2081,7 @@ window.appState.contactInsta = instaLink;
       contactFb: '',
       contactWp: '',
       contactInsta: '',
+      scheduleBannerUrl: '',
       graminChandaList: [],
       memberAccounts: [],
       mainExpenseCategories: [],
@@ -2877,6 +2963,8 @@ else if (type === 'dhar_baki') {
       document.getElementById('settingFbLink').value = window.appState.contactFb || '';
       document.getElementById('settingWpLink').value = window.appState.contactWp || '';
       document.getElementById('settingInstaLink').value = window.appState.contactInsta || '';
+      var schedInp = document.getElementById('settingScheduleLink');
+      if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
     }
     function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').classList.add('hidden'); }
@@ -2895,6 +2983,8 @@ else if (type === 'dhar_baki') {
 window.appState.contactFb = fbLink;
 window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
+      var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
+      window.appState.scheduleBannerUrl = schedLink;
 
       if (newPin) {
         if (currPin !== (window.appState.adminPin || '1234')) {
@@ -3533,6 +3623,28 @@ window.appState.contactInsta = instaLink;
         persistData();
         renderDharBaki();
       }
+    }
+    /* সময়সূচি মডাল ওপেন ও ক্লোজ */
+    function openScheduleModal() {
+      var url = window.appState.scheduleBannerUrl || '';
+      var img = document.getElementById('scheduleBannerImg');
+      var notice = document.getElementById('noScheduleNotice');
+
+      if (url) {
+        if (img) { img.src = url; img.style.display = 'block'; }
+        if (notice) notice.style.display = 'none';
+      } else {
+        if (img) { img.style.display = 'none'; }
+        if (notice) notice.style.display = 'block';
+      }
+
+      var modal = document.getElementById('scheduleModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeScheduleModal() {
+      var modal = document.getElementById('scheduleModal');
+      if (modal) modal.classList.add('hidden');
     }
     var matchedCards = [];
 var currentMatchIndex = -1;
