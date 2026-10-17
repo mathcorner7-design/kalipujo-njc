@@ -3925,21 +3925,24 @@ updateCountdownDisplay();
           sMem.innerHTML = '<div style="color:#aaa; font-size:0.85rem; text-align:center; padding:20px;">কোনো কর্মকর্তা তালিকা নথিভুক্ত নেই।<br>(অ্যাডমিন সেটিংস ⚙️ থেকে যুক্ত করুন)</div>';
         } else {
           lines.forEach(function(line, idx) {
-            // শুধুমাত্র প্রথম দুটি হাইফেন আলাদা করা হবে, যাতে লিঙ্কের ভেতরের হাইফেন অক্ষত থাকে
-            var firstDash = line.indexOf('-');
+            // স্পেসযুক্ত হাইফেন ' - ' দিয়ে নিখুঁতভাবে নাম, পদ ও ছবির লিঙ্ক আলাদা করা
+            var rawParts = line.split(/\s+-\s+/);
             var name = 'নাম উল্লেখ নেই';
             var role = 'কার্যনির্বাহী সদস্য';
             var photo = '';
 
-            if (firstDash !== -1) {
-              name = line.substring(0, firstDash).trim();
-              var rest = line.substring(firstDash + 1).trim();
-              var secondDash = rest.indexOf('-');
-              if (secondDash !== -1) {
-                role = rest.substring(0, secondDash).trim();
-                photo = rest.substring(secondDash + 1).trim();
+            if (rawParts.length >= 3) {
+              name = rawParts[0].trim();
+              role = rawParts[1].trim();
+              // বাকি সম্পূর্ণ অংশ লিঙ্ক হিসেবে গ্রহণ করা হবে (লিঙ্কের ভেতরের কোনো হাইফেন ভাঙবে না)
+              photo = rawParts.slice(2).join(' - ').trim();
+            } else if (rawParts.length === 2) {
+              name = rawParts[0].trim();
+              if (rawParts[1].trim().toLowerCase().indexOf('http') === 0) {
+                photo = rawParts[1].trim();
+                role = 'কার্যনির্বাহী সদস্য';
               } else {
-                role = rest.trim();
+                role = rawParts[1].trim();
               }
             } else {
               name = line.trim();
