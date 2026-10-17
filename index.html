@@ -44,6 +44,41 @@
     .header-box { width: 100%; margin-bottom: 6px; }
     .committee-title { font-size: 1.8rem; font-weight: 700; color: var(--gold-bright); text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 2px 2px 4px #000; line-height: 1.3; margin-bottom: 4px; }
     .main-banner { font-size: 1.05rem; font-weight: 700; color: #ffffff; background: linear-gradient(90deg, transparent, rgba(128, 0, 32, 0.8), transparent); padding: 6px 10px; border-top: 1px solid var(--gold-primary); border-bottom: 1px solid var(--gold-primary); }
+    /* Countdown Timer Card */
+    .countdown-box {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(128, 0, 32, 0.75), rgba(40, 2, 8, 0.9));
+      border: 1.5px solid var(--gold-bright);
+      border-radius: 12px;
+      padding: 6px 10px;
+      margin: 4px auto 6px auto;
+      box-shadow: 0 0 12px rgba(245, 176, 65, 0.35);
+      text-align: center;
+      display: none; /* Date set na thakle default vabe bondho thakbe */
+    }
+    .countdown-title {
+      font-size: 0.78rem;
+      color: var(--gold-primary);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .countdown-timer-display {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gold-bright);
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+      margin-top: 2px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .timer-unit {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(245, 176, 65, 0.3);
+      font-size: 0.88rem;
+    }
     .image-wrapper { position: relative; width: 190px; height: 190px; margin: 6px auto; display: flex; justify-content: center; align-items: center; }
     .image-halo { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 70%); animation: pulseGlow 3s infinite alternate ease-in-out; }
     .image-frame { width: 170px; height: 170px; border-radius: 50%; border: 3px solid var(--gold-bright); padding: 4px; background: #000; box-shadow: 0 0 15px rgba(245, 176, 65, 0.6); position: relative; z-index: 2; overflow: hidden; }
@@ -185,6 +220,7 @@
       contactWp: '',
       contactInsta: '',
       scheduleBannerUrl: '',
+      pujaDate: '',
       kaliImageUrl: '',
       graminChandaList: [],
       memberAccounts: [],
@@ -1289,6 +1325,8 @@ dharBakiList: []
       document.getElementById('settingInstaLink').value = window.appState.contactInsta || '';
       var schedInp = document.getElementById('settingScheduleLink');
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
+      var dateInp = document.getElementById('settingPujaDate');
+if (dateInp) dateInp.value = window.appState.pujaDate || '';
       var kaliInp = document.getElementById('settingKaliImgLink');
       if (kaliInp) kaliInp.value = window.appState.kaliImageUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
@@ -1310,6 +1348,9 @@ window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
+      var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
+window.appState.pujaDate = pDate;
+updateCountdownDisplay();
       var kaliLink = document.getElementById('settingKaliImgLink') ? document.getElementById('settingKaliImgLink').value.trim() : '';
       window.appState.kaliImageUrl = kaliLink;
       updateKaliImageDisplay();
@@ -1508,6 +1549,7 @@ window.appState.contactInsta = instaLink;
     // DOM সম্পূর্ণ রেডি হলে ক্লাউড ইনিশিয়ালাইজ ও UI আপডেট
     window.addEventListener('DOMContentLoaded', function() {
       window.refreshYearDisplay();
+      updateCountdownDisplay();
 
       try {
         if (typeof firebase !== 'undefined') {
@@ -1563,6 +1605,16 @@ window.appState.contactInsta = instaLink;
         <div class="sync-badge" id="syncStatus">🙏 জয় মা কালী🙏</div>
         <h1 class="committee-title">নিউ ঝালাপালা কমিটি</h1>
         <div class="main-banner" id="homeBannerText">কালীপুজো ২০২৬ এ আপনাদের সবাইকে স্বাগতম</div>
+      </div>
+
+      <!-- Pujor Countdown Timer Box -->
+      <div id="countdownBox" class="countdown-box">
+        <div class="countdown-title" id="countdownTitleText">⏳ পূজোর আর বাকি:</div>
+        <div class="countdown-timer-display" id="countdownTimerVal">
+          <span class="timer-unit">-- দিন</span>
+          <span class="timer-unit">-- ঘণ্টা</span>
+          <span class="timer-unit">-- মিনিট</span>
+        </div>
       </div>
 
       <div class="image-wrapper">
@@ -2041,6 +2093,8 @@ window.appState.contactInsta = instaLink;
           </div>
           <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">পূজার সাল (Year):</div>
           <input type="text" id="settingYear" class="input-field" placeholder="যেমন: ২০২৬ বা 2026">
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">🗓️ পূজোর নির্দিষ্ট তারিখ (Countdown Date):</div>
+          <input type="date" id="settingPujaDate" class="input-field" style="color-scheme: dark;">
         </div>
 
         <!-- সেকশন ৪: যোগাযোগ ও সোশ্যাল মিডিয়া লিঙ্ক -->
@@ -2132,6 +2186,7 @@ window.appState.contactInsta = instaLink;
       contactWp: '',
       contactInsta: '',
       scheduleBannerUrl: '',
+      pujaDate: '',
       kaliImageUrl: '',
       graminChandaList: [],
       memberAccounts: [],
@@ -2248,6 +2303,7 @@ dharBakiList: []
 
     function refreshUI() {
       refreshYearDisplay();
+      updateCountdownDisplay();
       updateKaliImageDisplay();
       if (currentScreenId === 'graminScreen') renderGraminChanda();
       else if (currentScreenId === 'memberScreen') renderMemberList();
@@ -3017,6 +3073,8 @@ else if (type === 'dhar_baki') {
       document.getElementById('settingInstaLink').value = window.appState.contactInsta || '';
       var schedInp = document.getElementById('settingScheduleLink');
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
+      var dateInp = document.getElementById('settingPujaDate');
+if (dateInp) dateInp.value = window.appState.pujaDate || '';
       var kaliInp = document.getElementById('settingKaliImgLink');
       if (kaliInp) kaliInp.value = window.appState.kaliImageUrl || '';
       document.getElementById('adminSettingsModal').classList.remove('hidden');
@@ -3039,6 +3097,9 @@ window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
+      var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
+window.appState.pujaDate = pDate;
+updateCountdownDisplay();
       var kaliLink = document.getElementById('settingKaliImgLink') ? document.getElementById('settingKaliImgLink').value.trim() : '';
       window.appState.kaliImageUrl = kaliLink;
       updateKaliImageDisplay();
@@ -3563,6 +3624,7 @@ window.appState.contactInsta = instaLink;
     // ক্লাউড ডেটাবেস সংযোগ
     window.addEventListener('DOMContentLoaded', function() {
       refreshYearDisplay();
+      updateCountdownDisplay();
       try {
         if (typeof firebase !== 'undefined') {
           var firebaseConfig = {
@@ -3703,6 +3765,53 @@ window.appState.contactInsta = instaLink;
       var modal = document.getElementById('scheduleModal');
       if (modal) modal.classList.add('hidden');
     }
+    /* Countdown Timer Calculation & Auto-Hide Logic */
+    function updateCountdownDisplay() {
+      var box = document.getElementById('countdownBox');
+      var title = document.getElementById('countdownTitleText');
+      var valBox = document.getElementById('countdownTimerVal');
+      if (!box || !valBox) return;
+
+      var targetStr = window.appState.pujaDate;
+      if (!targetStr) {
+        box.style.display = 'none';
+        return;
+      }
+
+      var targetDate = new Date(targetStr + "T00:00:00").getTime();
+      var now = new Date().getTime();
+      var diff = targetDate - now;
+
+      var oneDayMs = 24 * 60 * 60 * 1000;
+      var diffEnd = (targetDate + oneDayMs) - now;
+
+      if (diff > 0) {
+        // ১. পূজোর আগের সময়: Countdown চলবে
+        box.style.display = 'block';
+        var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (title) title.innerText = "⏳ পূজোর আর বাকি মাত্র:";
+        valBox.innerHTML = 
+          '<span class="timer-unit">' + days + ' দিন</span> ' +
+          '<span class="timer-unit">' + hours + ' ঘণ্টা</span> ' +
+          '<span class="timer-unit">' + mins + ' মিনিট</span>';
+      } 
+      else if (diff <= 0 && diffEnd > 0) {
+        // ২. পূজোর দিন: শুভ কালীপূজার বার্তা ভেসে থাকবে
+        box.style.display = 'block';
+        if (title) title.innerText = "🌸 শুভ কালীপূজা 🌸";
+        valBox.innerHTML = '<span style="color:#ffd700; font-size:1rem; font-weight:bold; letter-spacing:0.5px;">🌸 মা কালীর কৃপায় সকলের মঙ্গল হোক 🌸</span>';
+      } 
+      else {
+        // ৩. পূজোর দিন পেরিয়ে গেলে বক্সটি স্বয়ংক্রিয়ভাবে গায়েব হয়ে যাবে
+        box.style.display = 'none';
+      }
+    }
+
+    // প্রতি ১ মিনিট পর পর অটো চেক ও আপডেট হবে
+    setInterval(updateCountdownDisplay, 60000);
     function updateKaliImageDisplay() {
       var img = document.getElementById('kaliPhoto');
       if (img && window.appState.kaliImageUrl) {
