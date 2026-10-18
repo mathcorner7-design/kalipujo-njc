@@ -1585,6 +1585,7 @@ updateCountdownDisplay();
           if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
           var db = firebase.firestore();
           window.firestoreDoc = db.collection("pujaData").doc("accounts2026");
+          firestoreDoc = window.firestoreDoc;
 
           window.firestoreDoc.onSnapshot(function(doc) {
             if (doc && doc.exists) {
@@ -2314,7 +2315,7 @@ dharBakiList: []
     var activeProgramCategory = 'dance';
     var activeSportIndex = null;
     var currentScreenId = 'homeScreen';
-    var firestoreDoc = null;
+    var firestoreDoc = window.firestoreDoc || null;
 
     try {
       var cached = localStorage.getItem('puja_local_db');
@@ -2409,8 +2410,11 @@ dharBakiList: []
       try {
         localStorage.setItem('puja_local_db', JSON.stringify(window.appState));
       } catch(e) {}
-      if (firestoreDoc) {
-        firestoreDoc.set(window.appState).catch(function(err) { console.warn("Cloud save warning:", err); });
+      var docRef = firestoreDoc || window.firestoreDoc;
+      if (docRef) {
+        docRef.set(window.appState, { merge: true }).catch(function(err) { 
+          console.warn("Cloud save warning:", err); 
+        });
       }
     }
 
@@ -3770,6 +3774,7 @@ updateCountdownDisplay();
           if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
           var db = firebase.firestore();
           firestoreDoc = db.collection("pujaData").doc("accounts2026");
+          window.firestoreDoc = firestoreDoc;
 
           firestoreDoc.onSnapshot(function(doc) {
             if (doc && doc.exists) {
