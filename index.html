@@ -2177,9 +2177,9 @@ updateCountdownDisplay();
           <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">👥 কর্মকর্তা পরিষদ (প্রতি লাইনে: নাম - পদবী):</div>
           <textarea id="settingExecutiveMembers" class="input-field" rows="3" placeholder="অংশুমান বেরা - সভাপতি&#10;রাহুল দাস - সম্পাদক&#10;সুবীর জানা - কোষাধ্যক্ষ" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
 
-          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 ফটো গ্যালারির ছবি লিঙ্কসমূহ (প্রতি লাইনে: ছবির লিঙ্ক - সাল):</div>
-<textarea id="settingPhotoAlbumUrl" class="input-field" rows="4" placeholder="https://i.ibb.co/.../pic1.jpg - ২০২৬&#10;https://i.ibb.co/.../pic2.jpg - ২০২৫&#10;https://i.ibb.co/.../pic3.jpg" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
-<div style="font-size:0.7rem; color:#888;">প্রতি লাইনে ১টি লিঙ্ক দিন। লিঙ্কের পাশে হাইফেন (-) দিয়ে সাল লিখতে পারেন (যেমন: লিঙ্ক - ২০২৬)।</div>
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 ফটো গ্যালারির ছবি লিঙ্কসমূহ (সাল লিখে নিচে একগুচ্ছ লিঙ্ক পেস্ট করুন):</div>
+<textarea id="settingPhotoAlbumUrl" class="input-field" rows="6" placeholder="[২০২৬]&#10;https://i.ibb.co/.../pic1.jpg&#10;https://i.ibb.co/.../pic2.jpg&#10;&#10;[২০২৫]&#10;https://i.ibb.co/.../pic3.jpg&#10;https://i.ibb.co/.../pic4.jpg" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
+<div style="font-size:0.7rem; color:#888;">নিয়ম: ব্র্যাকেটে সাল লিখুন (যেমন: [২০২৬]), তারপর তার নিচে একসাথে কপি করা সব লিঙ্ক পেস্ট করে দিন।</div>
         </div>
         <!-- সেকশন ৪: যোগাযোগ ও সোশ্যাল মিডিয়া লিঙ্ক -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
@@ -3992,32 +3992,55 @@ updateCountdownDisplay();
           container.style.gap = '14px';
           if (notice) notice.style.display = 'none';
 
-          // বছর অনুযায়ী গ্রুপ করার অবজেক্ট তৈরি
           var groups = {};
-          var currentAppYear = window.appState.pujaYear || 'স্মরণীয় মুহূর্ত';
+          // ডিফল্ট সাল হিসেবে বর্তমান বছরের সাল থাকবে
+          var currentGroupYear = window.appState.pujaYear || 'স্মরণীয় মুহূর্ত';
 
           lines.forEach(function(line) {
-            var parts = line.split(/\s+-\s+/);
-            var url = parts[0].trim();
-            var year = parts.length > 1 ? parts[1].trim() : currentAppYear;
-
-            // যদি কেউ ভুল করে আগে সাল আর পরে লিঙ্ক দেয় তাও সামলে নেওয়া
-            if (url.indexOf('http') === -1 && parts.length > 1 && parts[1].indexOf('http') === 0) {
-              year = parts[0].trim();
-              url = parts[1].trim();
+            // ১. যদি লাইনটি কোনো সাল বা হেডার হয় (যেমন: [2026], [২০২৬], 2026:, #2026 ইত্যাদি)
+            var yearHeaderMatch = line.match(/^\[?\s*([০-৯0-9]{4})\s*\]?:?$/);
+            if (yearHeaderMatch) {
+              currentGroupYear = yearHeaderMatch[1]; // নতুন সাল সক্রিয় হলো
+              return;
             }
 
-            if (!groups[year]) groups[year] = [];
-            groups[year].push(url);
+            // ২. যদি কোনো সাধারণ হেডারের মতো কিছু লেখা থাকে (যেমন: [উদ্বোধন] বা [বিসর্জন])
+            var customHeaderMatch = line.match(/^\[\s*(.+?)\s*\]$/);
+            if (customHeaderMatch && line.indexOf('http') === -1) {
+              currentGroupYear = customHeaderMatch[1];
+              return;
+            }
+
+            // ৩. ছবির লিঙ্ক পার্স করা
+            var targetYear = currentGroupYear;
+            var url = line;
+
+            // যদি কেউ পুরোনো নিয়মে লাইনের পাশেই ' - সাল' লিখে দেয় তাও কাজ করবে
+            if (line.indexOf('http') !== -1 && line.indexOf(' - ') !== -1) {
+              var parts = line.split(/\s+-\s+/);
+              url = parts[0].trim();
+              if (parts.length > 1) targetYear = parts[1].trim();
+            }
+
+            // শুধুমাত্র সঠিক লিঙ্কগুলো তালিকায় যোগ হবে
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+              if (!groups[targetYear]) groups[targetYear] = [];
+              groups[targetYear].push(url);
+            }
           });
 
-          // বছরগুলোকে ক্রমানুসারে সাজানো (নতুন থেকে পুরোনো)
+          // বছরগুলোকে নতুন থেকে পুরোনো ক্রমানুসারে সাজানো
           var sortedYears = Object.keys(groups).sort(function(a, b) {
             return b.localeCompare(a, undefined, { numeric: true });
           });
 
+          if (sortedYears.length === 0) {
+            container.style.display = 'none';
+            if (notice) notice.style.display = 'block';
+            return;
+          }
+
           sortedYears.forEach(function(yearName) {
-            // বছরের সেকশন হেডার বক্স
             var yearWrapper = document.createElement('div');
             yearWrapper.style = 'width: 100%; text-align: left;';
 
@@ -4026,7 +4049,6 @@ updateCountdownDisplay();
             header.innerHTML = '<span style="font-size: 1rem; color: var(--gold-bright); font-weight: bold;">📅 ' + yearName + '</span>' +
                                '<span style="font-size: 0.72rem; color: var(--text-muted); background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(245,176,65,0.2);">' + groups[yearName].length + ' টি ছবি</span>';
 
-            // ওই বছরের ছবির ২-কলামের গ্রিড
             var grid = document.createElement('div');
             grid.style = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;';
 
