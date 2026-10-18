@@ -2324,7 +2324,7 @@ dharBakiList: []
       if (cached) window.appState = Object.assign({}, window.appState, JSON.parse(cached));
     } catch(e) {}
 
-    function showScreen(screenId) {
+    function showScreen(screenId, isBackNavigation) {
       currentScreenId = screenId;
       var screens = [
         'homeScreen', 'officialScreen', 'graminScreen', 
@@ -2340,8 +2340,72 @@ dharBakiList: []
       });
       var target = document.getElementById(screenId);
       if (target) target.classList.remove('hidden');
+
+      // মোবাইলের ব্যাক হিস্ট্রি ট্র্যাকিং
+      if (!isBackNavigation) {
+        if (screenId === 'homeScreen') {
+          // হোম স্ক্রিনে থাকলে হিস্ট্রি ক্লিয়ার/রিসেট মোডে থাকবে
+          history.replaceState({ screen: 'homeScreen' }, '');
+        } else {
+          // অন্য কোনো স্ক্রিনে ঢুকলে নতুন হিস্ট্রি স্টেপ যোগ হবে
+          history.pushState({ screen: screenId }, '');
+        }
+      }
     }
 
+    // ফোনের ব্যাক বাটন / সোয়াইপ ব্যাক হ্যান্ডলার
+    window.addEventListener('popstate', function(event) {
+      // ১. যদি কোনো মডাল বা পপআপ খোলা থাকে, আগে সেটি বন্ধ হবে
+      var openModals = [
+        'photoLightboxModal', 'candidateDetailModal', 'editModal', 
+        'aboutCommitteeModal', 'scheduleModal', 'pinModal', 
+        'adminSettingsModal', 'resetPinModal', 'universalPdfModal'
+      ];
+
+      for (var i = 0; i < openModals.length; i++) {
+        var m = document.getElementById(openModals[i]);
+        if (m && !m.classList.contains('hidden')) {
+          m.classList.add('hidden');
+          // মডাল বন্ধ করার পরেও হিস্ট্রি ব্যালান্স রাখা
+          history.pushState({ screen: currentScreenId }, '');
+          return;
+        }
+      }
+
+      // ২. স্ক্রিন অনুযায়ী লজিক্যাল ব্যাক নেভিগেশন
+      if (currentScreenId === 'memberLedgerScreen') {
+        showScreen('memberScreen', true);
+        renderMemberList();
+      } else if (currentScreenId === 'mainExpenseDetailScreen') {
+        showScreen('mainExpenseScreen', true);
+        renderMainExpenseCategories();
+      } else if (currentScreenId === 'sportsDetailScreen') {
+        showScreen('sportsScreen', true);
+        renderSportsGames();
+      } else if (
+        currentScreenId === 'graminScreen' || 
+        currentScreenId === 'memberScreen' || 
+        currentScreenId === 'mainExpenseScreen' || 
+        currentScreenId === 'generalExpenseScreen' || 
+        currentScreenId === 'programScreen' || 
+        currentScreenId === 'sportsScreen' || 
+        currentScreenId === 'dharBakiScreen' || 
+        currentScreenId === 'finalAuditScreen'
+      ) {
+        // অফিসিয়াল প্যানেলের ভেতরের স্ক্রিনগুলো থেকে অফিসিয়ালে ফিরবে
+        showScreen('officialScreen', true);
+      } else if (currentScreenId === 'officialScreen' || currentScreenId === 'publicScreen') {
+        // অফিসিয়াল ও পাবলিক স্ক্রিন থেকে হোম পেজে ফিরবে
+        showScreen('homeScreen', true);
+      } else {
+        // হোম স্ক্রিনে থাকলে স্বাভাবিক নিয়মে ব্রাউজার/অ্যাপ বন্ধ হবে
+      }
+    });
+
+    // অ্যাপ চালু হওয়ার সময় প্রাথমিক হিস্ট্রি ইনিশিয়ালাইজেশন
+    window.addEventListener('DOMContentLoaded', function() {
+      history.replaceState({ screen: 'homeScreen' }, '');
+    });
     function openPinModal() {
       var input = document.getElementById('inputPin');
       if (input) input.value = '';
