@@ -1361,6 +1361,8 @@ var instaLink = document.getElementById('settingInstaLink').value.trim();
 window.appState.contactFb = fbLink;
 window.appState.contactWp = wpLink;
 window.appState.contactInsta = instaLink;
+      window.appState.contactMap = mapLink;
+updateMapButtonDisplay();
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
       var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
@@ -3752,6 +3754,7 @@ updateCountdownDisplay();
     window.addEventListener('DOMContentLoaded', function() {
       refreshYearDisplay();
       updateCountdownDisplay();
+      updateMapButtonDisplay();
       try {
         if (typeof firebase !== 'undefined') {
           var firebaseConfig = {
@@ -4165,8 +4168,9 @@ updateCountdownDisplay();
     function updateMapButtonDisplay() {
       var mapBtn = document.getElementById('mapLinkBtn');
       if (mapBtn) {
-        if (window.appState.contactMap && window.appState.contactMap.trim() !== '') {
-          mapBtn.style.display = 'flex';
+        var link = (window.appState && window.appState.contactMap) ? window.appState.contactMap.trim() : '';
+        if (link !== '') {
+          mapBtn.style.display = 'flex'; // লিংক থাকলে ডিসপ্লে চালু হবে
         } else {
           mapBtn.style.display = 'none';
         }
