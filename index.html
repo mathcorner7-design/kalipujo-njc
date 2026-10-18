@@ -2177,9 +2177,9 @@ updateCountdownDisplay();
           <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">👥 কর্মকর্তা পরিষদ (প্রতি লাইনে: নাম - পদবী):</div>
           <textarea id="settingExecutiveMembers" class="input-field" rows="3" placeholder="অংশুমান বেরা - সভাপতি&#10;রাহুল দাস - সম্পাদক&#10;সুবীর জানা - কোষাধ্যক্ষ" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
 
-          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 ফটো গ্যালারির ছবি লিঙ্কসমূহ (প্রতি লাইনে ১টি ImgBB Direct Link দিন):</div>
-          <textarea id="settingPhotoAlbumUrl" class="input-field" rows="4" placeholder="https://i.ibb.co/.../pic1.jpg&#10;https://i.ibb.co/.../pic2.jpg&#10;https://i.ibb.co/.../pic3.jpg" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
-          <div style="font-size:0.7rem; color:#888;">যত খুশি ছবির লিঙ্ক দিতে পারেন, প্রতি লাইনে একটি করে লিঙ্ক (Enter চেপে) লিখবেন।</div>
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📸 ফটো গ্যালারির ছবি লিঙ্কসমূহ (প্রতি লাইনে: ছবির লিঙ্ক - সাল):</div>
+<textarea id="settingPhotoAlbumUrl" class="input-field" rows="4" placeholder="https://i.ibb.co/.../pic1.jpg - ২০২৬&#10;https://i.ibb.co/.../pic2.jpg - ২০২৫&#10;https://i.ibb.co/.../pic3.jpg" style="resize: vertical; font-size:0.82rem; line-height:1.4;"></textarea>
+<div style="font-size:0.7rem; color:#888;">প্রতি লাইনে ১টি লিঙ্ক দিন। লিঙ্কের পাশে হাইফেন (-) দিয়ে সাল লিখতে পারেন (যেমন: লিঙ্ক - ২০২৬)।</div>
         </div>
         <!-- সেকশন ৪: যোগাযোগ ও সোশ্যাল মিডিয়া লিঙ্ক -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 10px 12px; text-align: left;">
@@ -3981,25 +3981,69 @@ updateCountdownDisplay();
         container.innerHTML = '';
 
         var rawUrls = window.appState.photoAlbumUrl || '';
-        var photoList = rawUrls.split('\n').map(function(u) { return u.trim(); }).filter(Boolean);
+        var lines = rawUrls.split('\n').map(function(u) { return u.trim(); }).filter(Boolean);
 
-        if (photoList.length === 0) {
+        if (lines.length === 0) {
           container.style.display = 'none';
           if (notice) notice.style.display = 'block';
         } else {
-          container.style.display = 'grid';
+          container.style.display = 'flex';
+          container.style.flexDirection = 'column';
+          container.style.gap = '14px';
           if (notice) notice.style.display = 'none';
 
-          photoList.forEach(function(url) {
-            var thumb = document.createElement('div');
-            thumb.style = 'height: 110px; border-radius: 8px; overflow: hidden; border: 1.5px solid rgba(245, 176, 65, 0.4); background: #000; cursor: pointer;';
-            thumb.innerHTML = '<img src="' + url + '" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.parentElement.style.display=\'none\';">';
-            
-            // ছবিতে ক্লিক করলেই বড় ছবি পপআপে খুলে যাবে
-            thumb.onclick = function() {
-              openPhotoLightbox(url);
-            };
-            container.appendChild(thumb);
+          // বছর অনুযায়ী গ্রুপ করার অবজেক্ট তৈরি
+          var groups = {};
+          var currentAppYear = window.appState.pujaYear || 'স্মরণীয় মুহূর্ত';
+
+          lines.forEach(function(line) {
+            var parts = line.split(/\s+-\s+/);
+            var url = parts[0].trim();
+            var year = parts.length > 1 ? parts[1].trim() : currentAppYear;
+
+            // যদি কেউ ভুল করে আগে সাল আর পরে লিঙ্ক দেয় তাও সামলে নেওয়া
+            if (url.indexOf('http') === -1 && parts.length > 1 && parts[1].indexOf('http') === 0) {
+              year = parts[0].trim();
+              url = parts[1].trim();
+            }
+
+            if (!groups[year]) groups[year] = [];
+            groups[year].push(url);
+          });
+
+          // বছরগুলোকে ক্রমানুসারে সাজানো (নতুন থেকে পুরোনো)
+          var sortedYears = Object.keys(groups).sort(function(a, b) {
+            return b.localeCompare(a, undefined, { numeric: true });
+          });
+
+          sortedYears.forEach(function(yearName) {
+            // বছরের সেকশন হেডার বক্স
+            var yearWrapper = document.createElement('div');
+            yearWrapper.style = 'width: 100%; text-align: left;';
+
+            var header = document.createElement('div');
+            header.style = 'display: flex; align-items: center; gap: 8px; margin-bottom: 8px; border-bottom: 1px dashed rgba(245, 176, 65, 0.4); padding-bottom: 4px;';
+            header.innerHTML = '<span style="font-size: 1rem; color: var(--gold-bright); font-weight: bold;">📅 ' + yearName + '</span>' +
+                               '<span style="font-size: 0.72rem; color: var(--text-muted); background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(245,176,65,0.2);">' + groups[yearName].length + ' টি ছবি</span>';
+
+            // ওই বছরের ছবির ২-কলামের গ্রিড
+            var grid = document.createElement('div');
+            grid.style = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;';
+
+            groups[yearName].forEach(function(imgUrl) {
+              var thumb = document.createElement('div');
+              thumb.style = 'height: 110px; border-radius: 8px; overflow: hidden; border: 1.5px solid rgba(245, 176, 65, 0.4); background: #000; cursor: pointer; transition: transform 0.2s;';
+              thumb.innerHTML = '<img src="' + imgUrl + '" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.parentElement.style.display=\'none\';">';
+
+              thumb.onclick = function() {
+                openPhotoLightbox(imgUrl);
+              };
+              grid.appendChild(thumb);
+            });
+
+            yearWrapper.appendChild(header);
+            yearWrapper.appendChild(grid);
+            container.appendChild(yearWrapper);
           });
         }
       }
