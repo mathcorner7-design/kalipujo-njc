@@ -3286,13 +3286,27 @@ dharBakiList: []
         window.appState.generalExpenses[pIdx].title = mainVal;
         window.appState.generalExpenses[pIdx].amount = numVal;
         renderGeneralExpenses();
-      }
-else if (type === 'dhar_baki') {
+      } else if (type === 'dhar_baki') {
         if (isNaN(numVal) || numVal <= 0) { alert("সঠিক টাকার পরিমাণ দিন!"); return; }
         window.appState.dharBakiList[pIdx].person = mainVal;
         window.appState.dharBakiList[pIdx].amount = numVal;
         window.appState.dharBakiList[pIdx].reason = extraVal || 'নির্দিষ্ট নেই';
         renderDharBaki();
+      } else if (type === 'program_entry') {
+        var age = parseInt(document.getElementById('editNumberField').value);
+        if (isNaN(age) || age <= 0) { alert("সঠিক বয়স লিখুন!"); return; }
+        window.appState.programData[pIdx][sIdx].name = mainVal;
+        window.appState.programData[pIdx][sIdx].age = age;
+        window.appState.programData[pIdx][sIdx].remarks = extraVal || 'নির্দিষ্ট নেই';
+        window.appState.programData[pIdx].sort(function(a, b) { return a.age - b.age; });
+        renderProgramList();
+      } else if (type === 'sport_name') {
+        window.appState.sportsData[pIdx].gameName = mainVal;
+        renderSportsGames();
+      } else if (type === 'sport_winner') {
+        window.appState.sportsData[pIdx].winners[sIdx].winnerName = mainVal;
+        window.appState.sportsData[pIdx].winners[sIdx].remarks = extraVal || '';
+        renderSportsWinners();
       }
       
       persistData();
@@ -3909,7 +3923,6 @@ updateCountdownDisplay();
               persistData();
             }
             refreshUI();
-            checkAndTriggerCelebrationSplash();
           }, function(err) {
             console.warn("Firestore error:", err);
             var badge = document.getElementById('syncStatus');
@@ -4313,7 +4326,7 @@ updateCountdownDisplay();
           setTimeout(function() {
             splash.style.display = 'none';
           }, 600);
-        }, 2000);
+        }, 4000);
       } else {
         splash.style.display = 'none';
       }
