@@ -3235,22 +3235,48 @@ dharBakiList: []
       document.getElementById('editMainField').value = mainVal || '';
 
       var numField = document.getElementById('editNumberField');
-      if (numVal !== null && numVal !== undefined) {
-        numField.classList.remove('hidden');
-        numField.value = numVal;
-      } else {
-        numField.classList.add('hidden');
-      }
-
       var extraField = document.getElementById('editExtraField');
-      if (type === 'program_entry' || type === 'sport_winner' || type === 'dhar_baki') {
+      var rankField = document.getElementById('editRankField');
+
+      // খেলার বিজয়ী এডিট
+      if (type === 'sport_winner') {
+        numField.classList.add('hidden'); // টাকার বক্স লুকানো থাকবে
+        if (rankField) {
+          rankField.classList.remove('hidden'); // র‍্যাংক ড্রপডাউন ফুটে উঠবে
+          rankField.value = numVal || '১ম স্থান (1st)';
+        }
         extraField.classList.remove('hidden');
+        extraField.placeholder = 'মন্তব্য (যদি থাকে)';
         extraField.value = extraVal || '';
       } else {
-        extraField.classList.add('hidden');
+        if (rankField) rankField.classList.add('hidden');
+
+        // টাকা বা বয়স ফিল্ড
+        if (numVal !== null && numVal !== undefined) {
+          numField.classList.remove('hidden');
+          numField.value = numVal;
+          if (type === 'program_entry') {
+            numField.placeholder = 'বয়স (Age)';
+          } else if (type === 'dhar_baki') {
+            numField.placeholder = 'বাকি টাকার পরিমাণ (₹)';
+          } else {
+            numField.placeholder = 'টাকার পরিমাণ (₹)';
+          }
+        } else {
+          numField.classList.add('hidden');
+        }
+
+        // মন্তব্য বা বিবরণ ফিল্ড
+        if (type === 'program_entry' || type === 'dhar_baki') {
+          extraField.classList.remove('hidden');
+          extraField.placeholder = (type === 'program_entry') ? 'মন্তব্য / বিষয়' : 'কী কারণে বাকি? (বিবরণ)';
+          extraField.value = extraVal || '';
+        } else {
+          extraField.classList.add('hidden');
+        }
       }
 
-      document.getElementById('editTimeNotice').innerText = timeVal ? ('মূল সময়: ' + timeVal) : '';
+      document.getElementById('editTimeNotice').innerText = timeVal ? ('মূল সময়: ' + timeVal) : '';
       document.getElementById('editModal').classList.remove('hidden');
     }
 
@@ -3263,6 +3289,7 @@ dharBakiList: []
       var mainVal = formatInputText(document.getElementById('editMainField').value);
       var numVal = parseFloat(document.getElementById('editNumberField').value);
       var extraVal = formatInputText(document.getElementById('editExtraField').value);
+      var rankVal = document.getElementById('editRankField') ? document.getElementById('editRankField').value : '';
 
       if (!mainVal) { alert("নাম বা বিবরণ লিখুন!"); return; }
 
@@ -3311,6 +3338,7 @@ dharBakiList: []
         renderSportsGames();
       } else if (type === 'sport_winner') {
         window.appState.sportsData[pIdx].winners[sIdx].winnerName = mainVal;
+        window.appState.sportsData[pIdx].winners[sIdx].rank = rankVal;
         window.appState.sportsData[pIdx].winners[sIdx].remarks = extraVal || '';
         renderSportsWinners();
       }
