@@ -208,6 +208,35 @@
       100% { transform: translate(15px, -10px) scale(0.9); opacity: 0.7; }
     }
     @keyframes pulseGlow { 0% { transform: scale(0.95); opacity: 0.4; } 100% { transform: scale(1.15); opacity: 0.85; } }
+    /* সেলিব্রেশন স্প্ল্যাশ স্ক্রিন স্টাইল */
+    #celebrationSplash {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at center, rgba(128, 0, 32, 0.98) 0%, #0d0103 85%);
+      z-index: 2147483647; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; padding: 16px;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #celebrationSplash.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+    .celeb-card {
+      position: relative; max-width: 380px; width: 92%; border-radius: 20px;
+      border: 2px solid var(--gold-bright); box-shadow: 0 0 35px rgba(255, 215, 0, 0.7);
+      overflow: hidden; background: #000; animation: celebPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .celeb-card img { width: 100%; height: auto; display: block; max-height: 70vh; object-fit: contain; }
+    @keyframes celebPop {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    /* চারদিকে ছড়ানো রঙিন কণা */
+    .celeb-sparkle {
+      position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold-bright); pointer-events: none;
+      animation: sparkleAnim 2s infinite ease-in-out;
+    }
+    @keyframes sparkleAnim {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
+      50% { transform: translateY(-15px) scale(1.4); opacity: 1; filter: drop-shadow(0 0 6px #ffd700); }
+    }
   </style>
 
   <script>
@@ -221,6 +250,7 @@
       contactInsta: '',
       contactMap: '',
       scheduleBannerUrl: '',
+      celebrationBannerUrl: '',
       pujaDate: '',
       committeeHistory: '',
       executiveMembersText: '',
@@ -1331,6 +1361,8 @@ dharBakiList: []
 if (mapInp) mapInp.value = window.appState.contactMap || '';
       var schedInp = document.getElementById('settingScheduleLink');
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
+      var celebInp = document.getElementById('settingCelebBannerLink');
+      if (celebInp) celebInp.value = window.appState.celebrationBannerUrl || '';
       var dateInp = document.getElementById('settingPujaDate');
 if (dateInp) dateInp.value = window.appState.pujaDate || '';
       var histInp = document.getElementById('settingCommitteeHistory');
@@ -1365,6 +1397,8 @@ window.appState.contactInsta = instaLink;
 updateMapButtonDisplay();
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
+      var celebLink = document.getElementById('settingCelebBannerLink') ? document.getElementById('settingCelebBannerLink').value.trim() : '';
+      window.appState.celebrationBannerUrl = celebLink;
       var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
 window.appState.pujaDate = pDate;
       window.appState.committeeHistory = document.getElementById('settingCommitteeHistory') ? document.getElementById('settingCommitteeHistory').value.trim() : '';
@@ -1610,7 +1644,15 @@ updateCountdownDisplay();
   </script>
 </head>
 <body>
-
+<!-- শুভ উদযাপন ও সিলভার জুবিলি সেলিব্রেশন স্প্ল্যাশ স্ক্রিন -->
+  <div id="celebrationSplash" style="display: none;">
+    <div class="celeb-card">
+      <img id="celebrationSplashImg" src="" alt="উৎসব উদযাপন ব্যানার">
+    </div>
+    <div style="margin-top: 15px; color: var(--gold-bright); font-size: 1rem; font-weight: 700; text-shadow: 0 0 10px rgba(255,215,0,0.8); display:flex; align-items:center; gap:8px;">
+      <span>🎉</span> <span>নিউ ঝালাপালা কমিটি</span> <span>🎉</span>
+    </div>
+  </div>
   <div class="app-container">
    
 
@@ -2169,6 +2211,9 @@ updateCountdownDisplay();
 
           <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📅 সময়সূচি ব্যানার ইমেজ (Direct Link):</div>
           <input type="text" id="settingScheduleLink" class="input-field" placeholder="https://i.ibb.co/.../banner.jpg">
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">🎉 বিশেষ উদযাপন / সিলভার জুবিলি ব্যানার (Direct Link):</div>
+          <input type="text" id="settingCelebBannerLink" class="input-field" placeholder="https://i.ibb.co/.../celebration.jpg">
+          <div style="font-size:0.68rem; color:#888;">(এখানে লিংক দিলে প্রতিবার অ্যাপ খোলার শুরুতে ২ সেকেন্ডের অ্যানিমেটেড পপআপ ভেসে উঠবে। লিংক মুছে দিলে বন্ধ থাকবে)</div>
         </div>
 
         <!-- সেকশন ৩: সাধারণ তথ্য ও সাল -->
@@ -2298,6 +2343,7 @@ updateCountdownDisplay();
       contactInsta: '',
       contactMap: '',
       scheduleBannerUrl: '',
+      celebrationBannerUrl: '',
       pujaDate: '',
       committeeHistory: '',
       executiveMembersText: '',
@@ -3265,6 +3311,8 @@ else if (type === 'dhar_baki') {
 if (mapInp) mapInp.value = window.appState.contactMap || '';
       var schedInp = document.getElementById('settingScheduleLink');
       if (schedInp) schedInp.value = window.appState.scheduleBannerUrl || '';
+      var celebInp = document.getElementById('settingCelebBannerLink');
+      if (celebInp) celebInp.value = window.appState.celebrationBannerUrl || '';
       var dateInp = document.getElementById('settingPujaDate');
 if (dateInp) dateInp.value = window.appState.pujaDate || '';
       var histInp = document.getElementById('settingCommitteeHistory');
@@ -3300,6 +3348,8 @@ window.appState.contactInsta = instaLink;
 updateMapButtonDisplay();
       var schedLink = document.getElementById('settingScheduleLink') ? document.getElementById('settingScheduleLink').value.trim() : '';
       window.appState.scheduleBannerUrl = schedLink;
+      var celebLink = document.getElementById('settingCelebBannerLink') ? document.getElementById('settingCelebBannerLink').value.trim() : '';
+      window.appState.celebrationBannerUrl = celebLink;
       var pDate = document.getElementById('settingPujaDate') ? document.getElementById('settingPujaDate').value : '';
 window.appState.pujaDate = pDate;
       window.appState.committeeHistory = document.getElementById('settingCommitteeHistory') ? document.getElementById('settingCommitteeHistory').value.trim() : '';
@@ -3832,6 +3882,7 @@ updateCountdownDisplay();
       refreshYearDisplay();
       updateCountdownDisplay();
       updateMapButtonDisplay();
+      checkAndTriggerCelebrationSplash();
       try {
         if (typeof firebase !== 'undefined') {
           var firebaseConfig = {
@@ -3858,6 +3909,7 @@ updateCountdownDisplay();
               persistData();
             }
             refreshUI();
+            checkAndTriggerCelebrationSplash();
           }, function(err) {
             console.warn("Firestore error:", err);
             var badge = document.getElementById('syncStatus');
@@ -4241,6 +4293,29 @@ updateCountdownDisplay();
       var img = document.getElementById('kaliPhoto');
       if (img && window.appState.kaliImageUrl) {
         img.src = window.appState.kaliImageUrl;
+      }
+    }
+
+    function checkAndTriggerCelebrationSplash() {
+      var url = (window.appState && window.appState.celebrationBannerUrl) ? window.appState.celebrationBannerUrl.trim() : '';
+      var splash = document.getElementById('celebrationSplash');
+      var splashImg = document.getElementById('celebrationSplashImg');
+      if (!splash || !splashImg) return;
+
+      if (url) {
+        splashImg.src = url;
+        splash.style.display = 'flex';
+        splash.classList.remove('fade-out');
+
+        // ঠিক ২ সেকেন্ড পর নরমভাবে মিলিয়ে (fade-out) মূল অ্যাপে চলে যাবে
+        setTimeout(function() {
+          splash.classList.add('fade-out');
+          setTimeout(function() {
+            splash.style.display = 'none';
+          }, 600);
+        }, 2000);
+      } else {
+        splash.style.display = 'none';
       }
     }
     function updateMapButtonDisplay() {
