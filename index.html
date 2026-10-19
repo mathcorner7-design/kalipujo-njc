@@ -1270,7 +1270,7 @@ dharBakiList: []
       }
 
       var extraField = document.getElementById('editExtraField');
-      if (type === 'program_entry' || type === 'sport_winner') {
+      if (type === 'program_entry' || type === 'sport_winner' || type === 'dhar_baki') {
         extraField.classList.remove('hidden');
         extraField.placeholder = (type === 'program_entry') ? 'মন্তব্য / বিষয়' : 'মন্তব্য (যদি থাকে)';
         extraField.value = extraVal || '';
@@ -1341,6 +1341,7 @@ dharBakiList: []
       }
       else if (type === 'sport_winner') {
         window.appState.sportsData[pIdx].winners[sIdx].winnerName = mainVal;
+        window.appState.sportsData[pIdx].winners[sIdx].rank = document.getElementById('editRankField').value;
         window.appState.sportsData[pIdx].winners[sIdx].remarks = extraVal || '';
         window.renderSportsWinners();
       }
@@ -1706,7 +1707,7 @@ updateCountdownDisplay();
         <!-- কমিটি পরিচিতি ও মহাফেজখানা বাটন -->
         <button type="button" class="btn" onclick="openAboutCommitteeModal()" style="background: linear-gradient(135deg, rgba(128, 0, 32, 0.95), rgba(40, 2, 8, 0.95)); color: var(--gold-bright); border: 1.2px solid var(--gold-primary); font-size: 0.95rem; padding: 11px 14px; margin-top: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
           <span>🏛️</span>
-          <span>কমিটির ইতিহাস ও গ্যালারি</span>
+          <span>কমিটির ইতিহাস,কর্মকর্তা ও গ্যালারি</span>
         </button>
       </div>
 
@@ -1748,7 +1749,7 @@ updateCountdownDisplay();
         </div>
       </div>
 
-      <div class="footer-text">সৌজন্যে নিউ ঝালাপালা কমিটি (২০০২)</div>
+      <div class="footer-text">সৌজন্যে-নিউ ঝালাপালা কমিটি (২০০২)</div>
     </div>
 
     <!-- 2. OFFICIAL DASHBOARD -->
@@ -2206,14 +2207,14 @@ updateCountdownDisplay();
           <div style="color: var(--gold-bright); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
             <span>🎨</span> <span>ব্যানার ও ছবি লিঙ্ক (ImgBB Media)</span>
           </div>
-          <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">🌺 মা কালীর প্রতিমা ছবি (Direct Link):</div>
+          <div style="font-size:0.75rem; color:#bbb; margin-bottom:4px;">🌺 হোম স্ক্রীনের DP (Direct Link):</div>
           <input type="text" id="settingKaliImgLink" class="input-field" placeholder="https://i.ibb.co/.../kali.jpg">
 
           <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">📅 সময়সূচি ব্যানার ইমেজ (Direct Link):</div>
           <input type="text" id="settingScheduleLink" class="input-field" placeholder="https://i.ibb.co/.../banner.jpg">
-          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">🎉 বিশেষ উদযাপন / সিলভার জুবিলি ব্যানার (Direct Link):</div>
+          <div style="font-size:0.75rem; color:#bbb; margin-top:8px; margin-bottom:4px;">🎉 বিশেষ উদযাপন ব্যানার (Direct Link):</div>
           <input type="text" id="settingCelebBannerLink" class="input-field" placeholder="https://i.ibb.co/.../celebration.jpg">
-          <div style="font-size:0.68rem; color:#888;">(এখানে লিংক দিলে প্রতিবার অ্যাপ খোলার শুরুতে ২ সেকেন্ডের অ্যানিমেটেড পপআপ ভেসে উঠবে। লিংক মুছে দিলে বন্ধ থাকবে)</div>
+          <div style="font-size:0.68rem; color:#888;">(এখানে লিংক দিলে প্রতিবার অ্যাপ খোলার শুরুতে 4 সেকেন্ডের অ্যানিমেটেড পপআপ ভেসে উঠবে। লিংক মুছে দিলে বন্ধ থাকবে)</div>
         </div>
 
         <!-- সেকশন ৩: সাধারণ তথ্য ও সাল -->
@@ -2322,6 +2323,11 @@ updateCountdownDisplay();
       <input type="text" id="editMainField" class="input-field" placeholder="নাম / বিবরণ">
       <input type="number" id="editNumberField" class="input-field hidden" style="margin-top:8px;" placeholder="টাকা বা বয়স" inputmode="numeric">
       <input type="text" id="editExtraField" class="input-field hidden" style="margin-top:8px;" placeholder="মন্তব্য / বিবরণ">
+      <select id="editRankField" class="input-field hidden" style="margin-top:8px;">
+        <option value="১ম স্থান (1st)">🥇 ১ম স্থান (1st)</option>
+        <option value="২য় স্থান (2nd)">🥈 ২য় স্থান (2nd)</option>
+        <option value="৩য় স্থান (3rd)">🥉 ৩য় স্থান (3rd)</option>
+      </select>
       
       <div style="font-size:0.75rem; color:#aaa; margin-top:8px;" id="editTimeNotice"></div>
 
@@ -3005,7 +3011,7 @@ dharBakiList: []
     }
     function openSportWinnerEdit(wIndex) {
       var w = window.appState.sportsData[activeSportIndex].winners[wIndex];
-      setEditModal('sport_winner', activeSportIndex, wIndex, 'ফলাফল সম্পাদনা', 'বিজয়ীর নাম', w.winnerName, null, w.remarks, w.dateTime);
+      setEditModal('sport_winner', activeSportIndex, wIndex, 'ফলাফল সম্পাদনা', 'বিজয়ীর নাম', w.winnerName, w.rank, w.remarks, w.dateTime);
     }
 
     /* ৭. পূজো শেষের হিসাব (Final Audit) */
@@ -3237,7 +3243,7 @@ dharBakiList: []
       }
 
       var extraField = document.getElementById('editExtraField');
-      if (type === 'program_entry' || type === 'sport_winner') {
+      if (type === 'program_entry' || type === 'sport_winner' || type === 'dhar_baki') {
         extraField.classList.remove('hidden');
         extraField.value = extraVal || '';
       } else {
