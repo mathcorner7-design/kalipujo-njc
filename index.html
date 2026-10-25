@@ -973,19 +973,8 @@ dharBakiList: []
       var finalMemberSummary = [];
 
       if (memberCount > 0) {
-        if (netBalance >= 0) {
-          var extraSurplus = netBalance - totalMember;
-          perHeadShare = extraSurplus / memberCount;
-
-          finalMemberSummary = memberStats.map(function(m) {
-            var willReceive = m.paid + perHeadShare;
-            return {
-              name: m.name, paid: m.paid, share: perHeadShare,
-              finalAmount: willReceive, status: 'RECEIVE',
-              note: 'নিজস্ব জমা ₹' + m.paid.toFixed(2) + ' + অতিরিক্ত ভাগ ₹' + perHeadShare.toFixed(2)
-            };
-          });
-        } else {
+        if (netBalance < 0) {
+          // ১. ঘাটতির ক্ষেত্র (খরচ জমার চেয়ে বেশি) - এটি আপনার কোডে আগেই ঠিক আছে
           var deficit = Math.abs(netBalance);
           var totalTarget = deficit + totalMember;
           var perMemberTarget = totalTarget / memberCount;
@@ -996,13 +985,13 @@ dharBakiList: []
               return {
                 name: m.name, paid: m.paid, share: perMemberTarget,
                 finalAmount: diff, status: 'PAY',
-                note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2)
+                note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2)
               };
             } else if (diff < 0) {
               return {
                 name: m.name, paid: m.paid, share: perMemberTarget,
                 finalAmount: Math.abs(diff), status: 'RECEIVE',
-                note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)'
+                note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)'
               };
             } else {
               return {
@@ -1011,6 +1000,26 @@ dharBakiList: []
                 note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)'
               };
             }
+          });
+
+        } else if (netBalance === 0) {
+          // ২. জমা ও খরচ একদম সমান (Zero Net Balance) - নতুন সঠিক লজিক
+          finalMemberSummary = memberStats.map(function(m) {
+            return {
+              name: m.name, paid: m.paid, share: 0,
+              finalAmount: 0, status: 'EQUAL',
+              note: 'আয় ও ব্যয় সমান (কোনো অতিরিক্ত দেনা-পাওনা নেই)'
+            };
+          });
+
+        } else {
+          // ৩. উদ্বৃত্ত বা টাকা বেঁচেছে (Net Balance > 0) - এখানে পরবর্তীতে আমরা সঠিক হিসাব বসাবো
+          finalMemberSummary = memberStats.map(function(m) {
+            return {
+              name: m.name, paid: m.paid, share: 0,
+              finalAmount: netBalance / memberCount, status: 'RECEIVE',
+              note: 'উদ্বৃত্ত তহবিল থেকে অংশ'
+            };
           });
         }
       }
@@ -1038,18 +1047,21 @@ dharBakiList: []
 
       var banner = document.getElementById('netAuditBanner');
       if (banner) {
-        if (data.netBalance >= 0) {
-          banner.className = 'net-banner net-surplus';
-          banner.innerHTML = 
-            '<div style="font-size:0.95rem; font-weight:bold;">🎉 উদ্বৃত্ত ব্যালেন্স (টাকা বেঁচেছে)</div>' +
-            '<div style="font-size:1.4rem; font-weight:700;">+ ₹ ' + data.netBalance.toLocaleString('en-IN') + '</div>' +
-            '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
-        } else {
+        if (data.netBalance < 0) {
+          // ১. ঘাটতির ক্ষেত্রে (লাল ব্যানার)
           banner.className = 'net-banner net-deficit';
-          banner.innerHTML = 
-            '<div style="font-size:0.95rem; font-weight:bold;">⚠️ ঘাটতি ব্যালেন্স (টাকা কম পড়েছে)</div>' +
-            '<div style="font-size:1.4rem; font-weight:700;">- ₹ ' + Math.abs(data.netBalance).toLocaleString('en-IN') + '</div>' +
-            '<div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
+          banner.innerHTML = '<div style="font-size:0.95rem; font-weight:bold;">⚠️ ঘাটতি ব্যালেন্স (টাকা কম পড়েছে)</div><div style="font-size:1.4rem; font-weight:700;">- ₹ ' + Math.abs(data.netBalance).toLocaleString('en-IN') + '</div><div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
+        } else if (data.netBalance === 0) {
+          // ২. জমা ও খরচ একদম সমান হলে (সোনালী বা নিউট্রাল ব্যানার)
+          banner.className = 'net-banner';
+          banner.style.background = 'rgba(245, 176, 65, 0.15)';
+          banner.style.borderColor = '#f5b041';
+          banner.style.color = '#f5b041';
+          banner.innerHTML = '<div style="font-size:0.95rem; font-weight:bold;">⚖️ ভারসাম্যপূর্ণ বাজেট (হিসাব একদম সমান)</div><div style="font-size:1.4rem; font-weight:700;">₹ 0.00</div><div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
+        } else {
+          // ৩. উদ্বৃত্ত বা টাকা বাঁচলে (সবুজ ব্যানার)
+          banner.className = 'net-banner net-surplus';
+          banner.innerHTML = '<div style="font-size:0.95rem; font-weight:bold;">🎉 উদ্বৃত্ত ব্যালেন্স (টাকা বেঁচেছে)</div><div style="font-size:1.4rem; font-weight:700;">+ ₹ ' + data.netBalance.toLocaleString('en-IN') + '</div><div style="font-size:0.8rem; color:#eee;">মোট জমা: ₹' + data.totalIncome.toLocaleString('en-IN') + ' | মোট খরচ: ₹' + data.totalExpense.toLocaleString('en-IN') + '</div>';
         }
       }
 
@@ -1465,8 +1477,8 @@ updateCountdownDisplay();
       var year = window.appState.pujaYear || '২০২৬';
 
       var printWindow = window.open('', '_blank');
-      var statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
-      var statusTitle = data.netBalance >= 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2);
+      var statusColor = data.netBalance > 0 ? '#27ae60' : (data.netBalance === 0 ? '#f5b041' : '#c0392b');
+var statusTitle = data.netBalance > 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : (data.netBalance === 0 ? 'ভারসাম্যপূর্ণ বাজেট (হিসাব একদম সমান): ₹ 0.00' : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2));
 
       var htmlContent = 
         '<!DOCTYPE html><html lang="bn"><head><title>পূজো শেষের হিসাব - নিউ ঝালাপাল্লা কমিটি (' + year + ')</title>' +
@@ -1537,7 +1549,10 @@ updateCountdownDisplay();
           '<tr><th>মোট গ্রামীন চাঁদা</th><td>₹ ' + totalGramin.toLocaleString('en-IN') + '</td><th>মোট প্রধান খরচ</th><td>₹ ' + totalMainExp.toLocaleString('en-IN') + '</td></tr>' +
           '<tr><th>মোট মেম্বার চাঁদা</th><td>₹ ' + totalMember.toLocaleString('en-IN') + '</td><th>মোট সাধারণ খরচ</th><td>₹ ' + totalGenExp.toLocaleString('en-IN') + '</td></tr>' +
           '<tr style="font-weight:bold; background:#f9f9f9;"><th>সর্বমোট সংগৃহীত চাঁদা</th><td>₹ ' + totalIncome.toLocaleString('en-IN') + '</td><th>সর্বমোট খরচ</th><td>₹ ' + totalExpense.toLocaleString('en-IN') + '</td></tr>' +
-          '<tr style="font-weight:bold;"><th colspan="2" style="text-align:right;">বর্তমান আর্থিক স্থিতি (' + (netBalance >= 0 ? 'উদ্বৃত্ত' : 'ঘাটতি') + '):</th><td colspan="2" style="color:' + (netBalance >= 0 ? '#27ae60' : '#c0392b') + '; font-size:15px;">₹ ' + netBalance.toLocaleString('en-IN') + '</td></tr>' +
+         var pubStatusLabel = netBalance > 0 ? 'উদ্বৃত্ত' : (netBalance === 0 ? 'ভারসাম্যপূর্ণ' : 'ঘাটতি');
+         var pubStatusColor = netBalance > 0 ? '#27ae60' : (netBalance === 0 ? '#f5b041' : '#c0392b');
+
+'<tr style="font-weight:bold;"><th colspan="2" style="text-align:right;">বর্তমান আর্থিক স্থিতি (' + pubStatusLabel + '):</th><td colspan="2" style="color:' + pubStatusColor + '; font-size:15px;">₹ ' + netBalance.toLocaleString('en-IN') + '</td></tr>' +
         '</table>' +
         '<div class="section-head">🪙 গ্রামীন চাঁদা তালিকা</div><table class="data-table"><thead><tr><th style="width:10%;">ক্রম</th><th style="width:60%;">দাতার নাম</th><th style="width:30%;">টাকার পরিমাণ</th></tr></thead><tbody>';
 
@@ -3042,24 +3057,28 @@ dharBakiList: []
       var finalMemberSummary = [];
 
       if (memberCount > 0) {
-        if (netBalance >= 0) {
-          var extraSurplus = netBalance - totalMember;
-          var perHeadShare = extraSurplus / memberCount;
-          finalMemberSummary = memberStats.map(function(m) {
-            return { name: m.name, paid: m.paid, finalAmount: m.paid + perHeadShare, status: 'RECEIVE', note: 'নিজস্ব জমা ₹' + m.paid.toFixed(2) + ' + অতিরিক্ত ভাগ ₹' + perHeadShare.toFixed(2) };
-          });
-        } else {
-          var deficit = Math.abs(netBalance);
-          var perMemberTarget = (deficit + totalMember) / memberCount;
-          finalMemberSummary = memberStats.map(function(m) {
-            var diff = perMemberTarget - m.paid;
-            if (diff > 0) return { name: m.name, paid: m.paid, finalAmount: diff, status: 'PAY', note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2) };
-            else if (diff < 0) return { name: m.name, paid: m.paid, finalAmount: Math.abs(diff), status: 'RECEIVE', note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)' };
-            else return { name: m.name, paid: m.paid, finalAmount: 0, status: 'EQUAL', note: 'হিসাব সমান' };
-          });
-        }
-      }
-
+  if (netBalance < 0) {
+    // ১. ঘাটতির ক্ষেত্র (খরচ জমার চেয়ে বেশি)
+    var deficit = Math.abs(netBalance);
+    var perMemberTarget = (deficit + totalMember) / memberCount;
+    finalMemberSummary = memberStats.map(function(m) {
+      var diff = perMemberTarget - m.paid;
+      if (diff > 0) return { name: m.name, paid: m.paid, finalAmount: diff, status: 'PAY', note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2) };
+      else if (diff < 0) return { name: m.name, paid: m.paid, finalAmount: Math.abs(diff), status: 'RECEIVE', note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)' };
+      else return { name: m.name, paid: m.paid, finalAmount: 0, status: 'EQUAL', note: 'হিসাব সমান' };
+    });
+  } else if (netBalance === 0) {
+    // ২. জমা ও খরচ একদম সমান
+    finalMemberSummary = memberStats.map(function(m) {
+      return { name: m.name, paid: m.paid, finalAmount: 0, status: 'EQUAL', note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)' };
+    });
+  } else {
+    // ৩. উদ্বৃত্ত বা টাকা বেঁচেছে
+    finalMemberSummary = memberStats.map(function(m) {
+      return { name: m.name, paid: m.paid, finalAmount: netBalance / memberCount, status: 'RECEIVE', note: 'উদ্বৃত্ত তহবিল থেকে অংশ' };
+    });
+  }
+}
       return { totalGramin: totalGramin, totalMember: totalMember, totalIncome: totalIncome, totalMainExp: totalMainExp, totalGenExp: totalGenExp, totalExpense: totalExpense, netBalance: netBalance, memberCount: memberCount, finalMemberSummary: finalMemberSummary };
     }
 
@@ -3531,9 +3550,9 @@ updateCountdownDisplay();
     function generateAuditPdf() {
       var data = window.calculateAuditData();
       var year = window.appState.pujaYear || '২০২৬';
-      var statusColor = data.netBalance >= 0 ? '#27ae60' : '#c0392b';
-      var statusText = data.netBalance >= 0 ? ('উদ্বৃত্ত: + ₹' + data.netBalance.toFixed(2)) : ('ঘাটতি: - ₹' + Math.abs(data.netBalance).toFixed(2));
-
+      var statusColor = data.netBalance > 0 ? '#27ae60' : (data.netBalance === 0 ? '#f5b041' : '#c0392b');
+      var statusTitle = data.netBalance > 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : (data.netBalance === 0 ? 'ভারসাম্যপূর্ণ বাজেট (হিসাব একদম সমান): ₹ 0.00' : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2));
+      
       var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
                  '<h4 style="text-align:center;">কালীপূজা ' + year + ' - চূড়ান্ত অডিট রিপোর্ট</h4>' +
                  '<p style="text-align:center; font-size:11px; color:#666;">তারিখ: ' + window.getCurrentDateTime() + '</p>' +
@@ -3573,8 +3592,8 @@ updateCountdownDisplay();
       var totalExpense = auditData.totalExpense;
       var netBalance = auditData.netBalance;
 
-      var statusColor = netBalance >= 0 ? '#27ae60' : '#c0392b';
-      var statusText = netBalance >= 0 ? ('উদ্বৃত্ত স্থিতি: + ₹ ' + netBalance.toLocaleString('en-IN')) : ('ঘাটতি স্থিতি: - ₹ ' + Math.abs(netBalance).toLocaleString('en-IN'));
+     var statusColor = netBalance > 0 ? '#27ae60' : (netBalance === 0 ? '#f5b041' : '#c0392b');
+     var statusText = netBalance > 0 ? ('উদ্বৃত্ত স্থিতি: + ₹ ' + netBalance.toLocaleString('en-IN')) : (netBalance === 0 ? 'ভারসাম্যপূর্ণ স্থিতি (হিসাব সমান): ₹ 0' : ('ঘাটতি স্থিতি: - ₹ ' + Math.abs(netBalance).toLocaleString('en-IN')));
 
       var html = '<h2 style="color:#800020; text-align:center; margin:0 0 4px 0; font-size:20px;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
                  '<h3 style="text-align:center; margin:0 0 6px 0; color:#222; font-size:15px;">কালীপূজা ' + year + ' - পুজো শেষের সমগ্র অডিট ও পূর্ণাঙ্গ মহাফেজখানা খতিয়ান</h3>' +
