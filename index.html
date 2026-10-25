@@ -3057,28 +3057,37 @@ dharBakiList: []
       var finalMemberSummary = [];
 
       if (memberCount > 0) {
-  if (netBalance < 0) {
-    // ১. ঘাটতির ক্ষেত্র (খরচ জমার চেয়ে বেশি)
-    var deficit = Math.abs(netBalance);
-    var perMemberTarget = (deficit + totalMember) / memberCount;
-    finalMemberSummary = memberStats.map(function(m) {
-      var diff = perMemberTarget - m.paid;
-      if (diff > 0) return { name: m.name, paid: m.paid, finalAmount: diff, status: 'PAY', note: 'জনপ্রতি দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2) };
-      else if (diff < 0) return { name: m.name, paid: m.paid, finalAmount: Math.abs(diff), status: 'RECEIVE', note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)' };
-      else return { name: m.name, paid: m.paid, finalAmount: 0, status: 'EQUAL', note: 'হিসাব সমান' };
-    });
-  } else if (netBalance === 0) {
-    // ২. জমা ও খরচ একদম সমান
-    finalMemberSummary = memberStats.map(function(m) {
-      return { name: m.name, paid: m.paid, finalAmount: 0, status: 'EQUAL', note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)' };
-    });
-  } else {
-    // ৩. উদ্বৃত্ত বা টাকা বেঁচেছে
-    finalMemberSummary = memberStats.map(function(m) {
-      return { name: m.name, paid: m.paid, finalAmount: netBalance / memberCount, status: 'RECEIVE', note: 'উদ্বৃত্ত তহবিল থেকে অংশ' };
-    });
-  }
-}
+        // ১. গ্রামীন চাঁদা বাদ দিয়ে মেম্বারদের মোট প্রকৃত খরচ বের করে মাথাপিছু দায়িত্ব নির্ণয়
+        var memberTotalExpense = totalExpense - totalGramin;
+        var perMemberTarget = memberTotalExpense / memberCount;
+
+        finalMemberSummary = memberStats.map(function(m) {
+          var diff = perMemberTarget - m.paid;
+          
+          if (diff > 0) {
+            // যদি মাথাপিছু দায়িত্বের চেয়ে কম টাকা জমা দিয়ে থাকেন (ঘাটতি/আরও দিতে হবে)
+            return {
+              name: m.name, paid: m.paid, share: perMemberTarget,
+              finalAmount: diff, status: 'PAY',
+              note: 'মাথাপিছু দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' - দেওয়া হয়েছে ₹' + m.paid.toFixed(2)
+            };
+          } else if (diff < 0) {
+            // যদি মাথাপিছু দায়িত্বের চেয়ে বেশি টাকা জমা দিয়ে থাকেন (উদ্বৃত্ত/ফেরত পাবেন)
+            return {
+              name: m.name, paid: m.paid, share: perMemberTarget,
+              finalAmount: Math.abs(diff), status: 'RECEIVE',
+              note: 'বেশি দেওয়া হয়েছে (দায়িত্ব ₹' + perMemberTarget.toFixed(2) + ' এর বিপরীতে)'
+            };
+          } else {
+            // যদি ঠিক মাথাপিছু দায়িত্বের সমান টাকা দিয়ে থাকেন
+            return {
+              name: m.name, paid: m.paid, share: perMemberTarget,
+              finalAmount: 0, status: 'EQUAL',
+              note: 'হিসাব একদম সমান (কোনো দেনা-পাওনা নেই)'
+            };
+          }
+        });
+      }
       return { totalGramin: totalGramin, totalMember: totalMember, totalIncome: totalIncome, totalMainExp: totalMainExp, totalGenExp: totalGenExp, totalExpense: totalExpense, netBalance: netBalance, memberCount: memberCount, finalMemberSummary: finalMemberSummary };
     }
 
@@ -3550,8 +3559,8 @@ updateCountdownDisplay();
     function generateAuditPdf() {
       var data = window.calculateAuditData();
       var year = window.appState.pujaYear || '২০২৬';
-      var statusColor = data.netBalance > 0 ? '#27ae60' : (data.netBalance === 0 ? '#f5b041' : '#c0392b');
-      var statusTitle = data.netBalance > 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : (data.netBalance === 0 ? 'ভারসাম্যপূর্ণ বাজেট (হিসাব একদম সমান): ₹ 0.00' : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2));
+     var statusColor = data.netBalance > 0 ? '#27ae60' : (data.netBalance === 0 ? '#f5b041' : '#c0392b');
+     var statusTitle = data.netBalance > 0 ? 'উদ্বৃত্ত (টাকা বেঁচেছে): + ₹' + data.netBalance.toFixed(2) : (data.netBalance === 0 ? 'ভারসাম্যপূর্ণ বাজেট (হিসাব একদম সমান): ₹ 0.00' : 'ঘাটতি (টাকা কম পড়েছে): - ₹' + Math.abs(data.netBalance).toFixed(2));
       
       var html = '<h2 style="color:#800020; text-align:center;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
                  '<h4 style="text-align:center;">কালীপূজা ' + year + ' - চূড়ান্ত অডিট রিপোর্ট</h4>' +
@@ -3592,8 +3601,8 @@ updateCountdownDisplay();
       var totalExpense = auditData.totalExpense;
       var netBalance = auditData.netBalance;
 
-     var statusColor = netBalance > 0 ? '#27ae60' : (netBalance === 0 ? '#f5b041' : '#c0392b');
-     var statusText = netBalance > 0 ? ('উদ্বৃত্ত স্থিতি: + ₹ ' + netBalance.toLocaleString('en-IN')) : (netBalance === 0 ? 'ভারসাম্যপূর্ণ স্থিতি (হিসাব সমান): ₹ 0' : ('ঘাটতি স্থিতি: - ₹ ' + Math.abs(netBalance).toLocaleString('en-IN')));
+    var statusColor = netBalance > 0 ? '#27ae60' : (netBalance === 0 ? '#f5b041' : '#c0392b');
+var statusText = netBalance > 0 ? ('উদ্বৃত্ত স্থিতি: + ₹ ' + netBalance.toLocaleString('en-IN')) : (netBalance === 0 ? 'ভারসাম্যপূর্ণ স্থিতি (হিসাব সমান): ₹ 0' : ('ঘাটতি স্থিতি: - ₹ ' + Math.abs(netBalance).toLocaleString('en-IN')));
 
       var html = '<h2 style="color:#800020; text-align:center; margin:0 0 4px 0; font-size:20px;">নিউ ঝালাপালা কমিটি (২০০২)</h2>' +
                  '<h3 style="text-align:center; margin:0 0 6px 0; color:#222; font-size:15px;">কালীপূজা ' + year + ' - পুজো শেষের সমগ্র অডিট ও পূর্ণাঙ্গ মহাফেজখানা খতিয়ান</h3>' +
